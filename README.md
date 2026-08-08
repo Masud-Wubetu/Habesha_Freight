@@ -1,8 +1,8 @@
-# Teraet - Software Requirements Specification (SRS)
+# Hulu Bedeje - Software Requirements Specification (SRS)
 
 ## 1. Introduction
 ### 1.1 Purpose
-This Software Requirements Specification (SRS) document outlines the comprehensive functional, non-functional, and structural architecture for Teraet, an on-demand home-maintenance marketplace engineered exclusively as a unified web application for the urban Ethiopian market. The platform connects urban households and offices with vetted blue-collar professionals—including certified electricians, licensed plumbers, professional painters, and specialized cleaners—accessed entirely through responsive web browser viewports.
+This Software Requirements Specification (SRS) document outlines the comprehensive functional, non-functional, and structural architecture for Hulu Bedeje, an on-demand home-maintenance marketplace engineered exclusively as a unified web application for the urban Ethiopian market. The platform connects urban households and offices with vetted blue-collar professionals—including certified electricians, licensed plumbers, professional painters, and specialized cleaners—accessed entirely through responsive web browser viewports.
 
 ### 1.2 Scope
 The system is built on a single-codebase web architecture utilizing a modern full-stack web framework (Next.js / React with Tailwind CSS) backed by a relational database and API server. It manages multi-factor authentication, Role-Based Access Control (RBAC), geospatial service discovery, booking lifecycle state machines, and administrative KYC verification within a unified web portal. Real-time online payment gateway and automated escrow integrations are explicitly excluded from this iteration due to administrative onboarding constraints.
