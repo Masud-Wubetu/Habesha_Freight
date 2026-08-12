@@ -58,6 +58,64 @@ The mobile application handles intermittent connectivity by queuing location and
 | `escrow_ledger` | Payment and payout events |
 | `audit_logs` | Security and administrative history |
 
+## 👥 Team Role Division & GitHub Contribution Structure
+
+### ⚙️ Backend Team (2 Developers)
+
+#### 1. Backend Dev 1: Core Data, Auth & Geospatial Lead
+- **Core Responsibilities:**
+  - **Database & Data Layer:** Design relational database schema (`users`, `vehicles`, `loads`, `bids`, `audit_logs`) and setup migrations/seeders.
+  - **Auth & Access Control:** Implement multi-factor OTP authentication, JWT token sessions, Argon2/bcrypt hashing, and RBAC middleware.
+  - **Geospatial Engine:** Configure PostgreSQL + PostGIS spatial queries for route & radius matching under 300ms.
+- **GitHub Contribution / Commit Prefixes:**
+  - `feat(backend/auth)`: OTP, JWT, RBAC guards & session endpoints.
+  - `feat(backend/db)`: Schema migrations, PostGIS spatial queries, database models.
+  - `feat(backend/matching)`: Corridor matching & spatial query algorithms.
+
+#### 2. Backend Dev 2: Business Logic, State Machine & Financial Ledger Lead
+- **Core Responsibilities:**
+  - **Shipment Lifecycle Engine:** Implement strict state machine transitions (`POSTED` ➔ `MATCHED` ➔ `DISPATCHED` ➔ `IN TRANSIT` ➔ `DELIVERED`).
+  - **Escrow & Payment Architecture:** Integrate local payment gateways (Chapa, Telebirr, ArifPay), manage `escrow_ledger`, and OTP release triggers.
+  - **Offline Sync & Notifications:** Develop sync endpoints for offline event queues and push notification/SMS hooks.
+- **GitHub Contribution / Commit Prefixes:**
+  - `feat(backend/shipment-state)`: State machine guards, OTP validation endpoints.
+  - `feat(backend/escrow)`: Payment webhooks, escrow locking & payout release logic.
+  - `feat(backend/sync)`: Offline queue sync controllers & WebSocket channels.
+
+---
+
+### 🎨 Frontend Team (3 Developers)
+
+#### 1. Frontend Dev 1: Shipper & Fleet Owner Portal Lead
+- **Core Responsibilities:**
+  - **Shipper Portal:** Load posting wizard, bid comparison matrix, carrier selection UI, and shipment tracking dashboard.
+  - **Fleet Workspace:** Fleet asset management, driver assignment modals, and revenue tracking table.
+  - **Escrow Checkout UI:** Payment gateway trigger modals (Chapa/Telebirr) & digital receipt display.
+- **GitHub Contribution / Commit Prefixes:**
+  - `feat(frontend/shipper)`: Load creation wizard, carrier bidding UI.
+  - `feat(frontend/fleet)`: Fleet management screens & driver assignment.
+  - `feat(frontend/payment-ui)`: Escrow funding modal & receipt generator.
+
+#### 2. Frontend Dev 2: Driver Mobile View & Offline Sync Lead
+- **Core Responsibilities:**
+  - **Driver Interface (Mobile View / PWA):** Load discovery feed, bid submission drawer, active trip view.
+  - **Verification Flow:** Pickup OTP & Delivery OTP verification input views.
+  - **Offline Resilience:** IndexedDB / LocalStorage queue management, offline indicator banner, background sync trigger.
+- **GitHub Contribution / Commit Prefixes:**
+  - `feat(frontend/driver)`: Load search feed, active trip navigation screen.
+  - `feat(frontend/otp)`: Pickup/Delivery OTP verification components.
+  - `feat(frontend/offline-cache)`: IndexedDB storage sync & offline banner.
+
+#### 3. Frontend Dev 3: Admin Portal, Design System & App Infrastructure Lead
+- **Core Responsibilities:**
+  - **Admin Operations Dashboard:** KYC verification queue, dispute resolution panel, audit logs table, system health metrics.
+  - **UI Component Library:** Reusable Tailwind / CSS UI kit (Modals, Tables, Status Badges, Maps integration wrappers).
+  - **App Architecture:** App routing, navigation shell, role-based route protection, global state management (Auth/Notification context).
+- **GitHub Contribution / Commit Prefixes:**
+  - `feat(frontend/admin)`: Admin KYC review portal & dispute ticket UI.
+  - `feat(frontend/design-system)`: Shared UI components & theme tokens.
+  - `feat(frontend/core)`: Routing, app layout shell, auth state providers.
+
 ## 🚀 Future Roadmap
 - **International Corridor:** Djibouti–Addis Ababa integration, including customs and dry-port documents.
 - **IoT Integration:** GPS tracker hardware sync for automated geofencing.
@@ -66,3 +124,4 @@ The mobile application handles intermittent connectivity by queuing location and
 
 ---
 *Version 1.0 • August 2026*
+
