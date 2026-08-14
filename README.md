@@ -1,5 +1,12 @@
 # HabeshaFreight — Digital Freight Marketplace
 
+## Group Member
+1, Masud Wubetu Hassen  CTC-6562-26
+2, Ibrahim Kedir Amdela CTC-283-26
+3, Hiba Abdulhamid Mohammed CTC-2402-26
+4, Mahlet Tadesse Gebreselasse CTC-1020-26
+5, Markon Tamirat Hailu CTC-7813-26
+
 ## 📌 Overview
 HabeshaFreight is a digital freight marketplace designed for the operational realities of Ethiopian regional road transport. It connects verified shippers with verified drivers and fleet owners, replacing fragmented phone-based coordination and multi-layer broker chains with a controlled digital workflow. 
 
