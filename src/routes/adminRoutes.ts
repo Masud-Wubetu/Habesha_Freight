@@ -7,6 +7,7 @@ import {
   activateUserController,
   analyticsController,
   approveKycController,
+  changeUserRoleController,
   dashboardController,
   deleteUserController,
   getDisputeController,
@@ -47,6 +48,7 @@ export function createAdminRouter(database: Knex = db) {
   router.get('/users', (req, res) => listUsersController(req, res, database));
   router.get('/users/:id', (req, res) => getUserController(req, res, database));
   router.patch('/users/:id', (req, res) => updateUserController(req, res, database));
+  router.patch('/users/:id/role', (req, res) => changeUserRoleController(req, res, database));
   router.post('/users/:id/suspend', (req, res) => suspendUserController(req, res, database));
   router.post('/users/:id/activate', (req, res) => activateUserController(req, res, database));
   router.delete('/users/:id', (req, res) => deleteUserController(req, res, database));

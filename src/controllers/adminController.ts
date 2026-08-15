@@ -4,6 +4,7 @@ import db from '../config/db';
 import {
   activateUser,
   approveKyc,
+  changeUserRoleByAdmin,
   deleteUserByAdmin,
   getAdminAnalytics,
   getAdminDashboard,
@@ -85,9 +86,23 @@ export async function updateUserController(req: Request, res: Response, database
     const code = toErrorCode(error);
     if (code === 'INVALID_ID') return sendError(res, 400, 'Invalid user ID.', code);
     if (code === 'USER_NOT_FOUND') return sendError(res, 404, 'User not found.', code);
-    if (code === 'PROHIBITED_FIELD') return sendError(res, 400, 'Sensitive fields cannot be updated by an admin.', code);
-    if (code === 'INVALID_ROLE') return sendError(res, 400, 'Invalid role supplied.', code);
+    if (code === 'PROHIBITED_FIELD') return sendError(res, 400, 'Attempt to modify a protected field.', code);
     return sendError(res, 500, 'Unable to update user.', code);
+  }
+}
+
+export async function changeUserRoleController(req: Request, res: Response, database: Knex = db) {
+  try {
+    const actorId = (req as { user?: { userId?: string } }).user?.userId ?? null;
+    const result = await changeUserRoleByAdmin(database, req.params.id, req.body?.role ?? '', actorId ?? '');
+    return res.status(200).json(result);
+  } catch (error) {
+    const code = toErrorCode(error);
+    if (code === 'INVALID_ID') return sendError(res, 400, 'Invalid user ID.', code);
+    if (code === 'USER_NOT_FOUND') return sendError(res, 404, 'User not found.', code);
+    if (code === 'INVALID_ROLE') return sendError(res, 400, 'Invalid role value provided.', code);
+    if (code === 'LAST_ADMIN_PROTECTION') return sendError(res, 400, 'Cannot remove or demote the final remaining administrator.', code);
+    return sendError(res, 500, 'Unable to update user role.', code);
   }
 }
 
@@ -100,6 +115,7 @@ export async function suspendUserController(req: Request, res: Response, databas
     const code = toErrorCode(error);
     if (code === 'INVALID_ID') return sendError(res, 400, 'Invalid user ID.', code);
     if (code === 'USER_NOT_FOUND') return sendError(res, 404, 'User not found.', code);
+    if (code === 'LAST_ADMIN_PROTECTION') return sendError(res, 400, 'Cannot suspend the final remaining administrator.', code);
     return sendError(res, 500, 'Unable to suspend user.', code);
   }
 }
@@ -126,6 +142,7 @@ export async function deleteUserController(req: Request, res: Response, database
     const code = toErrorCode(error);
     if (code === 'INVALID_ID') return sendError(res, 400, 'Invalid user ID.', code);
     if (code === 'USER_NOT_FOUND') return sendError(res, 404, 'User not found.', code);
+    if (code === 'LAST_ADMIN_PROTECTION') return sendError(res, 400, 'Cannot deactivate the final remaining administrator.', code);
     return sendError(res, 500, 'Unable to deactivate user.', code);
   }
 }
@@ -256,6 +273,7 @@ export async function updateLoadController(req: Request, res: Response, database
     const code = toErrorCode(error);
     if (code === 'INVALID_ID') return sendError(res, 400, 'Invalid load ID.', code);
     if (code === 'LOAD_NOT_FOUND') return sendError(res, 404, 'Load not found.', code);
+    if (code === 'PROHIBITED_FIELD') return sendError(res, 400, 'Attempt to modify a protected field.', code);
     if (code === 'LOADS_NOT_CONFIGURED') return sendError(res, 501, 'Load management is not configured in the current database schema.', code);
     return sendError(res, 500, 'Unable to update load.', code);
   }
@@ -266,7 +284,9 @@ export async function listShipmentsController(req: Request, res: Response, datab
     const result = await listShipments(database, req.query as Record<string, string>);
     return res.status(200).json(result);
   } catch (error) {
-    return sendError(res, 500, 'Unable to fetch shipments.', toErrorCode(error));
+    const code = toErrorCode(error);
+    if (code === 'SHIPMENTS_NOT_CONFIGURED') return sendError(res, 501, 'Shipments are not configured in the current database schema.', code);
+    return sendError(res, 500, 'Unable to fetch shipments.', code);
   }
 }
 
@@ -278,7 +298,7 @@ export async function getShipmentController(req: Request, res: Response, databas
     const code = toErrorCode(error);
     if (code === 'INVALID_ID') return sendError(res, 400, 'Invalid shipment ID.', code);
     if (code === 'SHIPMENT_NOT_FOUND') return sendError(res, 404, 'Shipment not found.', code);
-    if (code === 'SHIPMENTS_NOT_CONFIGURED') return sendError(res, 501, 'Shipment tracking is not configured in the current database schema.', code);
+    if (code === 'SHIPMENTS_NOT_CONFIGURED') return sendError(res, 501, 'Shipments are not configured in the current database schema.', code);
     return sendError(res, 500, 'Unable to fetch shipment.', code);
   }
 }
@@ -292,7 +312,7 @@ export async function updateShipmentController(req: Request, res: Response, data
     const code = toErrorCode(error);
     if (code === 'INVALID_ID') return sendError(res, 400, 'Invalid shipment ID.', code);
     if (code === 'SHIPMENT_NOT_FOUND') return sendError(res, 404, 'Shipment not found.', code);
-    if (code === 'SHIPMENTS_NOT_CONFIGURED') return sendError(res, 501, 'Shipment tracking is not configured in the current database schema.', code);
+    if (code === 'SHIPMENTS_NOT_CONFIGURED') return sendError(res, 501, 'Shipments are not configured in the current database schema.', code);
     return sendError(res, 500, 'Unable to update shipment.', code);
   }
 }
@@ -302,7 +322,9 @@ export async function listEscrowController(req: Request, res: Response, database
     const result = await listEscrow(database, req.query as Record<string, string>);
     return res.status(200).json(result);
   } catch (error) {
-    return sendError(res, 500, 'Unable to fetch escrow records.', toErrorCode(error));
+    const code = toErrorCode(error);
+    if (code === 'ESCROW_NOT_CONFIGURED') return sendError(res, 501, 'Escrow ledger is not configured in the current database schema.', code);
+    return sendError(res, 500, 'Unable to fetch escrow records.', code);
   }
 }
 
@@ -311,7 +333,9 @@ export async function listTransactionsController(req: Request, res: Response, da
     const result = await listTransactions(database, req.query as Record<string, string>);
     return res.status(200).json(result);
   } catch (error) {
-    return sendError(res, 500, 'Unable to fetch transactions.', toErrorCode(error));
+    const code = toErrorCode(error);
+    if (code === 'TRANSACTIONS_NOT_CONFIGURED') return sendError(res, 501, 'Transactions are not configured in the current database schema.', code);
+    return sendError(res, 500, 'Unable to fetch transactions.', code);
   }
 }
 
@@ -320,7 +344,9 @@ export async function listCommissionsController(req: Request, res: Response, dat
     const result = await listCommissions(database, req.query as Record<string, string>);
     return res.status(200).json(result);
   } catch (error) {
-    return sendError(res, 500, 'Unable to fetch commission details.', toErrorCode(error));
+    const code = toErrorCode(error);
+    if (code === 'COMMISSIONS_NOT_CONFIGURED') return sendError(res, 501, 'Commissions ledger is not configured in the current database schema.', code);
+    return sendError(res, 500, 'Unable to fetch commission details.', code);
   }
 }
 
@@ -329,7 +355,9 @@ export async function listDisputesController(req: Request, res: Response, databa
     const result = await listDisputes(database, req.query as Record<string, string>);
     return res.status(200).json(result);
   } catch (error) {
-    return sendError(res, 500, 'Unable to fetch disputes.', toErrorCode(error));
+    const code = toErrorCode(error);
+    if (code === 'DISPUTES_NOT_CONFIGURED') return sendError(res, 501, 'Disputes are not configured in the current database schema.', code);
+    return sendError(res, 500, 'Unable to fetch disputes.', code);
   }
 }
 
@@ -341,7 +369,7 @@ export async function getDisputeController(req: Request, res: Response, database
     const code = toErrorCode(error);
     if (code === 'INVALID_ID') return sendError(res, 400, 'Invalid dispute ID.', code);
     if (code === 'DISPUTE_NOT_FOUND') return sendError(res, 404, 'Dispute not found.', code);
-    if (code === 'DISPUTES_NOT_CONFIGURED') return sendError(res, 501, 'Dispute records are not configured in the current database schema.', code);
+    if (code === 'DISPUTES_NOT_CONFIGURED') return sendError(res, 501, 'Disputes are not configured in the current database schema.', code);
     return sendError(res, 500, 'Unable to fetch dispute.', code);
   }
 }
@@ -355,7 +383,7 @@ export async function resolveDisputeController(req: Request, res: Response, data
     const code = toErrorCode(error);
     if (code === 'INVALID_ID') return sendError(res, 400, 'Invalid dispute ID.', code);
     if (code === 'DISPUTE_NOT_FOUND') return sendError(res, 404, 'Dispute not found.', code);
-    if (code === 'DISPUTES_NOT_CONFIGURED') return sendError(res, 501, 'Dispute records are not configured in the current database schema.', code);
+    if (code === 'DISPUTES_NOT_CONFIGURED') return sendError(res, 501, 'Disputes are not configured in the current database schema.', code);
     return sendError(res, 500, 'Unable to resolve dispute.', code);
   }
 }
@@ -369,7 +397,7 @@ export async function rejectDisputeController(req: Request, res: Response, datab
     const code = toErrorCode(error);
     if (code === 'INVALID_ID') return sendError(res, 400, 'Invalid dispute ID.', code);
     if (code === 'DISPUTE_NOT_FOUND') return sendError(res, 404, 'Dispute not found.', code);
-    if (code === 'DISPUTES_NOT_CONFIGURED') return sendError(res, 501, 'Dispute records are not configured in the current database schema.', code);
+    if (code === 'DISPUTES_NOT_CONFIGURED') return sendError(res, 501, 'Disputes are not configured in the current database schema.', code);
     return sendError(res, 500, 'Unable to reject dispute.', code);
   }
 }
