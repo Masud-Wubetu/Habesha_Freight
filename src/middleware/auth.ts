@@ -28,9 +28,11 @@ export function authenticateToken(
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(403).json({
+    return res.status(401).json({
       success: false,
       message: 'Invalid or expired authentication token.',
+      error: { code: 'INVALID_TOKEN' },
     });
   }
 }
+

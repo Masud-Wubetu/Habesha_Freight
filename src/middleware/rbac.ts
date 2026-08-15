@@ -15,6 +15,7 @@ export function authorizeRoles(...allowedRoles: UserRole[]) {
       return res.status(401).json({
         success: false,
         message: 'Unauthorized. Please authenticate first.',
+        error: { code: 'UNAUTHORIZED' },
       });
     }
 
@@ -24,6 +25,7 @@ export function authorizeRoles(...allowedRoles: UserRole[]) {
       return res.status(403).json({
         success: false,
         message: `Forbidden. Access denied for role '${userRole}'. Required role(s): ${allowedRoles.join(', ')}.`,
+        error: { code: 'FORBIDDEN' },
       });
     }
 
