@@ -6,6 +6,7 @@ import type { Knex } from 'knex';
 
 import db from './config/db';
 import authRoutes from './routes/authRoutes';
+import vehicleRoutes from './routes/vehicleRoutes';
 import { createAdminRouter } from './routes/adminRoutes';
 
 dotenv.config();
@@ -23,6 +24,7 @@ export function createApp(database: Knex = db): Express {
   });
 
   app.use('/api/auth', authRoutes);
+  app.use('/api/vehicles', vehicleRoutes);
   app.use('/api/admin', createAdminRouter(database));
 
   app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
