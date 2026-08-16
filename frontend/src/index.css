@@ -1,0 +1,376 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap');
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  line-height: 1.6;
+  color: #1a1a1a;
+  background: #ffffff;
+}
+
+/* Color System */
+:root {
+  --navy-deep: #0B1F33;
+  --navy-dark: #070F19;
+  --navy-secondary: #132D47;
+  --gold: #C8933A;
+  --gold-highlight: #F0B84A;
+  --light-bg: #F5F7FA;
+  --white: #FFFFFF;
+}
+
+/* Typography */
+h1, h2, h3, .heading-large {
+  font-family: 'Instrument Serif', serif;
+}
+
+/* Utility Classes */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.section-padding {
+  padding: 5rem 0;
+}
+
+.text-gold {
+  color: var(--gold);
+}
+
+.text-white {
+  color: var(--white);
+}
+
+.bg-navy {
+  background-color: var(--navy-deep);
+}
+
+.bg-light {
+  background-color: var(--light-bg);
+}
+
+.bg-gold {
+  background-color: var(--gold);
+}
+
+.btn-primary {
+  display: inline-block;
+  background-color: var(--gold);
+  color: var(--white);
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  background-color: var(--gold-highlight);
+}
+
+.btn-secondary {
+  display: inline-block;
+  background-color: transparent;
+  color: var(--white);
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  border: 2px solid var(--white);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background-color: var(--white);
+  color: var(--navy-deep);
+}
+
+.btn-outline {
+  display: inline-block;
+  background-color: transparent;
+  color: var(--navy-deep);
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  border: 2px solid var(--navy-deep);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-outline:hover {
+  background-color: var(--navy-deep);
+  color: var(--white);
+}
+
+.btn-nav {
+  display: inline-block;
+  color: var(--white);
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: color 0.2s;
+  text-decoration: none;
+  background: none;
+  border: none;
+}
+
+.btn-nav:hover {
+  color: var(--gold);
+}
+
+a {
+  text-decoration: none;
+}
+/* Responsive Styles */
+
+/* Tablet - 768px to 1024px */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+  
+  .section-padding {
+    padding: 3rem 0;
+  }
+
+  /* Hero - tablet */
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+
+  .hero-title {
+    font-size: 3rem !important;
+  }
+
+  .hero-visual {
+    min-height: 200px !important;
+  }
+
+  /* Features - tablet */
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Steps - tablet */
+  .steps-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Routes - tablet */
+  .routes-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Demo - tablet */
+  .demo-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Search card - tablet */
+  .search-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* Mobile - up to 767px */
+@media (max-width: 767px) {
+  .container {
+    padding: 0 1rem;
+  }
+  
+  .section-padding {
+    padding: 2rem 0;
+  }
+
+  /* Hide desktop nav, show mobile */
+  .desktop-nav {
+    display: none !important;
+  }
+
+  .mobile-menu-btn {
+    display: block !important;
+  }
+
+  /* Hero - mobile */
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+    text-align: center;
+  }
+
+  .hero-title {
+    font-size: 2.5rem !important;
+  }
+
+  .hero-subtitle {
+    max-width: 100% !important;
+    margin: 0 auto 1.5rem auto !important;
+  }
+
+  .hero-buttons {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+  }
+
+  .hero-visual {
+    min-height: 150px !important;
+    padding: 2rem !important;
+  }
+
+  .hero-badge {
+    font-size: 0.75rem !important;
+  }
+
+  /* Search card - mobile */
+  .search-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .search-card {
+    padding: 1.5rem !important;
+    margin: -1.5rem 0 2rem 0 !important;
+  }
+
+  .search-btn {
+    width: 100% !important;
+  }
+
+  /* Steps - mobile */
+  .steps-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .steps-title {
+    font-size: 2rem !important;
+  }
+
+  /* Features - mobile */
+  .features-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .features-title {
+    font-size: 2rem !important;
+  }
+
+  /* Routes - mobile */
+  .routes-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .routes-title {
+    font-size: 2rem !important;
+  }
+
+  /* Demo - mobile */
+  .demo-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .demo-title {
+    font-size: 2rem !important;
+  }
+
+  /* Final CTA - mobile */
+  .cta-title {
+    font-size: 2rem !important;
+  }
+
+  .cta-buttons {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .cta-buttons a {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* Footer - mobile */
+  .footer-content {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 1rem !important;
+  }
+
+  .footer-languages {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  /* Navbar - mobile */
+  .navbar {
+    height: 56px !important;
+  }
+
+  .navbar-logo {
+    font-size: 1.25rem !important;
+  }
+
+  /* Buttons - mobile */
+  .btn-primary, .btn-secondary, .btn-outline {
+    padding: 0.6rem 1.5rem !important;
+    font-size: 0.95rem !important;
+  }
+
+  .btn-nav {
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.95rem !important;
+  }
+}
+
+/* Small mobile - up to 480px */
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem !important;
+  }
+
+  .hero-buttons {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+  }
+
+  .hero-buttons a {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .steps-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .routes-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .demo-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
