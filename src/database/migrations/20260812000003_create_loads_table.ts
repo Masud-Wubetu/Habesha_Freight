@@ -13,6 +13,10 @@ export async function up(knex: Knex): Promise<void> {
     table.decimal('weight_tons', 5, 2).notNullable();
     table.string('origin_city', 100).notNullable();
     table.string('destination_city', 100).notNullable();
+    table.double('origin_lat').notNullable();
+    table.double('origin_lng').notNullable();
+    table.double('destination_lat').notNullable();
+    table.double('destination_lng').notNullable();
     table
       .enum('status', [
         'POSTED',
@@ -28,17 +32,11 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamps(true, true);
   });
 
-  // Add PostGIS Geography geometry columns for origin and destination coordinates
-  await knex.raw(
-    `ALTER TABLE loads ADD COLUMN origin_geom geography(Point, 4326);`
-  );
-  await knex.raw(
-    `ALTER TABLE loads ADD COLUMN destination_geom geography(Point, 4326);`
-  );
-  
-  // Spatial Index for sub-300ms spatial corridor matching queries
-  await knex.raw(`CREATE INDEX loads_origin_geom_idx ON loads USING GIST(origin_geom);`);
-  await knex.raw(`CREATE INDEX loads_destination_geom_idx ON loads USING GIST(destination_geom);`);
+  // Create composite index for sub-300ms geospatial radius queries
+  await knex.schema.alterTable('loads', (table) => {
+    table.index(['origin_lat', 'origin_lng'], 'loads_origin_coords_idx');
+    table.index(['destination_lat', 'destination_lng'], 'loads_dest_coords_idx');
+  });
 }
 
 export async function down(knex: Knex): Promise<void> {
