@@ -33,7 +33,7 @@ export async function seed(knex: Knex): Promise<void> {
     })
     .returning('*');
 
-  const [admin] = await knex('users')
+  await knex('users')
     .insert({
       full_name: 'System Administrator',
       phone_number: '+251900000000',
@@ -41,8 +41,7 @@ export async function seed(knex: Knex): Promise<void> {
       password_hash: defaultPassword,
       role: 'ADMIN',
       is_verified: true,
-    })
-    .returning('*');
+    });
 
   // Insert Vehicle
   await knex('vehicles').insert({
@@ -53,22 +52,20 @@ export async function seed(knex: Knex): Promise<void> {
     is_active: true,
   });
 
-  // Insert Demo Freight Load with PostGIS Geometries for Addis Ababa -> Hawassa Corridor
-  await knex.raw(`
-    INSERT INTO loads (
-      shipper_id, cargo_description, weight_tons, origin_city, destination_city, status, offered_price_etb, origin_geom, destination_geom
-    ) VALUES (
-      '${shipper.id}',
-      'Construction Cement Bags (500 Bags)',
-      25.00,
-      'Addis Ababa',
-      'Hawassa',
-      'POSTED',
-      45000.00,
-      ST_SetSRID(ST_MakePoint(38.7578, 8.9806), 4326)::geography,
-      ST_SetSRID(ST_MakePoint(38.4763, 7.0621), 4326)::geography
-    );
-  `);
+  // Insert Demo Freight Load for Addis Ababa -> Hawassa Corridor
+  await knex('loads').insert({
+    shipper_id: shipper.id,
+    cargo_description: 'Construction Cement Bags (500 Bags)',
+    weight_tons: 25.0,
+    origin_city: 'Addis Ababa',
+    destination_city: 'Hawassa',
+    origin_lat: 8.9806,
+    origin_lng: 38.7578,
+    destination_lat: 7.0621,
+    destination_lng: 38.4763,
+    status: 'POSTED',
+    offered_price_etb: 45000.0,
+  });
 
   console.log('✅ Demo seed data successfully populated.');
 }

@@ -1,18 +1,56 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+function getAuthHeaders(): Record<string, string> {
+  const token = localStorage.getItem('authToken');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
+async function handleResponse<T>(response: Response): Promise<T> {
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const errorMsg = data?.message || `API Request failed with status ${response.status}`;
+    throw new Error(errorMsg);
+  }
+  return data as T;
+}
+
 export const api = {
   get: async <T>(endpoint: string): Promise<T> => {
-    const response = await fetch(`${API_URL}${endpoint}`);
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return response.json();
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<T>(response);
   },
-  post: async <T>(endpoint: string, data?: unknown): Promise<T> => {
+
+  post: async <T>(endpoint: string, body?: unknown): Promise<T> => {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: data ? JSON.stringify(data) : undefined,
+      headers: getAuthHeaders(),
+      body: body ? JSON.stringify(body) : undefined,
     });
-    if (!response.ok) throw new Error(`API Error: ${response.status}`);
-    return response.json();
+    return handleResponse<T>(response);
+  },
+
+  patch: async <T>(endpoint: string, body?: unknown): Promise<T> => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return handleResponse<T>(response);
+  },
+
+  delete: async <T>(endpoint: string): Promise<T> => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return handleResponse<T>(response);
   },
 };

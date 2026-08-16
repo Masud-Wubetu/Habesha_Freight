@@ -9,9 +9,15 @@ export async function testDbConnection(): Promise<boolean> {
     await db.raw('SELECT 1+1 AS result');
     console.log('✅ PostgreSQL Connection established successfully.');
     
-    // Ensure PostGIS extension is available
-    await db.raw('CREATE EXTENSION IF NOT EXISTS postgis;');
-    console.log('✅ PostGIS spatial extension enabled.');
+    // Attempt to enable PostGIS spatial extension if installed on system
+    try {
+      await db.raw('CREATE EXTENSION IF NOT EXISTS postgis;');
+      console.log('✅ PostGIS spatial extension enabled.');
+    } catch (spatialErr) {
+      console.warn(
+        '⚠️ PostGIS extension not installed on system PostgreSQL server. Spatial fallback active.'
+      );
+    }
     return true;
   } catch (error) {
     console.error('❌ Database connection failure:', error);
