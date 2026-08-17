@@ -41,7 +41,7 @@ export async function loginWithPhone(
 }
 
 export async function fetchCurrentUser(): Promise<AuthUser> {
-  const response = await api.get<ApiResponse<AuthUser>>('/auth/me', true);
+  const response = await api.get<ApiResponse<AuthUser>>('/auth/me');
   persistSession(getStoredToken() ?? '', response.data);
   return response.data;
 }
@@ -50,7 +50,7 @@ export async function updateUserProfile(data: {
   full_name?: string;
   email?: string;
 }): Promise<AuthUser> {
-  const response = await api.patch<ApiResponse<AuthUser>>('/auth/profile', data, true);
+  const response = await api.patch<ApiResponse<AuthUser>>('/auth/profile', data);
   const token = getStoredToken();
   if (token) persistSession(token, response.data);
   return response.data;
@@ -58,7 +58,7 @@ export async function updateUserProfile(data: {
 
 export async function logoutUser(): Promise<void> {
   try {
-    await api.post('/auth/logout', undefined, true);
+    await api.post('/auth/logout', undefined);
   } finally {
     clearSession();
   }

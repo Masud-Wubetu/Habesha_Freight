@@ -12,7 +12,7 @@ interface DeliveryHistoryItem {
 }
 
 const DeliveryHistory: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm] = useState('');
 
   // Mock data - replace with API data later
   const deliveries: DeliveryHistoryItem[] = [

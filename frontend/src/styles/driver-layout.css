@@ -82,7 +82,7 @@
   font-size: 1.15rem;
   font-weight: 800;
   color: #ffffff;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
   letter-spacing: -0.01em;
 }
 
@@ -90,7 +90,7 @@
   font-size: 1.15rem;
   font-weight: 800;
   color: #c8933a;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
   letter-spacing: -0.01em;
 }
 
@@ -98,7 +98,7 @@
   font-size: 0.73rem;
   color: rgba(255, 255, 255, 0.4);
   margin: 0;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
 }
 
 /* ── Nav ─────────────────────────────────────────────────── */
@@ -121,7 +121,7 @@
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.92rem;
   font-weight: 500;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
   transition: background 0.15s, color 0.15s;
   cursor: pointer;
 }
@@ -172,7 +172,7 @@
   color: #ffffff;
   font-weight: 700;
   font-size: 0.85rem;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,7 +191,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
 }
 
 .dl-user-meta {
@@ -201,7 +201,7 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
 }
 
 .dl-star-icon {
@@ -218,7 +218,7 @@
   border: none;
   color: rgba(255, 255, 255, 0.4);
   font-size: 0.82rem;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
   cursor: pointer;
   text-align: left;
   padding: 0;
@@ -317,7 +317,7 @@
   font-size: 0.95rem;
   font-weight: 600;
   color: #0b1f33;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
   flex: 1;
 }
 
@@ -327,7 +327,7 @@
   font-weight: 800;
   color: #0b1f33;
   text-decoration: none;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
   display: flex;
   gap: 0.1rem;
   margin-left: auto;

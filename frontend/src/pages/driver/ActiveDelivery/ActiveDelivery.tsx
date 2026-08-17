@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getStoredUser } from '../../../services/authService';
 import '../../../styles/active-delivery.css';
 
@@ -59,7 +59,7 @@ function formatDate() {
 
 /* ── Main component ──────────────────────────────────────── */
 export default function ActiveDelivery() {
-  const user     = useNavigate ? getStoredUser() : null; // eslint-disable-line
+
   const navigate = useNavigate();
   const storedUser = getStoredUser();
 

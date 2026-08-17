@@ -25,7 +25,7 @@
 }
 
 .dr-header-left h1 {
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 1.55rem;
   font-weight: 700;
   color: #0b1f33;
@@ -57,7 +57,7 @@
   font-size: 0.82rem;
   font-weight: 600;
   color: #1a7c42;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   cursor: default;
   transition: box-shadow 0.2s;
 }
@@ -109,7 +109,7 @@
   color: #ffffff;
   font-weight: 700;
   font-size: 0.82rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -140,7 +140,7 @@
 .dr-filter-select {
   appearance: none;
   -webkit-appearance: none;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 0.88rem;
   font-weight: 500;
   color: #0b1f33;
@@ -199,7 +199,7 @@
 }
 
 .dr-route {
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 1.15rem;
   font-weight: 700;
   color: #0b1f33;
@@ -224,7 +224,7 @@
   border: 1px solid #fecaca;
   font-size: 0.72rem;
   font-weight: 700;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   padding: 0.2rem 0.6rem;
   border-radius: 0.35rem;
   letter-spacing: 0.02em;
@@ -239,7 +239,7 @@
 }
 
 .dr-price {
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 1.55rem;
   font-weight: 800;
   color: #c8933a;
@@ -259,7 +259,7 @@
   font-size: 0.88rem;
   color: #475569;
   margin: 0.1rem 0 0.2rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
 }
 
 .dr-cargo-details span {
@@ -291,7 +291,7 @@
   color: #ffffff;
   border: none;
   border-radius: 0.65rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -317,7 +317,7 @@
   color: #16a34a;
   border: 1.5px solid #bbf0cd;
   border-radius: 0.65rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -400,7 +400,7 @@
 }
 
 .dr-modal h2 {
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
   color: #0b1f33;
@@ -419,7 +419,7 @@
   color: #475569;
   margin: 0 0 0.4rem;
   display: block;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
 }
 
 .dr-modal-input-group {
@@ -445,7 +445,7 @@
   color: #475569;
   background: #f1f5f9;
   border-right: 1.5px solid #e2e8f0;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   white-space: nowrap;
 }
 
@@ -457,7 +457,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: #0b1f33;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   outline: none;
 }
 
@@ -484,7 +484,7 @@
   border-radius: 0.65rem;
   padding: 0.7rem 0.85rem;
   font-size: 0.88rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   color: #0b1f33;
   background: #f8fafc;
   resize: vertical;
@@ -514,7 +514,7 @@
   color: #475569;
   border: 1px solid #e2e8f0;
   border-radius: 0.65rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -532,7 +532,7 @@
   color: #ffffff;
   border: none;
   border-radius: 0.65rem;
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -560,7 +560,7 @@
 }
 
 .dr-empty h3 {
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 1.15rem;
   font-weight: 600;
   color: #0b1f33;
