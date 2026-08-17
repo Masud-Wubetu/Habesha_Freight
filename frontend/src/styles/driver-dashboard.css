@@ -11,7 +11,7 @@
   min-height: 100vh;
   background: #f0f2f5;
   padding: 1.5rem;
-  font-family: 'Inter', 'DM Sans', sans-serif;
+  font-family: 'Inter', Inter, sans-serif;
   max-width: 1040px;
   margin: 0 auto;
   display: flex;
