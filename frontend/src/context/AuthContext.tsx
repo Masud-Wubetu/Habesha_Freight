@@ -1,4 +1,5 @@
-import { createContext, ReactNode, useState, useEffect, useCallback } from 'react';
+
+import { createContext, ReactNode, useState, useEffect, useCallback  , useContext} from 'react';
 import { api } from '../services/api';
 
 export interface User {
@@ -97,10 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    api.post('/auth/logout').catch(() => {});
-    localStorage.removeItem('authToken');
     setToken(null);
     setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   return (
@@ -108,4 +109,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }
