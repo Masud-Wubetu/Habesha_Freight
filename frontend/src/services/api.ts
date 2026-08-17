@@ -1,54 +1,55 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-function authHeaders(includeAuth: boolean): HeadersInit {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (includeAuth) {
-    const token = localStorage.getItem('hf_token');
-    if (token) headers.Authorization = `Bearer ${token}`;
+function getAuthHeaders(): Record<string, string> {
+  const token = localStorage.getItem('authToken');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
   return headers;
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
-  const body = await response.json().catch(() => ({}));
+  const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message =
-      typeof body.message === 'string' ? body.message : `API Error: ${response.status}`;
-    throw new Error(message);
+    const errorMsg = data?.message || `API Request failed with status ${response.status}`;
+    throw new Error(errorMsg);
   }
-  return body as T;
+  return data as T;
 }
 
 export const api = {
-  get: async <T>(endpoint: string, auth = false): Promise<T> => {
+  get: async <T>(endpoint: string): Promise<T> => {
     const response = await fetch(`${API_URL}${endpoint}`, {
-      headers: authHeaders(auth),
+      headers: getAuthHeaders(),
     });
     return handleResponse<T>(response);
   },
 
-  post: async <T>(endpoint: string, data?: unknown, auth = false): Promise<T> => {
+  post: async <T>(endpoint: string, body?: unknown): Promise<T> => {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'POST',
-      headers: authHeaders(auth),
-      body: data ? JSON.stringify(data) : undefined,
+      headers: getAuthHeaders(),
+      body: body ? JSON.stringify(body) : undefined,
     });
     return handleResponse<T>(response);
   },
 
-  patch: async <T>(endpoint: string, data?: unknown, auth = false): Promise<T> => {
+  patch: async <T>(endpoint: string, body?: unknown): Promise<T> => {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'PATCH',
-      headers: authHeaders(auth),
-      body: data ? JSON.stringify(data) : undefined,
+      headers: getAuthHeaders(),
+      body: body ? JSON.stringify(body) : undefined,
     });
     return handleResponse<T>(response);
   },
 
-  delete: async <T>(endpoint: string, auth = false): Promise<T> => {
+  delete: async <T>(endpoint: string): Promise<T> => {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'DELETE',
-      headers: authHeaders(auth),
+      headers: getAuthHeaders(),
     });
     return handleResponse<T>(response);
   },
