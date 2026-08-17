@@ -1,7 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('authToken') || localStorage.getItem('hf_token');
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -21,14 +21,14 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
-  get: async <T>(endpoint: string): Promise<T> => {
+  get: async <T>(endpoint: string, _requireAuth?: boolean): Promise<T> => {
     const response = await fetch(`${API_URL}${endpoint}`, {
       headers: getAuthHeaders(),
     });
     return handleResponse<T>(response);
   },
 
-  post: async <T>(endpoint: string, body?: unknown): Promise<T> => {
+  post: async <T>(endpoint: string, body?: unknown, _requireAuth?: boolean): Promise<T> => {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -37,7 +37,7 @@ export const api = {
     return handleResponse<T>(response);
   },
 
-  patch: async <T>(endpoint: string, body?: unknown): Promise<T> => {
+  patch: async <T>(endpoint: string, body?: unknown, _requireAuth?: boolean): Promise<T> => {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
@@ -46,7 +46,7 @@ export const api = {
     return handleResponse<T>(response);
   },
 
-  delete: async <T>(endpoint: string): Promise<T> => {
+  delete: async <T>(endpoint: string, _requireAuth?: boolean): Promise<T> => {
     const response = await fetch(`${API_URL}${endpoint}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
