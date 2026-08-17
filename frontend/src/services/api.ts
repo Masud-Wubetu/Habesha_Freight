@@ -1,7 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('authToken') || localStorage.getItem('hf_token');
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };

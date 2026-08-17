@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './layouts/MainLayout';
 import DriverLayout from './layouts/DriverLayout';
@@ -16,14 +16,24 @@ import Tracking from './pages/Tracking';
 import Fleet from './pages/Fleet';
 import Payments from './pages/Payments';
 
-// Driver pages
-import DriverDashboard from './pages/driver/Dashboard/DriverDashboard';
-import IncomingRequests from './pages/driver/Requests/IncomingRequests';
-import AvailableLoads from './pages/driver/Requests/AvailableLoads';
-import ActiveDelivery from './pages/driver/ActiveDelivery/ActiveDelivery';
-import DeliveryHistory from './pages/driver/History/DeliveryHistory';
-import DriverRatings from './pages/driver/Ratings/DriverRatings';
-import DriverInfo from './pages/driver/Profile/DriverInfo';
+// Driver pages (imported from clean modular barrel export)
+import {
+  DriverDashboard,
+  IncomingRequests,
+  AvailableLoads,
+  RequestDetails,
+  ActiveDelivery,
+  DeliveryDetails,
+  BidHistory,
+  SubmitBid,
+  DeliveryHistory,
+  LiveTracking,
+  DriverRatings,
+  DriverMessages,
+  DriverInfo,
+  DriverLicense,
+  DriverSettings,
+} from './pages/driver';
 
 function App() {
   return (
@@ -35,6 +45,39 @@ function App() {
         }}
       >
         <Routes>
+          {/* ── Driver portal routes ── */}
+          <Route
+            path="/driver/*"
+            element={
+              <DriverLayout>
+                <Routes>
+                  <Route index element={<DriverDashboard />} />
+                  <Route path="dashboard" element={<DriverDashboard />} />
+                  <Route path="requests" element={<IncomingRequests />} />
+                  <Route path="requests/loads" element={<AvailableLoads />} />
+                  <Route path="requests/:id" element={<RequestDetails />} />
+                  <Route path="bids" element={<BidHistory />} />
+                  <Route path="bids/history" element={<BidHistory />} />
+                  <Route path="bids/submit" element={<SubmitBid />} />
+                  <Route path="active-delivery" element={<ActiveDelivery />} />
+                  <Route path="active-delivery/:id" element={<DeliveryDetails />} />
+                  <Route path="deliveries/active" element={<ActiveDelivery />} />
+                  <Route path="deliveries/tracking" element={<LiveTracking />} />
+                  <Route path="deliveries/history" element={<DeliveryHistory />} />
+                  <Route path="history" element={<DeliveryHistory />} />
+                  <Route path="history/tracking" element={<LiveTracking />} />
+                  <Route path="ratings" element={<DriverRatings />} />
+                  <Route path="messages" element={<DriverMessages />} />
+                  <Route path="profile" element={<DriverInfo />} />
+                  <Route path="profile/info" element={<DriverInfo />} />
+                  <Route path="profile/license" element={<DriverLicense />} />
+                  <Route path="profile/settings" element={<DriverSettings />} />
+                  <Route path="*" element={<Navigate to="dashboard" replace />} />
+                </Routes>
+              </DriverLayout>
+            }
+          />
+
           {/* ── Public / shipper routes (use MainLayout) ── */}
           <Route
             path="/*"
@@ -53,26 +96,9 @@ function App() {
                   <Route path="/tracking" element={<Tracking />} />
                   <Route path="/fleet" element={<Fleet />} />
                   <Route path="/payments" element={<Payments />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Layout>
-            }
-          />
-
-          {/* ── Driver portal (use DriverLayout with sidebar) ── */}
-          <Route
-            path="/driver/*"
-            element={
-              <DriverLayout>
-                <Routes>
-                  <Route path="dashboard"       element={<DriverDashboard />} />
-                  <Route path="requests"        element={<IncomingRequests />} />
-                  <Route path="requests/loads"  element={<AvailableLoads />} />
-                  <Route path="active-delivery" element={<ActiveDelivery />} />
-                  <Route path="history"         element={<DeliveryHistory />} />
-                  <Route path="ratings"         element={<DriverRatings />} />
-                  <Route path="profile"         element={<DriverInfo />} />
-                </Routes>
-              </DriverLayout>
             }
           />
         </Routes>

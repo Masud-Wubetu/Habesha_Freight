@@ -1,5 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getStoredUser } from '../services/authService';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -7,6 +8,7 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const user = getStoredUser();
 
   return (
     <div>
@@ -45,30 +47,49 @@ export default function MainLayout({ children }: MainLayoutProps) {
             alignItems: 'center', 
             gap: '1.5rem'
           }}>
-            <div style={{ display: 'flex', gap: '1.5rem' }}>
-              <Link to="/" className="btn-nav">How It Works</Link>
-              <Link to="/" className="btn-nav">Features</Link>
-              <Link to="/" className="btn-nav">Routes</Link>
+            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+              <a href="/#search" className="btn-nav">Find Trucks</a>
+              <a href="/#how-it-works" className="btn-nav">How It Works</a>
+              <Link to="/driver/dashboard" className="btn-nav" style={{ color: '#C8933A', fontWeight: 600 }}>
+                🚛 Driver Portal
+              </Link>
             </div>
             
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <Link to="/login" className="btn-nav">Log In</Link>
-              <Link to="/register" style={{
-                display: 'inline-block',
-                backgroundColor: '#C8933A',
-                color: '#FFFFFF',
-                padding: '0.5rem 1.5rem',
-                borderRadius: '0.5rem',
-                fontWeight: '500',
-                fontFamily: 'DM Sans, sans-serif',
-                transition: 'background-color 0.2s',
-                textDecoration: 'none'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F0B84A'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#C8933A'}
-              >
-                Register
-              </Link>
+              {user ? (
+                <Link to={user.role === 'DRIVER' ? '/driver/dashboard' : '/dashboard'} style={{
+                  display: 'inline-block',
+                  backgroundColor: '#C8933A',
+                  color: '#FFFFFF',
+                  padding: '0.5rem 1.25rem',
+                  borderRadius: '0.5rem',
+                  fontWeight: '500',
+                  fontFamily: 'DM Sans, sans-serif',
+                  textDecoration: 'none'
+                }}>
+                  Dashboard ({user.full_name.split(' ')[0]})
+                </Link>
+              ) : (
+                <>
+                  <Link to="/login" className="btn-nav">Log In</Link>
+                  <Link to="/register" style={{
+                    display: 'inline-block',
+                    backgroundColor: '#C8933A',
+                    color: '#FFFFFF',
+                    padding: '0.5rem 1.5rem',
+                    borderRadius: '0.5rem',
+                    fontWeight: '500',
+                    fontFamily: 'DM Sans, sans-serif',
+                    transition: 'background-color 0.2s',
+                    textDecoration: 'none'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F0B84A'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#C8933A'}
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
 
@@ -97,25 +118,35 @@ export default function MainLayout({ children }: MainLayoutProps) {
             borderTop: '1px solid rgba(255,255,255,0.05)'
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <Link to="/" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>How It Works</Link>
-              <Link to="/" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>Features</Link>
-              <Link to="/" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>Routes</Link>
-              <Link to="/login" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>Log In</Link>
-              <Link to="/register" style={{
-                display: 'inline-block',
-                backgroundColor: '#C8933A',
-                color: '#FFFFFF',
-                padding: '0.5rem 1.5rem',
-                borderRadius: '0.5rem',
-                fontWeight: '500',
-                fontFamily: 'DM Sans, sans-serif',
-                textAlign: 'center',
-                textDecoration: 'none'
-              }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Register
+              <a href="/#search" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>Find Trucks</a>
+              <a href="/#how-it-works" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>How It Works</a>
+              <Link to="/driver/dashboard" className="btn-nav" style={{ color: '#C8933A', fontWeight: 600 }} onClick={() => setIsMobileMenuOpen(false)}>
+                🚛 Driver Portal
               </Link>
+              {user ? (
+                <Link to={user.role === 'DRIVER' ? '/driver/dashboard' : '/dashboard'} className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>
+                  My Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link to="/login" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>Log In</Link>
+                  <Link to="/register" style={{
+                    display: 'inline-block',
+                    backgroundColor: '#C8933A',
+                    color: '#FFFFFF',
+                    padding: '0.5rem 1.5rem',
+                    borderRadius: '0.5rem',
+                    fontWeight: '500',
+                    fontFamily: 'DM Sans, sans-serif',
+                    textAlign: 'center',
+                    textDecoration: 'none'
+                  }}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

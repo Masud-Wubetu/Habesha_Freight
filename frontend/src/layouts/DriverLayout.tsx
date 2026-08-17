@@ -8,10 +8,13 @@ interface DriverLayoutProps {
 }
 
 const NAV_ITEMS = [
-  { path: '/driver/dashboard',        icon: '🏠', label: 'Dashboard'       },
+  { path: '/driver/dashboard',        icon: '📊', label: 'Dashboard'       },
+  { path: '/driver/requests/loads',   icon: '📦', label: 'Available Loads' },
   { path: '/driver/requests',         icon: '🔍', label: 'Requests'        },
+  { path: '/driver/bids',             icon: '💰', label: 'My Bids'         },
   { path: '/driver/active-delivery',  icon: '🚛', label: 'Active Delivery' },
   { path: '/driver/history',          icon: '🗂️', label: 'History'         },
+  { path: '/driver/messages',         icon: '💬', label: 'Messages'        },
   { path: '/driver/ratings',          icon: '⭐', label: 'Ratings'         },
   { path: '/driver/profile',          icon: '👤', label: 'Profile'         },
 ];
@@ -91,7 +94,7 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
             <NavLink
               key={item.path}
               to={item.path}
-              end={item.path === '/driver/dashboard'}
+              end={item.path === '/driver/dashboard' || item.path === '/driver/requests'}
               className={({ isActive }) =>
                 `dl-nav-item ${isActive ? 'dl-nav-item--active' : ''}`
               }
@@ -100,6 +103,13 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
               <span className="dl-nav-label">{item.label}</span>
             </NavLink>
           ))}
+          
+          <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.08)', margin: '0.5rem 0' }} />
+
+          <Link to="/" className="dl-nav-item">
+            <span className="dl-nav-icon">🌐</span>
+            <span className="dl-nav-label">Main Landing Page</span>
+          </Link>
         </nav>
 
         {/* User footer */}
@@ -112,7 +122,7 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
               <p className="dl-user-name">{user?.full_name ?? 'Abebe Girma'}</p>
               <p className="dl-user-meta">
                 <span className="dl-star-icon">⭐</span>
-                4.8 · <span className="dl-verified">Verified</span>
+                4.8 · <span className="dl-verified">Verified Driver</span>
               </p>
             </div>
           </div>
@@ -159,10 +169,15 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
 
           <span className="dl-topbar-title">{currentPage}</span>
 
-          <Link to="/driver/dashboard" className="dl-topbar-brand">
-            <span>Habesha</span>
-            <span className="dl-brand-freight">Freight</span>
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto' }}>
+            <Link to="/" style={{ fontSize: '0.85rem', color: '#c8933a', textDecoration: 'none', fontWeight: 500 }}>
+              Landing Page 🌐
+            </Link>
+            <Link to="/driver/dashboard" className="dl-topbar-brand">
+              <span>Habesha</span>
+              <span className="dl-brand-freight">Freight</span>
+            </Link>
+          </div>
         </header>
 
         <main className="dl-content">
