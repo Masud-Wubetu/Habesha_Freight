@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../../../styles/driver-dashboard.css';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -76,6 +77,7 @@ const today = new Date().toLocaleDateString('en-US', {
 
 // ── Component ─────────────────────────────────────────────────────────────
 const DriverDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [jobStatus, setJobStatus] = useState<JobStatus>(ACTIVE_JOB.status);
   const [isOnline, setIsOnline] = useState(true);
 
@@ -103,19 +105,11 @@ const DriverDashboard: React.FC = () => {
           </button>
 
           <button
-            id="dd-dark-mode-btn"
-            className="dd-icon-btn"
-            type="button"
-            aria-label="Toggle dark mode"
-          >
-            🌙
-          </button>
-
-          <button
             id="dd-profile-btn"
             className="dd-avatar-btn"
             type="button"
             aria-label="Profile"
+            onClick={() => navigate('/driver/profile')}
           >
             AG
           </button>
@@ -124,25 +118,25 @@ const DriverDashboard: React.FC = () => {
 
       {/* ── Stat cards ─────────────────────────────────────────────────── */}
       <section className="dd-stats-grid" aria-label="Statistics">
-        <article className="dd-stat-card">
+        <article className="dd-stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/driver/bids')}>
           <div className="dd-stat-icon dd-stat-icon--amber">💰</div>
           <p className="dd-stat-value">ETB 8,500</p>
           <p className="dd-stat-label">This Month</p>
         </article>
 
-        <article className="dd-stat-card">
+        <article className="dd-stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/driver/active-delivery')}>
           <div className="dd-stat-icon dd-stat-icon--blue">🚛</div>
           <p className="dd-stat-value">1</p>
           <p className="dd-stat-label">Active Jobs</p>
         </article>
 
-        <article className="dd-stat-card">
+        <article className="dd-stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/driver/history')}>
           <div className="dd-stat-icon dd-stat-icon--green">✅</div>
           <p className="dd-stat-value">142</p>
           <p className="dd-stat-label">Total Trips</p>
         </article>
 
-        <article className="dd-stat-card">
+        <article className="dd-stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/driver/ratings')}>
           <div className="dd-stat-icon dd-stat-icon--gold">🏅</div>
           <p className="dd-stat-value">
             4.8 <span className="dd-star">⭐</span>
@@ -173,6 +167,7 @@ const DriverDashboard: React.FC = () => {
             id="dd-navigation-btn"
             className="dd-action-btn dd-action-btn--dark"
             type="button"
+            onClick={() => navigate('/driver/history/tracking')}
           >
             📍 Navigation
           </button>
@@ -180,6 +175,7 @@ const DriverDashboard: React.FC = () => {
             id="dd-manage-delivery-btn"
             className="dd-action-btn dd-action-btn--gold"
             type="button"
+            onClick={() => navigate('/driver/active-delivery')}
           >
             🚚 Manage Delivery
           </button>
@@ -194,6 +190,7 @@ const DriverDashboard: React.FC = () => {
             id="dd-view-all-loads-btn"
             className="dd-link-btn"
             type="button"
+            onClick={() => navigate('/driver/requests/loads')}
           >
             View all
           </button>
@@ -201,7 +198,12 @@ const DriverDashboard: React.FC = () => {
 
         <ul className="dd-load-list">
           {AVAILABLE_LOADS.map((load) => (
-            <li key={load.id} className="dd-load-item">
+            <li
+              key={load.id}
+              className="dd-load-item"
+              style={{ cursor: 'pointer' }}
+              onClick={() => navigate(`/driver/requests/${load.id}`)}
+            >
               <div className="dd-load-icon">📦</div>
               <div className="dd-load-info">
                 <p className="dd-load-route">

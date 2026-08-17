@@ -55,12 +55,12 @@ export default function Home() {
                 HabeshaFreight helps shippers find suitable trucks and move cargo efficiently across Ethiopia. Connect with trusted carriers and get your goods delivered safely.
               </p>
               
-              <div className="hero-buttons" style={{ display: 'flex', gap: '1rem' }}>
+              <div className="hero-buttons" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                 <a href="#search" className="btn-primary" style={{ fontSize: '1.125rem' }}>
                   Find a Truck
                 </a>
-                <a href="#search" className="btn-secondary" style={{ fontSize: '1.125rem' }}>
-                  Post a Shipment
+                <a href="/driver/dashboard" className="btn-secondary" style={{ fontSize: '1.125rem', backgroundColor: '#C8933A', color: '#FFFFFF', borderColor: '#C8933A' }}>
+                  🚛 Driver Portal
                 </a>
               </div>
             </div>
@@ -79,9 +79,9 @@ export default function Home() {
               textAlign: 'center'
             }}>
               <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>🚛</div>
-              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1.125rem' }}>
-                Truck Illustration<br />
-                <span style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.4)' }}>Coming Soon</span>
+              <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.125rem', fontWeight: 600 }}>
+                Ethiopian Logistics Network<br />
+                <span style={{ fontSize: '0.875rem', color: '#C8933A', fontWeight: 400 }}>Real-Time Load Matching &amp; Fleet Management</span>
               </p>
             </div>
           </div>
@@ -101,7 +101,7 @@ export default function Home() {
       </section>
 
       {/* 3. HOW HABESHAFREIGHT WORKS */}
-      <section className="bg-light section-padding">
+      <section id="how-it-works" className="bg-light section-padding">
         <div className="container" style={{ textAlign: 'center' }}>
           <h2 className="steps-title" style={{
             fontFamily: 'Instrument Serif, serif',
@@ -204,6 +204,74 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 5.5 FOR DRIVERS & CARRIERS SECTION */}
+      <section className="section-padding" style={{ backgroundColor: '#0B1F33', color: '#FFFFFF', borderTop: '1px solid rgba(200, 147, 58, 0.2)' }}>
+        <div className="container">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem', alignItems: 'center' }}>
+            <div>
+              <span style={{ color: '#C8933A', fontWeight: 600, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                For Truckers &amp; Drivers
+              </span>
+              <h2 style={{ fontFamily: 'Instrument Serif, serif', fontSize: '3rem', marginTop: '0.5rem', marginBottom: '1.5rem', color: '#FFFFFF' }}>
+                Keep Your Truck Loaded.<br /><span style={{ color: '#C8933A' }}>Maximize Earnings.</span>
+              </h2>
+              <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1.1rem', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+                Access thousands of verified cargo loads across Ethiopia. Submit instant bids, track active deliveries, receive milestone payments, and build your transport reputation.
+              </p>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <a href="/driver/dashboard" style={{
+                  display: 'inline-block',
+                  backgroundColor: '#C8933A',
+                  color: '#FFFFFF',
+                  padding: '0.75rem 1.75rem',
+                  borderRadius: '0.5rem',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  transition: 'background 0.2s'
+                }}>
+                  Open Driver Dashboard →
+                </a>
+                <a href="/driver/requests/loads" style={{
+                  display: 'inline-block',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  color: '#FFFFFF',
+                  padding: '0.75rem 1.75rem',
+                  borderRadius: '0.5rem',
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  border: '1px solid rgba(255,255,255,0.2)'
+                }}>
+                  Browse Available Loads
+                </a>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📦</div>
+                <h4 style={{ color: '#FFFFFF', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Instant Load Matching</h4>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem' }}>Find shipments along your return route to avoid empty backhauls.</p>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚡</div>
+                <h4 style={{ color: '#FFFFFF', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Fast Bidding</h4>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem' }}>Submit transparent rate quotes and get confirmed directly by shippers.</p>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📍</div>
+                <h4 style={{ color: '#FFFFFF', marginBottom: '0.5rem', fontSize: '1.1rem' }}>GPS &amp; Milestones</h4>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem' }}>Update progress with single-tap checkpoint confirmations.</p>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💳</div>
+                <h4 style={{ color: '#FFFFFF', marginBottom: '0.5rem', fontSize: '1.1rem' }}>Guaranteed Payouts</h4>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem' }}>Escrow-backed payment protection upon proof of delivery.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 6. TRY THE DEMO */}
       <section className="bg-light section-padding">
         <div className="container" style={{ textAlign: 'center' }}>
@@ -228,7 +296,7 @@ export default function Home() {
             <DemoCard 
               title="Driver Dashboard"
               description="Find loads &amp; manage trips"
-              route="/fleet"
+              route="/driver/dashboard"
             />
             <DemoCard 
               title="Admin Dashboard"
@@ -268,7 +336,7 @@ export default function Home() {
             >
               Register as Shipper
             </a>
-            <a href="/register" style={{
+            <a href="/driver/dashboard" style={{
               display: 'inline-block',
               backgroundColor: '#FFFFFF',
               color: '#070F19',
@@ -282,7 +350,7 @@ export default function Home() {
             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F5F7FA'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFFFFF'}
             >
-              Register as Driver
+              Open Driver Portal 🚛
             </a>
           </div>
         </div>
