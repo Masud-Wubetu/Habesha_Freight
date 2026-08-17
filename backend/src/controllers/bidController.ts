@@ -1,6 +1,16 @@
 import { Response } from 'express';
+import crypto from 'crypto';
 import db from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
+
+/**
+ * Helper to generate 6-digit OTP and SHA-256 hash
+ */
+function generateOtpAndHash(): { otp: string; hash: string } {
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const hash = crypto.createHash('sha256').update(otp).digest('hex');
+  return { otp, hash };
+}
 
 /**
  * Place a bid on a load (POST /api/bids)
@@ -8,7 +18,7 @@ import { AuthenticatedRequest } from '../middleware/auth';
 export async function placeBid(req: AuthenticatedRequest, res: Response) {
   try {
     const driverId = req.user?.userId;
-    const { load_id, bid_amount_etb } = req.body;
+    const { load_id, vehicle_id, bid_amount_etb } = req.body;
 
     if (!load_id || !bid_amount_etb) {
       return res.status(400).json({
@@ -32,10 +42,30 @@ export async function placeBid(req: AuthenticatedRequest, res: Response) {
       });
     }
 
+    // Capacity & Verification check
+    if (vehicle_id) {
+      const vehicle = await db('vehicles').where({ id: vehicle_id }).first();
+      if (!vehicle) {
+        return res.status(404).json({
+          success: false,
+          message: 'Vehicle not found.',
+        });
+      }
+
+      if (Number(vehicle.capacity_tons) < Number(load.weight_tons)) {
+        return res.status(400).json({
+          success: false,
+          error: 'VEHICLE_OVER_CAPACITY',
+          message: `Vehicle capacity (${vehicle.capacity_tons} tons) is insufficient for load weight (${load.weight_tons} tons).`,
+        });
+      }
+    }
+
     const [newBid] = await db('bids')
       .insert({
         load_id,
         driver_id: driverId,
+        vehicle_id: vehicle_id || null,
         bid_amount_etb,
         status: 'PENDING',
       })
@@ -95,7 +125,11 @@ export async function updateBidStatus(req: AuthenticatedRequest, res: Response) 
       .update({ status, updated_at: db.fn.now() })
       .returning('*');
 
-    // If bid is ACCEPTED, update load status to MATCHED and reject other pending bids
+    let createdShipment = null;
+    let pickupOtp = null;
+    let deliveryOtp = null;
+
+    // If bid is ACCEPTED, update load status to MATCHED and create Shipment + OTPs + Escrow Ledger
     if (status === 'ACCEPTED') {
       await db('loads').where({ id: bid.load_id }).update({
         status: 'MATCHED',
@@ -106,12 +140,52 @@ export async function updateBidStatus(req: AuthenticatedRequest, res: Response) 
         .where({ load_id: bid.load_id })
         .whereNot({ id })
         .update({ status: 'REJECTED', updated_at: db.fn.now() });
+
+      // Generate Pickup and Delivery OTPs
+      const pickupData = generateOtpAndHash();
+      const deliveryData = generateOtpAndHash();
+      pickupOtp = pickupData.otp;
+      deliveryOtp = deliveryData.otp;
+
+      // Create Shipment record
+      const [shipment] = await db('shipments')
+        .insert({
+          load_id: load.id,
+          carrier_id: bid.driver_id,
+          vehicle_id: bid.vehicle_id || null,
+          status: 'ASSIGNED',
+          pickup_otp_hash: pickupData.hash,
+          delivery_otp_hash: deliveryData.hash,
+        })
+        .returning('*');
+
+      createdShipment = shipment;
+
+      // Create Escrow Ledger entry
+      const gross = Number(bid.bid_amount_etb);
+      const commission = gross * 0.05; // 5% platform commission
+      const net = gross - commission;
+
+      await db('escrow_ledger').insert({
+        shipment_id: shipment.id,
+        payer_id: load.shipper_id,
+        beneficiary_id: bid.driver_id,
+        gross_amount_etb: gross,
+        commission_amount_etb: commission,
+        net_payout_amount_etb: net,
+        idempotency_key: `ESCROW-${shipment.id}`,
+        status: 'PENDING',
+      });
     }
 
     return res.status(200).json({
       success: true,
       message: `Bid status updated to ${status}.`,
-      data: updatedBid,
+      data: {
+        bid: updatedBid,
+        shipment: createdShipment,
+        otps: status === 'ACCEPTED' ? { pickupOtp, deliveryOtp } : undefined,
+      },
     });
   } catch (error) {
     console.error('Update Bid Status Error:', error);
