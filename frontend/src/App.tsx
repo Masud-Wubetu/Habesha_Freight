@@ -41,6 +41,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminDrivers from './pages/admin/AdminDrivers';
 import AdminCompanies from './pages/admin/AdminCompanies';
 import AdminVehicles from './pages/admin/AdminVehicles';
+import AdminDeliveries from './pages/admin/AdminDeliveries';
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
             <Route path="/admin/drivers" element={<AdminDrivers />} />
             <Route path="/admin/companies" element={<AdminCompanies />} />
             <Route path="/admin/vehicles" element={<AdminVehicles />} />
+            <Route path="/admin/deliveries" element={<AdminDeliveries />} />
             <Route path="/admin/*" element={<AdminDashboard />} />
 
             {/* ── Driver portal routes ── */}
