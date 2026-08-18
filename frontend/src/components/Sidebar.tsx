@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 type DashboardSection = 'dashboard' | 'find-truck' | 'requests' | 'deliveries' | 'history' | 'ratings' | 'profile';
