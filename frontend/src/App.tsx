@@ -1,30 +1,43 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-// Remove ThemeProvider - it's not being used
-// import { ThemeProvider } from './context/ThemeContext';
-import Layout from "./layouts/MainLayout";
-import DriverLayout from "./layouts/DriverLayout";
-import CompanyLayout from "./layouts/CompanyLayout";
+// // import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+// // import { AuthProvider } from './context/AuthContext';
+// // import { ThemeProvider } from './context/ThemeContext';
+// // import Layout from './layouts/MainLayout';
+// // import DriverLayout from './layouts/DriverLayout';
+// // import CompanyLayout from './layouts/CompanyLayout';
 
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import VerifyOTP from "./pages/VerifyOTP";
-import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile";
-import Shipments from "./pages/Shipments";
-import CreateShipment from "./pages/CreateShipment";
-import Bids from "./pages/Bids";
-import Tracking from "./pages/Tracking";
-import Fleet from "./pages/Fleet";
-import Payments from "./pages/Payments";
-// Remove .tsx extensions from imports
-import CompanyDashboard from "./pages/Transport-company/CompanyDashboard";
-import FleetRequests from "./pages/Transport-company/FleetRequests";
-import Deliveries from "./pages/Transport-company/Deliveries";
-import Vehicles from "./pages/Transport-company/Vehicles";
-import Drivers from "./pages/Transport-company/Drivers";
+// import Home from './pages/Home';
+// import Login from './pages/Login';
+// import Register from './pages/Register';
+// import VerifyOTP from './pages/VerifyOTP';
+// import Dashboard from './pages/Dashboard';
+// import Profile from './pages/Profile';
+// import Shipments from './pages/Shipments';
+// import CreateShipment from './pages/CreateShipment';
+// import Bids from './pages/Bids';
+// import Tracking from './pages/Tracking';
+// import Fleet from './pages/Fleet';
+// import Payments from './pages/Payments';
+<<<<<<<<< Temporary merge branch 1
+// Transport Company pages (imported from clean modular barrel export)
+import {
+  CompanyDashboard,
+  FleetRequests,
+  Deliveries,
+  Vehicles,
+  Drivers,
+  CompanyProfile,
+  CompanyRatings,
+  CompanySettings,
+} from './pages/Transport-company';
+=========
 
+import CompanyDashboard from './pages/Transport-company/Dashboard/CompanyDashboard';
+import FleetRequests from './pages/Transport-company/FleetRequests/FleetRequests';
+import Deliveries from './pages/Transport-company/Deliveries/Deliveries';
+import Vehicles from './pages/Transport-company/Vehicles/Vehicles';
+import Drivers from './pages/Transport-company/Drivers/Drivers';
+
+>>>>>>>>> Temporary merge branch 2
 // Driver pages (imported from clean modular barrel export)
 import {
   DriverDashboard,
@@ -44,16 +57,15 @@ import {
   DriverSettings,
 } from "./pages/driver";
 
-// Remove unused admin imports
-// import AdminDashboard from './pages/admin/AdminDashboard';
-// import AdminUsers from './pages/admin/AdminUsers';
-// import AdminDrivers from './pages/admin/AdminDrivers';
-// import AdminCompanies from './pages/admin/AdminCompanies';
-// import AdminVehicles from './pages/admin/AdminVehicles';
-// import AdminDeliveries from './pages/admin/AdminDeliveries';
-// import AdminVerification from './pages/admin/AdminVerification';
-// import AdminPayments from './pages/admin/AdminPayments';
-// import AdminDisputes from './pages/admin/AdminDisputes';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminDrivers from './pages/admin/AdminDrivers';
+import AdminCompanies from './pages/admin/AdminCompanies';
+import AdminVehicles from './pages/admin/AdminVehicles';
+import AdminDeliveries from './pages/admin/AdminDeliveries';
+import AdminVerification from './pages/admin/AdminVerification';
+import AdminPayments from './pages/admin/AdminPayments';
+import AdminDisputes from './pages/admin/AdminDisputes';
 
 function App() {
   return (
@@ -118,12 +130,42 @@ function App() {
             element={
               <CompanyLayout>
                 <Routes>
-                  <Route index element={<Navigate to="dashboard" replace />} />
-                  <Route path="dashboard" element={<CompanyDashboard />} />
-                  <Route path="fleet-requests" element={<FleetRequests />} />
-                  <Route path="deliveries" element={<Deliveries />} />
-                  <Route path="vehicles" element={<Vehicles />} />
-                  <Route path="drivers" element={<Drivers />} />
+                  <Route
+                    index
+                    element={<Navigate to="dashboard" replace />}
+                  />
+                  <Route
+                    path="dashboard"
+                    element={<CompanyDashboard />}
+                  />
+                  <Route
+                    path="fleet-requests"
+                    element={<FleetRequests />}
+                  />
+                  <Route
+                    path="deliveries"
+                    element={<Deliveries />}
+                  />
+                  <Route
+                    path="vehicles"
+                    element={<Vehicles />}
+                  />
+                  <Route
+                    path="drivers"
+                    element={<Drivers />}
+                  />
+                  <Route
+                    path="company-profile"
+                    element={<CompanyProfile />}
+                  />
+                  <Route
+                    path="ratings"
+                    element={<CompanyRatings />}
+                  />
+                  <Route
+                    path="settings"
+                    element={<CompanySettings />}
+                  />
                   <Route
                     path="*"
                     element={<Navigate to="dashboard" replace />}
