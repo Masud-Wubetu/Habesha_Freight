@@ -1,0 +1,114 @@
+.deliveries-page {
+  width: 100%;
+  min-height: 100%;
+  background: #f1f3f6;
+  padding: 24px 28px;
+  box-sizing: border-box;
+}
+
+.deliveries-card {
+  background: #ffffff;
+  border: 1px solid #e3e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(11, 31, 51, 0.05);
+}
+
+.deliveries-card h2 {
+  margin: 0;
+  padding: 22px 24px;
+  font-size: 20px;
+  color: #0b1f33;
+}
+
+.deliveries-table-wrapper {
+  overflow-x: auto;
+}
+
+.deliveries-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.deliveries-table th,
+.deliveries-table td {
+  text-align: left;
+  padding: 13px 18px;
+  border-top: 1px solid #edf0f3;
+  white-space: nowrap;
+}
+
+.deliveries-table th {
+  background: #f8f9fb;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5f7388;
+}
+
+.deliveries-table td {
+  font-size: 14px;
+  color: #39526c;
+}
+
+.delivery-amount {
+  color: #0b1f33 !important;
+  font-weight: 600;
+}
+
+.delivery-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.delivery-status.pending {
+  background: #fff1b8;
+  color: #ac7600;
+}
+
+.delivery-status.accepted {
+  background: #dce9ff;
+  color: #2563c7;
+}
+
+.delivery-status.progress {
+  background: #f0ddff;
+  color: #8c18dc;
+}
+
+.delivery-status.completed {
+  background: #d7f7e2;
+  color: #069448;
+}
+
+.delivery-view {
+  border: none;
+  background: transparent;
+  color: #2464d0;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 3px 0;
+}
+
+.delivery-view:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .deliveries-page {
+    padding: 18px;
+  }
+
+  .deliveries-card h2 {
+    padding: 18px 20px;
+    font-size: 18px;
+  }
+
+  .deliveries-table th,
+  .deliveries-table td {
+    padding: 12px 15px;
+  }
+}
