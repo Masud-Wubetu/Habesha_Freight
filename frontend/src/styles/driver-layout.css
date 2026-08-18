@@ -1,0 +1,371 @@
+/* ============================================================
+   Driver Sidebar Layout  –  driver-layout.css
+   Hamburger toggles sidebar on ALL screen sizes.
+   ============================================================ */
+
+/* ── Layout shell ────────────────────────────────────────── */
+.dl-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f0f2f5;
+  position: relative;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.dl-sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: #0a1929;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 400;
+  /* Hidden by default — slides in from left */
+  transform: translateX(-100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.dl-sidebar--open {
+  transform: translateX(0);
+  box-shadow: 6px 0 24px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Brand header inside sidebar ─────────────────────────── */
+.dl-brand {
+  padding: 1.1rem 1.1rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  position: relative;
+}
+
+.dl-sidebar-close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  background: rgba(255, 255, 255, 0.07);
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.dl-sidebar-close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.dl-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  margin-bottom: 0.3rem;
+}
+
+.dl-brand-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.dl-brand-habesha {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: 'Inter', Inter, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.dl-brand-freight {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #c8933a;
+  font-family: 'Inter', Inter, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.dl-brand-sub {
+  font-size: 0.73rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+  font-family: 'Inter', Inter, sans-serif;
+}
+
+/* ── Nav ─────────────────────────────────────────────────── */
+.dl-nav {
+  flex: 1;
+  padding: 1rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  overflow-y: auto;
+}
+
+.dl-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.68rem 0.9rem;
+  border-radius: 0.65rem;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.92rem;
+  font-weight: 500;
+  font-family: 'Inter', Inter, sans-serif;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+}
+
+.dl-nav-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dl-nav-item--active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.dl-nav-icon {
+  font-size: 1.1rem;
+  width: 1.4rem;
+  text-align: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.dl-nav-label {
+  flex: 1;
+}
+
+/* ── User footer ─────────────────────────────────────────── */
+.dl-footer {
+  padding: 1rem 1rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.dl-user-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dl-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #c8933a;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  font-family: 'Inter', Inter, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dl-user-info {
+  min-width: 0;
+}
+
+.dl-user-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Inter', Inter, sans-serif;
+}
+
+.dl-user-meta {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: 'Inter', Inter, sans-serif;
+}
+
+.dl-star-icon {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.dl-verified {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dl-logout-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.82rem;
+  font-family: 'Inter', Inter, sans-serif;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.dl-logout-btn:hover {
+  color: #c8933a;
+}
+
+/* ── Backdrop (dims content when sidebar open on mobile) ─── */
+.dl-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  border: none;
+  z-index: 350;
+  cursor: pointer;
+}
+
+/* ── Main content area ───────────────────────────────────── */
+.dl-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  /* Shifts right when sidebar is open on desktop */
+  margin-left: 0;
+  transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Top bar — ALWAYS visible on all screen sizes ────────── */
+.dl-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1.25rem;
+  height: 56px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(11, 31, 51, 0.07);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 1px 4px rgba(11, 31, 51, 0.06);
+}
+
+/* ── Animated hamburger button ───────────────────────────── */
+.dl-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.dl-hamburger:hover {
+  background: rgba(11, 31, 51, 0.06);
+}
+
+.dl-hamburger-bar {
+  display: block;
+  width: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: #0b1f33;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity   0.25s ease,
+              width     0.25s ease;
+  transform-origin: center;
+}
+
+/* Animate bars into ✕ when open */
+.dl-hamburger--open .dl-hamburger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.dl-hamburger--open .dl-hamburger-bar:nth-child(2) {
+  opacity: 0;
+  width: 0;
+}
+.dl-hamburger--open .dl-hamburger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* Page title in topbar */
+.dl-topbar-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0b1f33;
+  font-family: 'Inter', Inter, sans-serif;
+  flex: 1;
+}
+
+/* Brand in topbar (right-aligned on small screens) */
+.dl-topbar-brand {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0b1f33;
+  text-decoration: none;
+  font-family: 'Inter', Inter, sans-serif;
+  display: flex;
+  gap: 0.1rem;
+  margin-left: auto;
+}
+
+.dl-content {
+  flex: 1;
+}
+
+/* ── Desktop: push main content when sidebar is open ─────── */
+@media (min-width: 769px) {
+  .dl-layout--sidebar-open .dl-main {
+    margin-left: 260px;
+  }
+
+  /* No backdrop on desktop */
+  .dl-backdrop {
+    display: none !important;
+  }
+
+  /* Hide the topbar brand (sidebar brand is visible) */
+  .dl-topbar-brand {
+    display: none;
+  }
+}
+
+/* ── Mobile: full-width backdrop, no margin shift ────────── */
+@media (max-width: 768px) {
+  .dl-layout--sidebar-open .dl-backdrop,
+  .dl-layout--sidebar-closed .dl-backdrop {
+    /* controlled by React conditional render */
+  }
+
+  .dl-backdrop {
+    display: block;
+  }
+
+  .dl-main {
+    margin-left: 0 !important;
+  }
+}

@@ -1,5 +1,5 @@
 
-import { createContext, ReactNode, useState, useEffect, useCallback } from 'react';
+import { createContext, ReactNode, useState, useEffect, useCallback  , useContext} from 'react';
 import { api } from '../services/api';
 
 export interface User {
