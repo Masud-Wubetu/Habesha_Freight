@@ -9,7 +9,16 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "migrate": "knex migrate:latest",
     "seed": "knex seed:run",
-    "test": "node -r ts-node/register --test src/__tests__/*.test.ts"
+    "test": "node -r ts-node/register --test src/__tests__/*.test.ts",
+    "test:db": "NODE_ENV=test npx tsx --test \"src/__tests__/integration/*.test.ts\"",
+    "test:all": "./test-summary.sh",
+    "test:unit": "NODE_ENV=test npx tsx --test src/__tests__/unit/**/*.test.ts",
+    "test:summary": "bash test-summary.sh",
+    "test:coverage": "node run-coverage.js",
+    "db:reset": "bash scripts/setup-test-db.sh",
+    "db:setup": "bash scripts/setup-test-db.sh",
+    "test:clean": "./run-tests-clean.sh",
+    "test:watch": "NODE_ENV=test npx tsx --watch --test src/__tests__/integration/*.test.ts"
   },
   "keywords": [
     "freight",
@@ -37,6 +46,8 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.7",
     "@types/pg": "^8.11.5",
+    "c8": "^12.0.0",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.23.12",
     "typescript": "^5.4.5"

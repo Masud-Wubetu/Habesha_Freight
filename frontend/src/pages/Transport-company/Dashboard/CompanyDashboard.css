@@ -1,0 +1,380 @@
+/* ============================================================
+   Company Dashboard  –  CompanyDashboard.css
+   Matches the provided UI mockup precisely.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── Page wrapper ── */
+
+* {
+  font-family: 'Inter', sans-serif;
+}
+
+.co-dash {
+  padding: 2rem 2.5rem;
+  min-height: 100vh;
+  background: #f4f6f9;
+
+  box-sizing: border-box;
+}
+
+/* ── Header row ── */
+.co-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.co-title {
+  ;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #0b1f33;
+  margin: 0 0 0.2rem;
+  line-height: 1.2;
+}
+
+.co-date {
+  font-size: 0.82rem;
+  color: #7a8a9b;
+  margin: 0;
+}
+
+.co-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+}
+
+.co-pending-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  background: #fff8ed;
+  border: 1px solid #f5c87a;
+  border-radius: 2rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #b07a1a;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.15s;
+}
+
+.co-pending-btn:hover {
+  background: #fef0d3;
+}
+
+.co-icon-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #e4e8ee;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.15s;
+}
+
+.co-icon-btn:hover {
+  background: #f0f2f5;
+}
+
+.co-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #c8933a;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Stats grid  (4 columns × 2 rows) ── */
+.co-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.1rem;
+  margin-bottom: 1.75rem;
+}
+
+.co-stat-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1.35rem 1.4rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.co-stat-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+
+.co-stat-value {
+  font-size: 1.95rem;
+  font-weight: 700;
+  color: #0b1f33;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.co-star {
+  font-size: 1.4rem;
+}
+
+.co-stat-label {
+  font-size: 0.8rem;
+  color: #7a8a9b;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+/* icon accent colors */
+.stat-blue {
+  color: #3b82f6;
+}
+
+.stat-green {
+  color: #22c55e;
+}
+
+.stat-orange {
+  color: #f97316;
+}
+
+.stat-purple {
+  color: #a855f7;
+}
+
+.stat-star {
+  color: #eab308;
+}
+
+/* ── Bottom two-column grid ── */
+.co-bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+/* ── Cards (Fleet Requests & Fleet Status) ── */
+.co-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  padding: 1.35rem 1.5rem;
+}
+
+.co-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.1rem;
+}
+
+.co-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0b1f33;
+  margin: 0;
+}
+
+.co-view-all {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #c8933a;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.co-view-all:hover {
+  color: #a67329;
+  text-decoration: underline;
+}
+
+/* ── List rows ── */
+.co-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.co-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #f0f2f5;
+  gap: 1rem;
+}
+
+.co-list-row:last-child {
+  border-bottom: none;
+}
+
+.co-list-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.co-list-main {
+  font-size: 0.9rem;
+  color: #0b1f33;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.co-req-id {
+  color: #0b1f33;
+  font-weight: 500;
+}
+
+.co-req-trucks {
+  color: #c8933a;
+  font-weight: 600;
+}
+
+.co-vehicle-plate {
+  font-weight: 600;
+  color: #0b1f33;
+}
+
+.co-list-sub {
+  font-size: 0.8rem;
+  color: #7a8a9b;
+}
+
+.co-unassigned {
+  color: #f97316;
+  font-weight: 500;
+}
+
+/* ── Status badges ── */
+.co-badge {
+  padding: 0.3rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badge-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-accepted {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-inprogress {
+  background: #fce7f3;
+  color: #9d174d;
+}
+
+.badge-available {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-intransit {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-maintenance {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+/* ── Dark mode ── */
+.co-dash--dark {
+  background: #0b1829;
+}
+
+.co-dash--dark .co-title {
+  color: #f1f5f9;
+}
+
+.co-dash--dark .co-date {
+  color: #94a3b8;
+}
+
+.co-dash--dark .co-stat-card,
+.co-dash--dark .co-card {
+  background: #132238;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+}
+
+.co-dash--dark .co-stat-value,
+.co-dash--dark .co-card-title,
+.co-dash--dark .co-list-main,
+.co-dash--dark .co-req-id,
+.co-dash--dark .co-vehicle-plate {
+  color: #f1f5f9;
+}
+
+.co-dash--dark .co-stat-label,
+.co-dash--dark .co-list-sub {
+  color: #64748b;
+}
+
+.co-dash--dark .co-list-row {
+  border-bottom-color: #1e3a5f;
+}
+
+.co-dash--dark .co-icon-btn {
+  background: #132238;
+  border-color: #1e3a5f;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .co-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .co-dash {
+    padding: 1.25rem 1rem;
+  }
+
+  .co-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .co-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .co-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
