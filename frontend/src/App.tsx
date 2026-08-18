@@ -24,6 +24,7 @@ import {
   Drivers,
   CompanyProfile,
   CompanyRatings,
+  CompanySettings,
 } from './pages/Transport-company';
 // Driver pages (imported from clean modular barrel export)
 import {
@@ -123,6 +124,10 @@ function App() {
                   <Route
                     path="ratings"
                     element={<CompanyRatings />}
+                  />
+                  <Route
+                    path="settings"
+                    element={<CompanySettings />}
                   />
                   <Route
                     path="*"
