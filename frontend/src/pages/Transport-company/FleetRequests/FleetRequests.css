@@ -6,10 +6,10 @@
 }
 
 .fr-content {
-  padding: 24px 28px 35px;
+  padding: 20px 28px 28px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 
 /* =========================
@@ -20,7 +20,7 @@
   background: #fff;
   border: 1px solid #e1e6eb;
   border-radius: 14px;
-  padding: 20px 24px;
+  padding: 18px 22px;
   box-shadow: 0 2px 6px rgba(11, 31, 51, 0.05);
 }
 
@@ -32,26 +32,26 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 20px;
+  gap: 18px;
 }
 
 .fr-title-row {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
 }
 
 .fr-title-row h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
   font-weight: 700;
   color: #0b1f33;
 }
 
 .fr-customer {
-  margin: 8px 0 0;
-  font-size: 15px;
+  margin: 6px 0 0;
+  font-size: 14px;
   color: #526981;
 }
 
@@ -68,18 +68,18 @@
   text-align: right;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .fr-price strong {
-  font-size: 19px;
+  font-size: 18px;
   line-height: 1.1;
   color: #0b1f33;
   font-weight: 800;
 }
 
 .fr-price span {
-  font-size: 14px;
+  font-size: 13px;
   color: #617489;
 }
 
@@ -91,9 +91,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 10px;
+  padding: 4px 9px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -127,26 +127,26 @@
 ========================= */
 
 .fr-details-grid {
-  margin-top: 20px;
+  margin-top: 16px;
   display: grid;
   grid-template-columns: 1.2fr 1fr 0.9fr;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
 }
 
 .fr-detail {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
   color: #425d76;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .fr-detail-icon {
-  width: 20px;
+  width: 18px;
   flex-shrink: 0;
-  font-size: 17px;
+  font-size: 15px;
 }
 
 /* =========================
@@ -156,8 +156,8 @@
 .fr-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 20px;
+  gap: 10px;
+  margin-top: 16px;
 }
 
 .fr-actions-two {
@@ -170,10 +170,10 @@
 }
 
 .fr-btn {
-  min-height: 48px;
-  border-radius: 13px;
-  padding: 0 22px;
-  font-size: 15px;
+  min-height: 42px;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-size: 14px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -212,13 +212,13 @@
 }
 
 .fr-btn-small {
-  min-width: 145px;
+  min-width: 125px;
 }
 
 .fr-declined-message {
-  margin-top: 16px;
+  margin-top: 12px;
   color: #b82020;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* =========================
@@ -238,11 +238,11 @@
 @media (max-width: 700px) {
   .fr-content {
     padding: 16px;
-    gap: 14px;
+    gap: 12px;
   }
 
   .fr-request-card {
-    padding: 18px;
+    padding: 16px;
   }
 
   .fr-card-top {
@@ -255,8 +255,8 @@
 
   .fr-details-grid {
     grid-template-columns: 1fr;
-    gap: 13px;
-    margin-top: 16px;
+    gap: 11px;
+    margin-top: 14px;
   }
 
   .fr-detail:last-child {
