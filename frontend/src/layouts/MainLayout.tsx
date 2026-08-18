@@ -1,5 +1,6 @@
 import { ReactNode, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -7,12 +8,18 @@ interface MainLayoutProps {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const isDashboard = location.pathname === '/dashboard';
+  const { theme, toggleTheme } = useTheme();
+
+  if (isDashboard) {
+    return <div>{children}</div>;
+  }
 
   return (
-    <div>
-      {/* Navbar */}
+    <div className={`main-layout ${theme}`}>
       <header className="navbar" style={{ 
-        backgroundColor: '#0B1F33', 
+        backgroundColor: theme === 'dark' ? '#070F19' : '#0B1F33',
         height: '64px',
         position: 'sticky',
         top: 0,
@@ -24,36 +31,44 @@ export default function MainLayout({ children }: MainLayoutProps) {
           justifyContent: 'space-between', 
           alignItems: 'center', 
           height: '100%',
-          padding: '0 2rem'
+          padding: '0 1.5rem'
         }}>
-          {/* Logo */}
           <Link to="/" className="navbar-logo" style={{ 
-            fontSize: '1.5rem', 
+            fontSize: '1.25rem', 
             fontWeight: '700',
             fontFamily: 'DM Sans, sans-serif',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.25rem'
+            gap: '0.25rem',
+            flexShrink: 0
           }}>
+            <span style={{ fontSize: '1.25rem' }}>🚚</span>
             <span style={{ color: '#FFFFFF' }}>Habesha</span>
             <span style={{ color: '#C8933A' }}>Freight</span>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="desktop-nav" style={{ 
             display: 'flex', 
             alignItems: 'center', 
             gap: '1.5rem'
           }}>
             <div style={{ display: 'flex', gap: '1.5rem' }}>
-              <Link to="/" className="btn-nav">How It Works</Link>
-              <Link to="/" className="btn-nav">Features</Link>
-              <Link to="/" className="btn-nav">Routes</Link>
+              <a href="/#how-it-works" className="btn-nav">How It Works</a>
+              <a href="/#features" className="btn-nav">Features</a>
+              <a href="/#routes" className="btn-nav">Routes</a>
             </div>
             
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <button
+                onClick={toggleTheme}
+                className="btn-nav"
+                style={{ fontSize: '1.2rem', padding: '0.25rem 0.5rem' }}
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? '☀️' : '🌙'}
+              </button>
               <Link to="/login" className="btn-nav">Log In</Link>
-              <Link to="/register" style={{
+              <Link to="/register" className="btn-register" style={{
                 display: 'inline-block',
                 backgroundColor: '#C8933A',
                 color: '#FFFFFF',
@@ -72,36 +87,82 @@ export default function MainLayout({ children }: MainLayoutProps) {
             </div>
           </nav>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="mobile-menu-btn"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            style={{
-              display: 'none',
-              background: 'none',
-              border: 'none',
-              color: '#FFFFFF',
-              fontSize: '1.5rem',
-              cursor: 'pointer'
-            }}
-          >
-            ☰
-          </button>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem'
+          }}>
+            <button
+              onClick={toggleTheme}
+              className="btn-nav"
+              style={{ 
+                fontSize: '1.2rem', 
+                padding: '0.25rem 0.5rem',
+                background: 'none',
+                border: 'none',
+                color: '#FFFFFF',
+                cursor: 'pointer'
+              }}
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+            
+            <button
+              className="mobile-menu-btn"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#FFFFFF',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                padding: '0.25rem 0.5rem',
+                display: 'block'
+              }}
+            >
+              ☰
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div style={{
-            backgroundColor: '#0B1F33',
-            padding: '1rem 2rem',
-            borderTop: '1px solid rgba(255,255,255,0.05)'
+            backgroundColor: theme === 'dark' ? '#070F19' : '#0B1F33',
+            padding: '1rem 1.5rem',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.75rem'
           }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <Link to="/" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>How It Works</Link>
-              <Link to="/" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>Features</Link>
-              <Link to="/" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>Routes</Link>
-              <Link to="/login" className="btn-nav" onClick={() => setIsMobileMenuOpen(false)}>Log In</Link>
-              <Link to="/register" style={{
+            <a 
+              href="/#how-it-works" 
+              className="btn-nav" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{ color: '#FFFFFF', textDecoration: 'none', padding: '0.5rem 0' }}
+            >
+              How It Works
+            </a>
+            <a 
+              href="/#features" 
+              className="btn-nav" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{ color: '#FFFFFF', textDecoration: 'none', padding: '0.5rem 0' }}
+            >
+              Features
+            </a>
+            <Link 
+              to="/login" 
+              className="btn-nav" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{ color: '#FFFFFF', textDecoration: 'none', padding: '0.5rem 0' }}
+            >
+              Log In
+            </Link>
+            <Link 
+              to="/register" 
+              onClick={() => setIsMobileMenuOpen(false)}
+              style={{
                 display: 'inline-block',
                 backgroundColor: '#C8933A',
                 color: '#FFFFFF',
@@ -110,18 +171,17 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 fontWeight: '500',
                 fontFamily: 'DM Sans, sans-serif',
                 textAlign: 'center',
-                textDecoration: 'none'
+                textDecoration: 'none',
+                alignSelf: 'flex-start',
+                marginTop: '0.25rem'
               }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Register
-              </Link>
-            </div>
+            >
+              Register
+            </Link>
           </div>
         )}
       </header>
 
-      {/* Main Content */}
       <main>{children}</main>
     </div>
   );
