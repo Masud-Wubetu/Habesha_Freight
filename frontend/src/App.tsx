@@ -38,73 +38,99 @@ import {
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
-        <Routes>
-          {/* ── Driver portal routes ── */}
-          <Route
-            path="/driver/*"
-            element={
-              <DriverLayout>
-                <Routes>
-                  <Route index element={<DriverDashboard />} />
-                  <Route path="dashboard" element={<DriverDashboard />} />
-                  <Route path="requests" element={<IncomingRequests />} />
-                  <Route path="requests/loads" element={<AvailableLoads />} />
-                  <Route path="requests/:id" element={<RequestDetails />} />
-                  <Route path="bids" element={<BidHistory />} />
-                  <Route path="bids/history" element={<BidHistory />} />
-                  <Route path="bids/submit" element={<SubmitBid />} />
-                  <Route path="active-delivery" element={<ActiveDelivery />} />
-                  <Route path="active-delivery/:id" element={<DeliveryDetails />} />
-                  <Route path="deliveries/active" element={<ActiveDelivery />} />
-                  <Route path="deliveries/tracking" element={<LiveTracking />} />
-                  <Route path="deliveries/history" element={<DeliveryHistory />} />
-                  <Route path="history" element={<DeliveryHistory />} />
-                  <Route path="history/tracking" element={<LiveTracking />} />
-                  <Route path="ratings" element={<DriverRatings />} />
-                  <Route path="messages" element={<DriverMessages />} />
-                  <Route path="profile" element={<DriverInfo />} />
-                  <Route path="profile/info" element={<DriverInfo />} />
-                  <Route path="profile/license" element={<DriverLicense />} />
-                  <Route path="profile/settings" element={<DriverSettings />} />
-                  <Route path="*" element={<Navigate to="dashboard" replace />} />
-                </Routes>
-              </DriverLayout>
-            }
-          />
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <Routes>
+            {/* ── Driver portal routes ── */}
+            <Route
+              path="/driver/*"
+              element={
+                <DriverLayout>
+                  <Routes>
+                    <Route index element={<DriverDashboard />} />
+                    <Route path="dashboard" element={<DriverDashboard />} />
+                    <Route path="requests" element={<IncomingRequests />} />
+                    <Route path="requests/loads" element={<AvailableLoads />} />
+                    <Route path="requests/:id" element={<RequestDetails />} />
+                    <Route path="bids" element={<BidHistory />} />
+                    <Route path="bids/history" element={<BidHistory />} />
+                    <Route path="bids/submit" element={<SubmitBid />} />
+                    <Route
+                      path="active-delivery"
+                      element={<ActiveDelivery />}
+                    />
+                    <Route
+                      path="active-delivery/:id"
+                      element={<DeliveryDetails />}
+                    />
+                    <Route
+                      path="deliveries/active"
+                      element={<ActiveDelivery />}
+                    />
+                    <Route
+                      path="deliveries/tracking"
+                      element={<LiveTracking />}
+                    />
+                    <Route
+                      path="deliveries/history"
+                      element={<DeliveryHistory />}
+                    />
+                    <Route path="history" element={<DeliveryHistory />} />
+                    <Route path="history/tracking" element={<LiveTracking />} />
+                    <Route path="ratings" element={<DriverRatings />} />
+                    <Route path="messages" element={<DriverMessages />} />
+                    <Route path="profile" element={<DriverInfo />} />
+                    <Route path="profile/info" element={<DriverInfo />} />
+                    <Route path="profile/license" element={<DriverLicense />} />
+                    <Route
+                      path="profile/settings"
+                      element={<DriverSettings />}
+                    />
+                    <Route
+                      path="*"
+                      element={<Navigate to="dashboard" replace />}
+                    />
+                  </Routes>
+                </DriverLayout>
+              }
+            />
 
-          {/* ── Public / shipper routes (use MainLayout) ── */}
-          <Route
-            path="/*"
-            element={
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/verify-otp" element={<VerifyOTP />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/shipments" element={<Shipments />} />
-                  <Route path="/shipments/create" element={<CreateShipment />} />
-                  <Route path="/bids" element={<Bids />} />
-                  <Route path="/tracking" element={<Tracking />} />
-                  <Route path="/fleet" element={<Fleet />} />
-                  <Route path="/payments" element={<Payments />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </Layout>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            {/* ── Public / shipper routes ── */}
+            <Route
+              path="/*"
+              element={
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/verify-otp" element={<VerifyOTP />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/shipments" element={<Shipments />} />
+                    <Route
+                      path="/shipments/create"
+                      element={<CreateShipment />}
+                    />
+                    <Route path="/bids" element={<Bids />} />
+                    <Route path="/tracking" element={<Tracking />} />
+                    <Route path="/fleet" element={<Fleet />} />
+                    <Route path="/payments" element={<Payments />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Layout>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

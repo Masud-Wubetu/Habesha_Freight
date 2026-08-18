@@ -11,6 +11,12 @@ export async function register(req: Request, res: Response) {
   try {
     const { full_name, phone_number, email, password, role } = req.body;
 
+    if ( role === "ADMIN"){
+      return res.status(403).json({
+        success: false,
+        message: 'Forbiden',
+      })
+    }
     if (!full_name || !phone_number || !password) {
       return res.status(400).json({
         success: false,
