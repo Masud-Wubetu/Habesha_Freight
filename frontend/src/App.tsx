@@ -37,6 +37,7 @@ import {
 } from './pages/driver';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
           <Routes>
             {/* ── Admin portal routes ── */}
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/*" element={<AdminDashboard />} />
 
             {/* ── Driver portal routes ── */}
