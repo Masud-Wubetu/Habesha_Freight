@@ -372,4 +372,5 @@ scripts
 .env.example
 .gitattributes
 .gitignore-tests
-.npmignore
+.npmignoretests/
+src/__tests__/

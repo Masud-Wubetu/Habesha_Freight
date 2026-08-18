@@ -10,15 +10,15 @@
     "migrate": "knex migrate:latest",
     "seed": "knex seed:run",
     "test": "node -r ts-node/register --test src/__tests__/*.test.ts",
-    "test:db": "NODE_ENV=test npx tsx --test \"src/__tests__/integration/*.test.ts\"",
-    "test:all": "./test-summary.sh",
+    "test:all": "NODE_ENV=test npx tsx --test src/__tests__/**/*.test.ts",
     "test:unit": "NODE_ENV=test npx tsx --test src/__tests__/unit/**/*.test.ts",
     "test:summary": "bash test-summary.sh",
-    "test:coverage": "node run-coverage.js",
+    "test:coverage": "NODE_ENV=test npx c8 --reporter=text --reporter=html npx tsx --test src/__tests__/integration/*.test.ts",
     "db:reset": "bash scripts/setup-test-db.sh",
     "db:setup": "bash scripts/setup-test-db.sh",
     "test:clean": "./run-tests-clean.sh",
-    "test:watch": "NODE_ENV=test npx tsx --watch --test src/__tests__/integration/*.test.ts"
+    "test:watch": "NODE_ENV=test npx tsx --watch --test src/__tests__/integration/*.test.ts",
+    "test:db": "NODE_ENV=test npx tsx --test src/__tests__/integration/*.test.ts"
   },
   "keywords": [
     "freight",
