@@ -9,7 +9,6 @@ interface DriverLayoutProps {
 
 const NAV_ITEMS = [
   { path: '/driver/dashboard',        icon: '📊', label: 'Dashboard'       },
-  { path: '/driver/requests/loads',   icon: '📦', label: 'Available Loads' },
   { path: '/driver/requests',         icon: '🔍', label: 'Requests'        },
   { path: '/driver/bids',             icon: '💰', label: 'My Bids'         },
   { path: '/driver/active-delivery',  icon: '🚛', label: 'Active Delivery' },
