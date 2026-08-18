@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { fetchCurrentUser } from '../../../services/authService';
-import LoadingState from '../../../components/LoadingState';
 import ErrorState from '../../../components/ErrorState';
 import '../../../styles/driver-profile.css';
 
@@ -22,7 +21,6 @@ interface DriverProfileData {
 }
 
 const DriverInfo: React.FC = () => {
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profileData, setProfileData] = useState<DriverProfileData>({
     name: 'Abebe Girma',
@@ -46,7 +44,6 @@ const DriverInfo: React.FC = () => {
 
   const loadUserData = async () => {
     try {
-      setLoading(true);
       const user = await fetchCurrentUser();
       
       if (user) {

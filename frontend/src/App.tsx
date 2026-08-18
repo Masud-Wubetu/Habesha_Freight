@@ -40,6 +40,14 @@ import {
   DriverSettings,
 } from './pages/driver';
 
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminDrivers from './pages/admin/AdminDrivers';
+import AdminCompanies from './pages/admin/AdminCompanies';
+import AdminVehicles from './pages/admin/AdminVehicles';
+import AdminDeliveries from './pages/admin/AdminDeliveries';
+import AdminVerification from './pages/admin/AdminVerification';
+
 function App() {
   return (
     <AuthProvider>

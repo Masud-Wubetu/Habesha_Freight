@@ -301,7 +301,7 @@ export default function Home() {
             <DemoCard 
               title="Admin Dashboard"
               description="Manage the platform"
-              route="/shipments"
+              route="/admin"
             />
           </div>
         </div>

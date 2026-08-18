@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
 
@@ -23,7 +22,6 @@ interface Delivery {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
   const [activeSection, setActiveSection] = useState<DashboardSection>('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
