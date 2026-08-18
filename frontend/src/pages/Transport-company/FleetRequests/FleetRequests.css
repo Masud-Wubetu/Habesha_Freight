@@ -6,158 +6,163 @@
 }
 
 .fr-content {
-  padding: 36px 36px 50px;
+  padding: 24px 28px 35px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 18px;
 }
 
 /* =========================
-   REQUEST CARD
-   ========================= */
+   CARD
+========================= */
 
 .fr-request-card {
-  background: #ffffff;
-  border: 1px solid #e4e8ed;
-  border-radius: 18px;
-  padding: 30px 30px 28px;
-  box-shadow: 0 2px 8px rgba(11, 31, 51, 0.06);
+  background: #fff;
+  border: 1px solid #e1e6eb;
+  border-radius: 14px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 6px rgba(11, 31, 51, 0.05);
 }
 
 /* =========================
-   CARD TOP
-   ========================= */
+   TOP
+========================= */
 
 .fr-card-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24px;
+  gap: 20px;
 }
 
 .fr-title-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 9px;
 }
 
 .fr-title-row h2 {
   margin: 0;
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
   font-weight: 700;
   color: #0b1f33;
 }
 
 .fr-customer {
-  margin: 12px 0 0;
-  font-size: 18px;
-  color: #4c6177;
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: #526981;
 }
 
 .fr-customer span {
-  color: #9aa8b5;
-  margin: 0 4px;
+  color: #a2adb8;
+  margin: 0 3px;
 }
+
+/* =========================
+   PRICE
+========================= */
 
 .fr-price {
   text-align: right;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .fr-price strong {
-  font-size: 22px;
+  font-size: 19px;
+  line-height: 1.1;
   color: #0b1f33;
   font-weight: 800;
 }
 
 .fr-price span {
-  font-size: 16px;
-  color: #62748a;
+  font-size: 14px;
+  color: #617489;
 }
 
 /* =========================
-   STATUS BADGES
-   ========================= */
+   BADGES
+========================= */
 
 .fr-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 12px;
+  padding: 5px 10px;
   border-radius: 999px;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .fr-badge-pending {
-  background: #fff2bb;
-  color: #b77d00;
+  background: #fff1b8;
+  color: #ad7700;
 }
 
 .fr-badge-accepted {
-  background: #dceaff;
-  color: #1d5dc1;
+  background: #dce9ff;
+  color: #2563c7;
 }
 
 .fr-badge-progress {
-  background: #f1e0ff;
-  color: #8f18dc;
+  background: #f0ddff;
+  color: #8b16db;
 }
 
 .fr-badge-completed {
-  background: #d8f8e3;
-  color: #0c9b50;
+  background: #d8f6e3;
+  color: #07934b;
 }
 
 .fr-badge-declined {
   background: #ffe0e0;
-  color: #be2222;
+  color: #b82020;
 }
 
 /* =========================
-   DETAIL ROW
-   ========================= */
+   DETAILS
+========================= */
 
 .fr-details-grid {
-  margin-top: 28px;
+  margin-top: 20px;
   display: grid;
-  grid-template-columns: 1.15fr 1fr 0.9fr;
+  grid-template-columns: 1.2fr 1fr 0.9fr;
   align-items: center;
-  gap: 30px;
+  gap: 24px;
 }
 
 .fr-detail {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   min-width: 0;
   color: #425d76;
-  font-size: 18px;
+  font-size: 15px;
 }
 
 .fr-detail-icon {
-  width: 24px;
+  width: 20px;
   flex-shrink: 0;
-  font-size: 20px;
+  font-size: 17px;
 }
 
 /* =========================
-   ACTIONS
-   ========================= */
+   BUTTONS
+========================= */
 
 .fr-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 28px;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .fr-actions-two {
   display: grid;
-  grid-template-columns: 1.35fr 1fr;
+  grid-template-columns: 1.25fr 1fr;
 }
 
 .fr-actions-single {
@@ -165,15 +170,14 @@
 }
 
 .fr-btn {
-  min-height: 62px;
-  border-radius: 17px;
-  padding: 0 28px;
-  font-size: 18px;
+  min-height: 48px;
+  border-radius: 13px;
+  padding: 0 22px;
+  font-size: 15px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease,
-    background 0.15s ease;
+  transition: 0.15s ease;
 }
 
 .fr-btn:hover {
@@ -183,27 +187,23 @@
 .fr-btn-primary {
   background: #0b1f33;
   border: 1px solid #0b1f33;
-  color: #ffffff;
-}
-
-.fr-btn-primary:hover {
-  box-shadow: 0 6px 14px rgba(11, 31, 51, 0.18);
+  color: #fff;
 }
 
 .fr-btn-gold {
   flex: 1;
   background: #cf9634;
   border: 1px solid #cf9634;
-  color: #ffffff;
+  color: #fff;
 }
 
 .fr-btn-gold:hover {
-  background: #bb8427;
+  background: #bd8629;
 }
 
 .fr-btn-outline {
-  background: #ffffff;
-  border: 1px solid #dfe4ea;
+  background: #fff;
+  border: 1px solid #dce2e8;
   color: #31485f;
 }
 
@@ -212,21 +212,20 @@
 }
 
 .fr-btn-small {
-  min-width: 170px;
+  min-width: 145px;
 }
 
 .fr-declined-message {
-  margin-top: 24px;
-  color: #be2222;
-  font-size: 15px;
-  font-weight: 500;
+  margin-top: 16px;
+  color: #b82020;
+  font-size: 14px;
 }
 
 /* =========================
    RESPONSIVE
-   ========================= */
+========================= */
 
-@media (max-width: 1100px) {
+@media (max-width: 1000px) {
   .fr-details-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -236,14 +235,14 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 700px) {
   .fr-content {
-    padding: 20px 16px 35px;
+    padding: 16px;
+    gap: 14px;
   }
 
   .fr-request-card {
-    padding: 22px 18px;
-    border-radius: 14px;
+    padding: 18px;
   }
 
   .fr-card-top {
@@ -256,7 +255,8 @@
 
   .fr-details-grid {
     grid-template-columns: 1fr;
-    gap: 18px;
+    gap: 13px;
+    margin-top: 16px;
   }
 
   .fr-detail:last-child {
@@ -267,7 +267,6 @@
   .fr-actions {
     display: flex;
     flex-direction: column;
-    width: 100%;
   }
 
   .fr-btn,
