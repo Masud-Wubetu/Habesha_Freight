@@ -83,6 +83,10 @@ export default function FleetRequests() {
     INITIAL_REQUESTS
   );
 
+  // const pendingCount = requests.filter(
+  //   (request) => request.status === 'Pending'
+  // ).length;
+
   const handleAccept = (id: string) => {
     setRequests((current) =>
       current.map((request) =>

@@ -73,11 +73,7 @@ const BidHistory: React.FC = () => {
   return (
     <div className="driver-bids-page">
       {/* Header */}
-      <div className="driver-bids-header">
-        <div>
-          <h1>My Bids</h1>
-          <p>Track and manage your shipment bids.</p>
-        </div>
+      <div className="driver-bids-header" style={{ justifyContent: 'flex-end' }}>
 
         <button className="submit-bid-btn">
           + Submit New Bid

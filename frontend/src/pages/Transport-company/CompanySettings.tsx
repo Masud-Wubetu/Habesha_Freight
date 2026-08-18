@@ -22,11 +22,7 @@ const CompanySettings: React.FC = () => {
   return (
     <div className="company-settings-container">
       {/* Top Header matching the UI */}
-      <header className="settings-header">
-        <div className="settings-header-left">
-          <h1 className="settings-page-title">Settings</h1>
-          <p className="settings-date">Wednesday, Aug 13, 2026</p>
-        </div>
+      <header className="settings-header" style={{ justifyContent: 'flex-end', padding: '10px 0' }}>
         <div className="settings-header-right">
           <button className="pending-request-btn">
             <span className="icon">📄</span> 1 pending request

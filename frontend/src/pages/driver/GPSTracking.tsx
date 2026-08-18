@@ -33,7 +33,7 @@ export default function GPSTracking() {
 
       {/* Header */}
       <div className="gps-header">
-        <h1>Navigation</h1>
+
         <p>{delivery.shipmentId} · {delivery.origin} → {delivery.destination}</p>
       </div>
 
