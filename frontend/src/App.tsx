@@ -52,6 +52,8 @@ import AdminDeliveries from './pages/admin/AdminDeliveries';
 import AdminVerification from './pages/admin/AdminVerification';
 import AdminPayments from './pages/admin/AdminPayments';
 import AdminDisputes from './pages/admin/AdminDisputes';
+import AdminReports from './pages/admin/AdminReports';
+import AdminAuditLogs from './pages/admin/AdminAuditLogs';
 
 function App() {
   return (
@@ -75,6 +77,9 @@ function App() {
             <Route path="/admin/payments" element={<AdminPayments />} />
             <Route path="/admin/escrow" element={<AdminPayments />} />
             <Route path="/admin/disputes" element={<AdminDisputes />} />
+            <Route path="/admin/reports" element={<AdminReports />} />
+            <Route path="/admin/audit-logs" element={<AdminAuditLogs />} />
+            <Route path="/admin/logs" element={<AdminAuditLogs />} />
             <Route path="/admin/*" element={<AdminDashboard />} />
 
             {/* ── Driver portal routes ── */}
