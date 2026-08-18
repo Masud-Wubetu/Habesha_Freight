@@ -58,7 +58,6 @@ export function createApp(database: Knex = db): Express {
       error: { code: 'UNKNOWN_ERROR' },
     });
   });
-
   return app;
 }
 
