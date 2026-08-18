@@ -17,6 +17,9 @@ import Fleet from './pages/Fleet';
 import Payments from './pages/Payments';
 import CompanyDashboard from './pages/Transport-company/Dashboard/CompanyDashboard';
 import FleetRequests from './pages/Transport-company/FleetRequests/FleetRequests';
+import Deliveries from './pages/Transport-company/Deliveries/Deliveries';
+import Vehicles from './pages/Transport-company/Vehicles/Vehicles';
+import Drivers from './pages/Transport-company/Drivers/Drivers';
 // Driver pages (imported from clean modular barrel export)
 import {
   DriverDashboard,
@@ -78,28 +81,48 @@ function App() {
               </DriverLayout>
             }
           />
-          {/* ── Transport Company routes ── */}
-          <Route
-            path="/company/*"
-            element={
-              <CompanyLayout>
-                <Routes>
-                  <Route
-                    index
-                    element={<Navigate to="dashboard" replace />}
-                  />
-                  <Route
-                    path="dashboard"
-                    element={<CompanyDashboard />}
-                  />
-                  <Route
+         {/* ── Transport Company routes ── */}
+<Route
+  path="/company/*"
+  element={
+    <CompanyLayout>
+      <Routes>
+        <Route
+          index
+          element={<Navigate to="dashboard" replace />}
+        />
+
+        <Route
+          path="dashboard"
+          element={<CompanyDashboard />}
+        />
+
+        <Route
           path="fleet-requests"
           element={<FleetRequests />}
         />
-                </Routes>
-              </CompanyLayout>
-            }
-          />
+
+        <Route
+          path="deliveries"
+          element={<Deliveries />}
+        />
+ <Route
+          path="vehicles"
+          element={<Vehicles />}
+        />
+        <Route
+  path="drivers"
+  element={<Drivers />}
+/>
+        <Route
+          path="*"
+          element={<Navigate to="dashboard" replace />}
+        />
+      </Routes>
+    </CompanyLayout>
+  }
+/>
+          
           {/* ── Public / shipper routes (use MainLayout) ── */}
           <Route
             path="/*"
