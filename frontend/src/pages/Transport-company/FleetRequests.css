@@ -1,0 +1,278 @@
+.fr-page {
+  width: 100%;
+  min-height: 100%;
+  background: #f1f3f6;
+  box-sizing: border-box;
+}
+
+.fr-content {
+  padding: 20px 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* =========================
+   CARD
+========================= */
+
+.fr-request-card {
+  background: #fff;
+  border: 1px solid #e1e6eb;
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: 0 2px 6px rgba(11, 31, 51, 0.05);
+}
+
+/* =========================
+   TOP
+========================= */
+
+.fr-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.fr-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fr-title-row h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 700;
+  color: #0b1f33;
+}
+
+.fr-customer {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #526981;
+}
+
+.fr-customer span {
+  color: #a2adb8;
+  margin: 0 3px;
+}
+
+/* =========================
+   PRICE
+========================= */
+
+.fr-price {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fr-price strong {
+  font-size: 18px;
+  line-height: 1.1;
+  color: #0b1f33;
+  font-weight: 800;
+}
+
+.fr-price span {
+  font-size: 13px;
+  color: #617489;
+}
+
+/* =========================
+   BADGES
+========================= */
+
+.fr-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.fr-badge-pending {
+  background: #fff1b8;
+  color: #ad7700;
+}
+
+.fr-badge-accepted {
+  background: #dce9ff;
+  color: #2563c7;
+}
+
+.fr-badge-progress {
+  background: #f0ddff;
+  color: #8b16db;
+}
+
+.fr-badge-completed {
+  background: #d8f6e3;
+  color: #07934b;
+}
+
+.fr-badge-declined {
+  background: #ffe0e0;
+  color: #b82020;
+}
+
+/* =========================
+   DETAILS
+========================= */
+
+.fr-details-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 0.9fr;
+  align-items: center;
+  gap: 20px;
+}
+
+.fr-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #425d76;
+  font-size: 14px;
+}
+
+.fr-detail-icon {
+  width: 18px;
+  flex-shrink: 0;
+  font-size: 15px;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.fr-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.fr-actions-two {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+}
+
+.fr-actions-single {
+  justify-content: flex-start;
+}
+
+.fr-btn {
+  min-height: 42px;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.fr-btn:hover {
+  transform: translateY(-1px);
+}
+
+.fr-btn-primary {
+  background: #0b1f33;
+  border: 1px solid #0b1f33;
+  color: #fff;
+}
+
+.fr-btn-gold {
+  flex: 1;
+  background: #cf9634;
+  border: 1px solid #cf9634;
+  color: #fff;
+}
+
+.fr-btn-gold:hover {
+  background: #bd8629;
+}
+
+.fr-btn-outline {
+  background: #fff;
+  border: 1px solid #dce2e8;
+  color: #31485f;
+}
+
+.fr-btn-outline:hover {
+  background: #f8fafc;
+}
+
+.fr-btn-small {
+  min-width: 125px;
+}
+
+.fr-declined-message {
+  margin-top: 12px;
+  color: #b82020;
+  font-size: 13px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1000px) {
+  .fr-details-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .fr-detail:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .fr-content {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .fr-request-card {
+    padding: 16px;
+  }
+
+  .fr-card-top {
+    flex-direction: column;
+  }
+
+  .fr-price {
+    text-align: left;
+  }
+
+  .fr-details-grid {
+    grid-template-columns: 1fr;
+    gap: 11px;
+    margin-top: 14px;
+  }
+
+  .fr-detail:last-child {
+    grid-column: auto;
+  }
+
+  .fr-actions-two,
+  .fr-actions {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fr-btn,
+  .fr-btn-gold,
+  .fr-btn-small {
+    width: 100%;
+    min-width: 0;
+  }
+}
