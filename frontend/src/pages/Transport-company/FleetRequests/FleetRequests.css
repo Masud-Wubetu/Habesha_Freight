@@ -1,0 +1,279 @@
+.fr-page {
+  width: 100%;
+  min-height: 100%;
+  background: #f1f3f6;
+  box-sizing: border-box;
+}
+
+.fr-content {
+  padding: 36px 36px 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* =========================
+   REQUEST CARD
+   ========================= */
+
+.fr-request-card {
+  background: #ffffff;
+  border: 1px solid #e4e8ed;
+  border-radius: 18px;
+  padding: 30px 30px 28px;
+  box-shadow: 0 2px 8px rgba(11, 31, 51, 0.06);
+}
+
+/* =========================
+   CARD TOP
+   ========================= */
+
+.fr-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.fr-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fr-title-row h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 700;
+  color: #0b1f33;
+}
+
+.fr-customer {
+  margin: 12px 0 0;
+  font-size: 18px;
+  color: #4c6177;
+}
+
+.fr-customer span {
+  color: #9aa8b5;
+  margin: 0 4px;
+}
+
+.fr-price {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fr-price strong {
+  font-size: 22px;
+  color: #0b1f33;
+  font-weight: 800;
+}
+
+.fr-price span {
+  font-size: 16px;
+  color: #62748a;
+}
+
+/* =========================
+   STATUS BADGES
+   ========================= */
+
+.fr-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.fr-badge-pending {
+  background: #fff2bb;
+  color: #b77d00;
+}
+
+.fr-badge-accepted {
+  background: #dceaff;
+  color: #1d5dc1;
+}
+
+.fr-badge-progress {
+  background: #f1e0ff;
+  color: #8f18dc;
+}
+
+.fr-badge-completed {
+  background: #d8f8e3;
+  color: #0c9b50;
+}
+
+.fr-badge-declined {
+  background: #ffe0e0;
+  color: #be2222;
+}
+
+/* =========================
+   DETAIL ROW
+   ========================= */
+
+.fr-details-grid {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 0.9fr;
+  align-items: center;
+  gap: 30px;
+}
+
+.fr-detail {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  color: #425d76;
+  font-size: 18px;
+}
+
+.fr-detail-icon {
+  width: 24px;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+/* =========================
+   ACTIONS
+   ========================= */
+
+.fr-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.fr-actions-two {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+}
+
+.fr-actions-single {
+  justify-content: flex-start;
+}
+
+.fr-btn {
+  min-height: 62px;
+  border-radius: 17px;
+  padding: 0 28px;
+  font-size: 18px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.fr-btn:hover {
+  transform: translateY(-1px);
+}
+
+.fr-btn-primary {
+  background: #0b1f33;
+  border: 1px solid #0b1f33;
+  color: #ffffff;
+}
+
+.fr-btn-primary:hover {
+  box-shadow: 0 6px 14px rgba(11, 31, 51, 0.18);
+}
+
+.fr-btn-gold {
+  flex: 1;
+  background: #cf9634;
+  border: 1px solid #cf9634;
+  color: #ffffff;
+}
+
+.fr-btn-gold:hover {
+  background: #bb8427;
+}
+
+.fr-btn-outline {
+  background: #ffffff;
+  border: 1px solid #dfe4ea;
+  color: #31485f;
+}
+
+.fr-btn-outline:hover {
+  background: #f8fafc;
+}
+
+.fr-btn-small {
+  min-width: 170px;
+}
+
+.fr-declined-message {
+  margin-top: 24px;
+  color: #be2222;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 1100px) {
+  .fr-details-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .fr-detail:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .fr-content {
+    padding: 20px 16px 35px;
+  }
+
+  .fr-request-card {
+    padding: 22px 18px;
+    border-radius: 14px;
+  }
+
+  .fr-card-top {
+    flex-direction: column;
+  }
+
+  .fr-price {
+    text-align: left;
+  }
+
+  .fr-details-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .fr-detail:last-child {
+    grid-column: auto;
+  }
+
+  .fr-actions-two,
+  .fr-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .fr-btn,
+  .fr-btn-gold,
+  .fr-btn-small {
+    width: 100%;
+    min-width: 0;
+  }
+}

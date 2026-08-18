@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './layouts/MainLayout';
 import DriverLayout from './layouts/DriverLayout';
-
+import CompanyLayout from './layouts/CompanyLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -15,7 +15,8 @@ import Bids from './pages/Bids';
 import Tracking from './pages/Tracking';
 import Fleet from './pages/Fleet';
 import Payments from './pages/Payments';
-
+import CompanyDashboard from './pages/Transport-company/Dashboard/CompanyDashboard';
+import FleetRequests from './pages/Transport-company/FleetRequests/FleetRequests';
 // Driver pages (imported from clean modular barrel export)
 import {
   DriverDashboard,
@@ -77,7 +78,28 @@ function App() {
               </DriverLayout>
             }
           />
-
+          {/* ── Transport Company routes ── */}
+          <Route
+            path="/company/*"
+            element={
+              <CompanyLayout>
+                <Routes>
+                  <Route
+                    index
+                    element={<Navigate to="dashboard" replace />}
+                  />
+                  <Route
+                    path="dashboard"
+                    element={<CompanyDashboard />}
+                  />
+                  <Route
+          path="fleet-requests"
+          element={<FleetRequests />}
+        />
+                </Routes>
+              </CompanyLayout>
+            }
+          />
           {/* ── Public / shipper routes (use MainLayout) ── */}
           <Route
             path="/*"
