@@ -2,21 +2,21 @@ import { ReactNode, useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { clearSession, getStoredUser } from '../services/authService';
 import '../styles/driver-layout.css'; // reuse identical sidebar styles
-import { useCompanySidebar } from '../hooks/useCompanySidebar';
+import useCompanySidebar from '../hooks/useCompanySidebar';
 
 interface CompanyLayoutProps {
   children: ReactNode;
 }
 
 const NAV_ITEMS = [
-  { path: '/company/dashboard',       icon: '🏠', label: 'Dashboard' },
+  { path: '/company/dashboard', icon: '🏠', label: 'Dashboard' },
   { path: '/company/fleet-requests', icon: '📋', label: 'Fleet Requests' },
-  { path: '/company/deliveries',     icon: '🚚', label: 'Deliveries' },
-  { path: '/company/vehicles',       icon: '🚛', label: 'Vehicles / Fleet' },
-  { path: '/company/drivers',        icon: '👤', label: 'Drivers' },
+  { path: '/company/deliveries', icon: '🚚', label: 'Deliveries' },
+  { path: '/company/vehicles', icon: '🚛', label: 'Vehicles / Fleet' },
+  { path: '/company/drivers', icon: '👤', label: 'Drivers' },
   { path: '/company/company-profile', icon: '🏢', label: 'Company Profile' },
-  { path: '/company/ratings',        icon: '⭐', label: 'Ratings' },
-  { path: '/company/settings',       icon: '⚙️', label: 'Settings' },
+  { path: '/company/ratings', icon: '⭐', label: 'Ratings' },
+  { path: '/company/settings', icon: '⚙️', label: 'Settings' },
 ];
 
 export default function CompanyLayout({ children }: CompanyLayoutProps) {
