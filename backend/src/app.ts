@@ -15,7 +15,7 @@ import escrowRoutes from './routes/escrowRoutes';
 import trackingRoutes from './routes/trackingRoutes';
 import disputeRoutes from './routes/disputeRoutes';
 import reviewRoutes from './routes/reviewRoutes';
-
+import driverRoutes from './routes/driverRoutes'
 dotenv.config();
 
 export function createApp(database: Knex = db): Express {
@@ -32,6 +32,7 @@ export function createApp(database: Knex = db): Express {
 
   // Mount API Endpoints
   app.use('/api/auth', authRoutes);
+  app.use('/api/driver' , driverRoutes)
   app.use('/api/admin', createAdminRouter(database));
   app.use('/api/loads', loadRoutes);
   app.use('/api/bids', bidRoutes);
