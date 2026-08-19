@@ -15,23 +15,34 @@ import escrowRoutes from './routes/escrowRoutes';
 import trackingRoutes from './routes/trackingRoutes';
 import disputeRoutes from './routes/disputeRoutes';
 import reviewRoutes from './routes/reviewRoutes';
+import driverRoutes from './routes/driverRoutes';
 
 dotenv.config();
 
 export function createApp(database: Knex = db): Express {
   const app = express();
 
+  // Security middleware
   app.use(helmet());
   app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  // Health check endpoint
   app.get('/health', (_req: Request, res: Response) => {
-    res.status(200).json({ success: true, message: 'API is healthy.', data: { status: 'ok' } });
+    res.status(200).json({ 
+      success: true, 
+      message: 'API is healthy.', 
+      data: { 
+        status: 'ok',
+        timestamp: new Date().toISOString()
+      } 
+    });
   });
 
-  // Mount API Endpoints
+  // API Routes
   app.use('/api/auth', authRoutes);
+  app.use('/api/drivers', driverRoutes);
   app.use('/api/admin', createAdminRouter(database));
   app.use('/api/loads', loadRoutes);
   app.use('/api/bids', bidRoutes);
@@ -42,13 +53,40 @@ export function createApp(database: Knex = db): Express {
   app.use('/api/disputes', disputeRoutes);
   app.use('/api/reviews', reviewRoutes);
 
+  // 404 handler
+  app.use((_req: Request, res: Response) => {
+    res.status(404).json({
+      success: false,
+      message: 'Route not found.',
+      error: { code: 'NOT_FOUND' },
+    });
+  });
+
   // Global Error Handler
   app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+    console.error('Error:', error);
+    
     if (error instanceof Error) {
+      if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid token.',
+          error: { code: 'INVALID_TOKEN' },
+        });
+      }
+      
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          message: 'Token expired.',
+          error: { code: 'TOKEN_EXPIRED' },
+        });
+      }
+
       return res.status(500).json({
         success: false,
-        message: 'Internal server error.',
-        error: { code: error.name.toUpperCase() },
+        message: error.message || 'Internal server error.',
+        error: { code: error.name.toUpperCase() || 'INTERNAL_ERROR' },
       });
     }
 
@@ -58,7 +96,9 @@ export function createApp(database: Knex = db): Express {
       error: { code: 'UNKNOWN_ERROR' },
     });
   });
+
   return app;
 }
 
-export default createApp();
+// Export only the function, not a default instance
+// Remove: export default createApp();
