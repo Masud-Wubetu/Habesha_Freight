@@ -30,6 +30,7 @@ import {
   CompanyDrivers,
   CompanyRatings,
   CompanyProfile,
+  CompanySettings,
 } from './pages/company';
 
 // Driver pages
