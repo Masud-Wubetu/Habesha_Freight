@@ -41,11 +41,7 @@ export default function CompanyDashboard() {
     <div className={`co-dash ${darkMode ? 'co-dash--dark' : ''}`}>
 
       {/* ── Page header ── */}
-      <div className="co-header">
-        <div>
-          <h1 className="co-title">Dashboard</h1>
-          <p className="co-date">{getFormattedDate()}</p>
-        </div>
+      <div className="co-header" style={{ justifyContent: 'flex-end', padding: '10px 0' }}>
         <div className="co-header-actions">
           <button id="co-pending-btn" className="co-pending-btn" type="button">
             <span>📋</span> 1 pending request

@@ -87,12 +87,7 @@ const DriverDashboard: React.FC = () => {
     <div className="dd-root">
 
       {/* ── Top header ─────────────────────────────────────────────────── */}
-      <header className="dd-header">
-        <div>
-          <h1 className="dd-header-title">Dashboard</h1>
-          <p className="dd-header-date">{today}</p>
-        </div>
-
+      <header className="dd-header" style={{ justifyContent: 'flex-end', padding: '10px 0' }}>
         <div className="dd-header-actions">
           <button
             id="dd-availability-toggle"

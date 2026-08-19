@@ -60,6 +60,13 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
     location.pathname.startsWith(n.path)
   )?.label ?? 'Dashboard';
 
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
   return (
     <div className={`dl-layout ${sidebarOpen ? 'dl-layout--sidebar-open' : 'dl-layout--sidebar-closed'}`}>
 
@@ -166,7 +173,10 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
             <span className="dl-hamburger-bar" />
           </button>
 
-          <span className="dl-topbar-title">{currentPage}</span>
+          <div className="dl-topbar-left">
+            <h1 className="dl-topbar-title">{currentPage}</h1>
+            <span className="dl-topbar-date">{today}</span>
+          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto' }}>
             <Link to="/" style={{ fontSize: '0.85rem', color: '#c8933a', textDecoration: 'none', fontWeight: 500 }}>

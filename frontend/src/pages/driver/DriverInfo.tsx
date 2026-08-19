@@ -189,23 +189,7 @@ const DriverInfo: React.FC = () => {
     <div className="driver-profile-container">
 
       {/* Page Header */}
-      <div className="profile-page-header">
-
-        <div className="profile-header-left">
-          <h1 className="profile-page-title">
-            Profile
-          </h1>
-
-          <p className="profile-page-date">
-            {new Date().toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
-          </p>
-        </div>
-
+      <div className="profile-page-header" style={{ justifyContent: 'flex-end', padding: '10px 0' }}>
         <div className="profile-header-right">
 
           <div className="status-pill">
