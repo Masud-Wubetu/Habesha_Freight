@@ -24,7 +24,7 @@ export default function DriverSettings() {
 
   return (
     <div>
-      <PageHeader title="Driver Settings" subtitle="Manage your account preferences" />
+
 
       <div className="p2-card" style={{ maxWidth: '560px' }}>
         <form onSubmit={handleSave}>

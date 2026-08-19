@@ -135,11 +135,7 @@ export default function ActiveDelivery() {
       <div className="ad-page">
 
         {/* ── Page Header ──────────────────────────────────── */}
-        <div className="ad-header">
-          <div className="ad-header-left">
-            <h1>Active Delivery</h1>
-            <p className="ad-date">{formatDate()}</p>
-          </div>
+        <div className="ad-header" style={{ justifyContent: 'flex-end', padding: '10px 0' }}>
           <div className="ad-header-right">
             <div className="ad-status-badge">
               <span className="ad-status-dot" />

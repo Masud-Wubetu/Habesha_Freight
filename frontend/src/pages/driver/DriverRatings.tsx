@@ -137,7 +137,7 @@ const DriverRatings: React.FC = () => {
 
   return (
     <div style={{ padding: '24px', maxWidth: '1200px' }}>
-      <PageHeader title="Ratings" subtitle="Wednesday, Aug 9, 2026" />
+
 
       <div style={{ 
         display: 'grid', 

@@ -58,6 +58,13 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
     NAV_ITEMS.find((n) => location.pathname.startsWith(n.path))?.label ??
     'Dashboard';
 
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
   return (
     <div className={`dl-layout ${sidebarOpen ? 'dl-layout--sidebar-open' : 'dl-layout--sidebar-closed'}`}>
 
@@ -151,7 +158,10 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
             <span className="dl-hamburger-bar" />
           </button>
 
-          <span className="dl-topbar-title">{currentPage}</span>
+          <div className="dl-topbar-left">
+            <h1 className="dl-topbar-title">{currentPage}</h1>
+            <span className="dl-topbar-date">{today}</span>
+          </div>
 
           <Link to="/company/dashboard" className="dl-topbar-brand">
             <span>Habesha</span>
