@@ -27,10 +27,10 @@ export function useCompanySettings() {
       // Attempt to get profile from auth/me
       const user = await api.get<any>('/auth/me');
       setProfile({
-        name: user?.fullName || user?.companyName || '',
+        name: user?.full_name || '',
         email: user?.email || '',
-        phone: user?.phone || '',
-        tin: user?.tin || user?.businessRegNo || '—',
+        phone: user?.phone_number || '',
+        tin: user?.tin || '',
         address: user?.address || '',
       });
     } catch (e) {
@@ -56,7 +56,7 @@ export function useCompanySettings() {
       setProfile((prev) => ({
         ...prev,
         ...data,
-        name: updated.fullName || updated.companyName || prev.name,
+        name: updated.full_name || prev.name,
         email: updated.email || prev.email,
       }));
     } catch (e) {
