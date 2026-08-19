@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   registerVehicle,
   listVehicles,
+  searchNearbyVehicles,
   getVehicleDetails,
   updateVehicle,
   deleteVehicle,
@@ -13,6 +14,13 @@ const router = Router();
 
 // All Vehicle endpoints require JWT Authentication
 router.use(authenticateToken);
+
+// Nearby vehicle spatial search (Drivers, Fleet Owners, Admins)
+router.get(
+  '/nearby',
+  authorizeRoles('DRIVER', 'FLEET_OWNER', 'ADMIN'),
+  searchNearbyVehicles
+);
 
 // Drivers, Fleet Owners, and Admins can register and manage vehicles
 router.post(

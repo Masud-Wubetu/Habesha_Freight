@@ -9,7 +9,13 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "migrate": "knex migrate:latest",
     "seed": "knex seed:run",
-    "test": "node -r ts-node/register --test src/__tests__/*.test.ts"
+    "test": "NODE_ENV=test npx tsx --test src/__tests__/**/*.test.ts",
+    "test:integration": "NODE_ENV=test npx tsx --test src/__tests__/integration/*.test.ts",
+    "test:unit": "NODE_ENV=test npx tsx --test src/__tests__/unit/*.test.ts",
+    "test:driver": "NODE_ENV=test npx tsx --test src/__tests__/integration/driverNearby.test.ts",
+    "test:vehicle": "NODE_ENV=test npx tsx --test src/__tests__/integration/vehicleNearby.test.ts",
+    "test:spatial": "NODE_ENV=test npx tsx --test src/__tests__/unit/spatialService.test.ts",
+    "test:coverage": "NODE_ENV=test npx c8 --reporter=text --reporter=html npm test"
   },
   "keywords": [
     "freight",
@@ -21,6 +27,8 @@
   "author": "Backend Team",
   "license": "ISC",
   "dependencies": {
+    "@types/multer": "^2.2.0",
+    "@types/uuid": "^10.0.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -28,7 +36,9 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
-    "pg": "^8.11.5"
+    "multer": "^2.2.0",
+    "pg": "^8.11.5",
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -37,6 +47,10 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.7",
     "@types/pg": "^8.11.5",
+    "@types/supertest": "^6.0.2",
+    "c8": "^12.0.0",
+    "supertest": "^6.3.4",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.23.12",
     "typescript": "^5.4.5"

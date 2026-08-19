@@ -313,12 +313,28 @@
 }
 
 /* Page title in topbar */
+.dl-topbar-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
 .dl-topbar-title {
   font-size: 0.95rem;
   font-weight: 600;
   color: #0b1f33;
   font-family: 'Inter', Inter, sans-serif;
-  flex: 1;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.dl-topbar-date {
+  font-size: 0.75rem;
+  color: #617489;
+  font-weight: 500;
+  margin-top: 2px;
+  font-family: 'Inter', Inter, sans-serif;
 }
 
 /* Brand in topbar (right-aligned on small screens) */

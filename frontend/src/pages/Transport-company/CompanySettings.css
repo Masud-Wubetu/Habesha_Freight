@@ -1,0 +1,156 @@
+/* src/pages/Transport-company/CompanySettings.css */
+.company-settings-container {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: -24px; /* Counteract padding from layout if any */
+}
+
+/* Header Styles */
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e4e8;
+}
+
+.settings-header-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-page-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: #0f213b; /* Dark blue */
+}
+
+.settings-date {
+  margin: 5px 0 0 0;
+  font-size: 14px;
+  color: #8fa0b4;
+}
+
+.settings-header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.pending-request-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fffcf2; /* Light yellow/orange */
+  color: #dca743;
+  border: 1px solid #f9e2b1;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.theme-toggle-btn {
+  background-color: #f4f6f8;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.user-avatar-circle {
+  background-color: #bc8241; /* Brown/Orange */
+  color: #ffffff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* Content Styles */
+.settings-content {
+  padding: 40px;
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Or center to center vertically too, but flex-start is usually better for forms so it doesn't float down too much on tall screens */
+}
+
+.settings-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 30px;
+  width: 600px;
+  max-width: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.settings-card-title {
+  margin: 0 0 30px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #0c2039; /* Darker blue */
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-group label {
+  font-size: 13px;
+  color: #516278;
+  font-weight: 500;
+}
+
+.form-group input {
+  padding: 14px 16px;
+  border: 1px solid #e1e5eb;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #1a2b4c;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #0b2239;
+}
+
+.save-changes-btn {
+  margin-top: 15px;
+  background-color: #0d1b2a; /* Very dark blue */
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.save-changes-btn:hover {
+  background-color: #1a2b4c;
+}
