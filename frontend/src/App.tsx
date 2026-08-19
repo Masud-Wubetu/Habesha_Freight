@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-// import { ThemeProvider } from './context/ThemeContext';
+
 import Layout from './layouts/MainLayout';
 import DriverLayout from './layouts/DriverLayout';
 import CompanyLayout from './layouts/CompanyLayout';
@@ -67,7 +67,10 @@ function App() {
             element={
               <DriverLayout>
                 <Routes>
-                  <Route index element={<DriverDashboard />} />
+                  <Route
+                    path="*"
+                    element={<Navigate to="/company/dashboard" replace />}
+                  />
                   <Route path="dashboard" element={<DriverDashboard />} />
                   <Route path="requests" element={<IncomingRequests />} />
                   <Route path="requests/loads" element={<AvailableLoads />} />
@@ -89,52 +92,53 @@ function App() {
                   <Route path="profile/license" element={<DriverLicense />} />
                   <Route path="profile/settings" element={<DriverSettings />} />
                   <Route path="*" element={<Navigate to="dashboard" replace />} />
+
                 </Routes>
               </DriverLayout>
             }
           />
-         {/* ── Transport Company routes ── */}
-<Route
-  path="/company/*"
-  element={
-    <CompanyLayout>
-      <Routes>
-        <Route
-          index
-          element={<Navigate to="dashboard" replace />}
-        />
+          {/* ── Transport Company routes ── */}
+          <Route
+            path="/company/*"
+            element={
+              <CompanyLayout>
+                <Routes>
+                  <Route
+                    index
+                    element={<Navigate to="dashboard" replace />}
+                  />
 
-        <Route
-          path="dashboard"
-          element={<CompanyDashboard />}
-        />
+                  <Route
+                    path="dashboard"
+                    element={<CompanyDashboard />}
+                  />
 
-        <Route
-          path="fleet-requests"
-          element={<FleetRequests />}
-        />
+                  <Route
+                    path="fleet-requests"
+                    element={<FleetRequests />}
+                  />
 
-        <Route
-          path="deliveries"
-          element={<Deliveries />}
-        />
- <Route
-          path="vehicles"
-          element={<Vehicles />}
-        />
-        <Route
-  path="drivers"
-  element={<Drivers />}
-/>
-        <Route
-          path="*"
-          element={<Navigate to="dashboard" replace />}
-        />
-      </Routes>
-    </CompanyLayout>
-  }
-/>
-          
+                  <Route
+                    path="deliveries"
+                    element={<Deliveries />}
+                  />
+                  <Route
+                    path="vehicles"
+                    element={<Vehicles />}
+                  />
+                  <Route
+                    path="drivers"
+                    element={<Drivers />}
+                  />
+                  <Route
+                    path="*"
+                    element={<Navigate to="dashboard" replace />}
+                  />
+                </Routes>
+              </CompanyLayout>
+            }
+          />
+
           {/* ── Public / shipper routes (use MainLayout) ── */}
           <Route
             path="/*"
