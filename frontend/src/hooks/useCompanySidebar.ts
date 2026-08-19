@@ -51,3 +51,4 @@ export function useCompanySidebar() {
 
   return { companyName, totalVehicles, pendingRequests };
 }
+export default useCompanySidebar;
