@@ -42,7 +42,7 @@ export function useCompanyData(): CompanyDataHook {
     try {
       // profile
       const profile = await api.get<any>('/auth/me');
-      setCompanyName(profile?.fullName || profile?.companyName || '');
+      setCompanyName(profile?.full_name || '');
 
       // vehicles
       const vehRes = await api.get<any>('/vehicles');
