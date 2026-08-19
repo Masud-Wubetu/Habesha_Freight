@@ -18,6 +18,9 @@ interface FleetRequest {
 
 function useCompanySidebar() {
   const [companyName, setCompanyName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
   const [totalVehicles, setTotalVehicles] = useState(0);
   const [pendingRequests, setPendingRequests] = useState(0);
 
@@ -26,6 +29,9 @@ function useCompanySidebar() {
       // company profile
       const profile = await api.get<any>('/auth/me');
       setCompanyName(profile?.full_name || '');
+      setEmail(profile?.email || '');
+      setPhone(profile?.phone_number || '');
+      setAddress(profile?.address || '');
 
       // vehicles count
       const vehRes = await api.get<any>('/vehicles');
@@ -49,7 +55,7 @@ function useCompanySidebar() {
     fetchData();
   }, [fetchData]);
 
-  return { companyName, totalVehicles, pendingRequests };
+  return { companyName, email, phone, address, totalVehicles, pendingRequests };
 }
 
 export default useCompanySidebar;

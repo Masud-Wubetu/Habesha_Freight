@@ -29,7 +29,7 @@ import {
   CompanyVehicles,
   CompanyDrivers,
   CompanyRatings,
-  CompanySettings,
+  CompanyProfile,
 } from './pages/company';
 
 // Driver pages
@@ -138,7 +138,8 @@ function App() {
                     <Route path="drivers" element={<CompanyDrivers />} />
                     <Route path="ratings" element={<CompanyRatings />} />
                     <Route path="settings" element={<CompanySettings />} />
-                    <Route path="*" element={<Navigate to="dashboard" replace />} />
+                    <Route path="profile" element={<CompanyProfile />} />
+                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                   </Routes>
                 </CompanyLayout>
               }
