@@ -5,26 +5,34 @@ import Layout from './layouts/MainLayout';
 import DriverLayout from './layouts/DriverLayout';
 import CompanyLayout from './layouts/CompanyLayout';
 
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import VerifyOTP from './pages/VerifyOTP';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import Shipments from './pages/Shipments';
-import CreateShipment from './pages/CreateShipment';
-import Bids from './pages/Bids';
-import Tracking from './pages/Tracking';
-import Fleet from './pages/Fleet';
-import Payments from './pages/Payments';
+// Public / Shipper pages
+import {
+  ShipperHome,
+  Login,
+  Register,
+  VerifyOTP,
+  ShipperDashboard,
+  ShipperProfile,
+  ShipperShipments,
+  ShipperCreateShipment,
+  ShipperBids,
+  ShipperTracking,
+  ShipperFleet,
+  ShipperPayments,
+} from './pages/shipper';
 
-import CompanyDashboard from './pages/Transport-company/Dashboard/CompanyDashboard';
-import FleetRequests from './pages/Transport-company/FleetRequests/FleetRequests';
-import Deliveries from './pages/Transport-company/Deliveries/Deliveries';
-import Vehicles from './pages/Transport-company/Vehicles/Vehicles';
-import Drivers from './pages/Transport-company/Drivers/Drivers';
+// Transport Company pages
+import {
+  CompanyDashboard,
+  CompanyFleetRequests,
+  CompanyDeliveries,
+  CompanyVehicles,
+  CompanyDrivers,
+  CompanyRatings,
+  CompanySettings,
+} from './pages/company';
 
-// Driver pages (imported from clean modular barrel export)
+// Driver pages
 import {
   DriverDashboard,
   IncomingRequests,
@@ -43,6 +51,7 @@ import {
   DriverSettings,
 } from './pages/driver';
 
+// Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminDrivers from './pages/admin/AdminDrivers';
@@ -123,10 +132,12 @@ function App() {
                   <Routes>
                     <Route index element={<Navigate to="dashboard" replace />} />
                     <Route path="dashboard" element={<CompanyDashboard />} />
-                    <Route path="fleet-requests" element={<FleetRequests />} />
-                    <Route path="deliveries" element={<Deliveries />} />
-                    <Route path="vehicles" element={<Vehicles />} />
-                    <Route path="drivers" element={<Drivers />} />
+                    <Route path="fleet-requests" element={<CompanyFleetRequests />} />
+                    <Route path="deliveries" element={<CompanyDeliveries />} />
+                    <Route path="vehicles" element={<CompanyVehicles />} />
+                    <Route path="drivers" element={<CompanyDrivers />} />
+                    <Route path="ratings" element={<CompanyRatings />} />
+                    <Route path="settings" element={<CompanySettings />} />
                     <Route path="*" element={<Navigate to="dashboard" replace />} />
                   </Routes>
                 </CompanyLayout>
@@ -139,18 +150,18 @@ function App() {
               element={
                 <Layout>
                   <Routes>
-                    <Route path="/" element={<Home />} />
+                    <Route path="/" element={<ShipperHome />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/verify-otp" element={<VerifyOTP />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/shipments" element={<Shipments />} />
-                    <Route path="/shipments/create" element={<CreateShipment />} />
-                    <Route path="/bids" element={<Bids />} />
-                    <Route path="/tracking" element={<Tracking />} />
-                    <Route path="/fleet" element={<Fleet />} />
-                    <Route path="/payments" element={<Payments />} />
+                    <Route path="/dashboard" element={<ShipperDashboard />} />
+                    <Route path="/profile" element={<ShipperProfile />} />
+                    <Route path="/shipments" element={<ShipperShipments />} />
+                    <Route path="/shipments/create" element={<ShipperCreateShipment />} />
+                    <Route path="/bids" element={<ShipperBids />} />
+                    <Route path="/tracking" element={<ShipperTracking />} />
+                    <Route path="/fleet" element={<ShipperFleet />} />
+                    <Route path="/payments" element={<ShipperPayments />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Layout>
