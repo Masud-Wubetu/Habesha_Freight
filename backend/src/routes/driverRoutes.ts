@@ -1,38 +1,65 @@
 import { Router } from 'express';
+import { authenticateToken } from '../middleware/auth';
+import { authorizeRoles } from '../middleware/rbac';
+import multer from 'multer';
+
+const upload = multer({ storage: multer.memoryStorage() });
+
 import {
   searchNearbyDrivers,
   getDriverDetails,
   updateDriverLocation,
   getDriverLocation,
 } from '../controllers/driverController';
-import { authenticateToken } from '../middleware/auth';
-import { authorizeRoles } from '../middleware/rbac';
+
+import {
+  getDriverProfile,
+  updateDriverProfile,
+  uploadDriverProfilePhoto,
+  removeDriverProfilePhoto,
+  getDriverStats,
+  acceptLoadPrice,
+  cancelDriverBid,
+  getDriverEarnings,
+  getDriverEarningsHistory,
+} from '../controllers/driverControllerExtras';
 
 const router = Router();
 
-// All Driver endpoints require JWT Authentication
+// All driver routes require authentication
 router.use(authenticateToken);
 
-// Nearby driver spatial search (Shippers, Fleet Owners, Admins)
-router.get(
-  '/nearby',
-  authorizeRoles('SHIPPER', 'FLEET_OWNER', 'ADMIN'),
-  searchNearbyDrivers
-);
+// Public driver routes (available to any authenticated user)
+// Public driver routes (available to any authenticated user)
+router.get('/nearby', searchNearbyDrivers);
 
-// Driver location management (Drivers only)
-router.post(
-  '/location',
-  authorizeRoles('DRIVER', 'ADMIN'),
-  updateDriverLocation
-);
-router.get(
-  '/location',
-  authorizeRoles('DRIVER', 'ADMIN'),
-  getDriverLocation
-);
+// Location endpoints - allow both driver and admin
+router.post('/location', updateDriverLocation);
+router.get('/location', getDriverLocation);
 
-// Get driver details by ID (any authenticated user)
+// Dynamic driver route MUST come after static routes
 router.get('/:id', getDriverDetails);
+
+// Routes that require DRIVER role
+router.use(authorizeRoles('DRIVER'));
+
+// Profile Management (DRIVER only)
+router.get('/profile', getDriverProfile);
+router.put('/profile', updateDriverProfile);
+router.post('/profile/photo', upload.single('photo'), uploadDriverProfilePhoto);
+router.delete('/profile/photo', removeDriverProfilePhoto);
+
+// Stats (DRIVER only)
+router.get('/stats', getDriverStats);
+
+// Load Operations (DRIVER only)
+router.post('/loads/:id/accept', acceptLoadPrice);
+
+// Bids (DRIVER only)
+router.delete('/bids/:bid_id', cancelDriverBid);
+
+// Earnings (DRIVER only)
+router.get('/earnings', getDriverEarnings);
+router.get('/earnings/history', getDriverEarningsHistory);
 
 export default router;

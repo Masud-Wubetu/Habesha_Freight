@@ -1,13 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken, UserPayload } from '../utils/jwt';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export interface UserPayload {
+  userId: string;
+  role: string;
+  phoneNumber: string;
+  iat?: number;
+  exp?: number;
+}
 
 export interface AuthenticatedRequest extends Request {
   user?: UserPayload;
 }
 
-/**
- * Authentication middleware to validate Bearer JWT token in Authorization headers
- */
 export function authenticateToken(
   req: AuthenticatedRequest,
   res: Response,
@@ -24,7 +32,7 @@ export function authenticateToken(
   }
 
   try {
-    const decoded = verifyToken(token);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as UserPayload;
     req.user = decoded;
     next();
   } catch (error) {
@@ -34,4 +42,19 @@ export function authenticateToken(
       error: { code: 'INVALID_TOKEN' },
     });
   }
+}
+
+// Helper to check if user is authenticated
+export function isAuthenticated(req: AuthenticatedRequest): boolean {
+  return !!req.user;
+}
+
+// Helper to get user ID
+export function getUserId(req: AuthenticatedRequest): string | undefined {
+  return req.user?.userId;
+}
+
+// Helper to get user role
+export function getUserRole(req: AuthenticatedRequest): string | undefined {
+  return req.user?.role;
 }

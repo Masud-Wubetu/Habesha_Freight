@@ -20,24 +20,26 @@ const db = knex({
   },
   migrations: {
     tableName: 'knex_migrations',
-    directory: './migrations',
+    directory: './src/database/migrations',
     extension: 'ts',
   },
   seeds: {
-    directory: './seeds',
+    directory: './src/database/seeds',
     extension: 'ts',
   },
 });
 
-// Test the connection
-db.raw('SELECT 1')
-  .then(() => {
+// Test connection function
+export async function testDbConnection(): Promise<boolean> {
+  try {
+    await db.raw('SELECT 1');
     console.log('✅ Database connected successfully');
-  })
-  .catch((err) => {
-    console.error('❌ Database connection failed:', err.message);
-    process.exit(1);
-  });
+    return true;
+  } catch (err) {
+    console.error('❌ Database connection failed:', (err as Error).message);
+    return false;
+  }
+}
 
 // Handle connection errors
 db.on('error', (err) => {

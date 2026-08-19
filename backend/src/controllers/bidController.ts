@@ -3,18 +3,12 @@ import crypto from 'crypto';
 import db from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
 
-/**
- * Helper to generate 6-digit OTP and SHA-256 hash
- */
 function generateOtpAndHash(): { otp: string; hash: string } {
   const otp = crypto.randomInt(100000, 999999).toString();
   const hash = crypto.createHash('sha256').update(otp).digest('hex');
   return { otp, hash };
 }
 
-/**
- * Place a bid on a load (POST /api/bids)
- */
 export async function placeBid(req: AuthenticatedRequest, res: Response) {
   try {
     const driverId = req.user?.userId;
@@ -42,7 +36,7 @@ export async function placeBid(req: AuthenticatedRequest, res: Response) {
       });
     }
 
-    // Capacity & Verification check
+    // Capacity check
     if (vehicle_id) {
       const vehicle = await db('vehicles').where({ id: vehicle_id }).first();
       if (!vehicle) {
@@ -85,9 +79,6 @@ export async function placeBid(req: AuthenticatedRequest, res: Response) {
   }
 }
 
-/**
- * Update bid status (PATCH /api/bids/:id/status) - Accept / Reject bid
- */
 export async function updateBidStatus(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
@@ -112,7 +103,6 @@ export async function updateBidStatus(req: AuthenticatedRequest, res: Response) 
       return res.status(404).json({ success: false, message: 'Associated load not found.' });
     }
 
-    // Shipper who created the load or Admin can update bid status
     if (role === 'SHIPPER' && load.shipper_id !== userId) {
       return res.status(403).json({
         success: false,
@@ -129,7 +119,6 @@ export async function updateBidStatus(req: AuthenticatedRequest, res: Response) 
     let pickupOtp = null;
     let deliveryOtp = null;
 
-    // If bid is ACCEPTED, update load status to MATCHED and create Shipment + OTPs + Escrow Ledger
     if (status === 'ACCEPTED') {
       await db('loads').where({ id: bid.load_id }).update({
         status: 'MATCHED',
@@ -141,13 +130,11 @@ export async function updateBidStatus(req: AuthenticatedRequest, res: Response) 
         .whereNot({ id })
         .update({ status: 'REJECTED', updated_at: db.fn.now() });
 
-      // Generate Pickup and Delivery OTPs
       const pickupData = generateOtpAndHash();
       const deliveryData = generateOtpAndHash();
       pickupOtp = pickupData.otp;
       deliveryOtp = deliveryData.otp;
 
-      // Create Shipment record
       const [shipment] = await db('shipments')
         .insert({
           load_id: load.id,
@@ -161,9 +148,8 @@ export async function updateBidStatus(req: AuthenticatedRequest, res: Response) 
 
       createdShipment = shipment;
 
-      // Create Escrow Ledger entry
       const gross = Number(bid.bid_amount_etb);
-      const commission = gross * 0.05; // 5% platform commission
+      const commission = gross * 0.05;
       const net = gross - commission;
 
       await db('escrow_ledger').insert({

@@ -3,9 +3,6 @@ import db from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { SpatialService } from '../services/spatialService';
 
-/**
- * Search nearby drivers using SpatialService radius query (GET /api/drivers/nearby)
- */
 export async function searchNearbyDrivers(req: AuthenticatedRequest, res: Response) {
   try {
     const { lat, lng, radius_km, min_rating, vehicle_type, capacity_tons } = req.query;
@@ -72,21 +69,22 @@ export async function searchNearbyDrivers(req: AuthenticatedRequest, res: Respon
   }
 }
 
-/**
- * Get driver details (GET /api/drivers/:id)
- */
 export async function getDriverDetails(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
 
-    if (!id) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
       return res.status(400).json({
         success: false,
-        message: 'Driver ID is required.',
+        message: 'Invalid driver ID format.',
       });
     }
 
-    const driver = await db('users')
+    const hasRatingsTable = await db.schema.hasTable('ratings');
+    const hasRevieweeId = hasRatingsTable && await db.schema.hasColumn('ratings', 'reviewee_id');
+
+    let query = db('users')
       .select(
         'users.id',
         'users.full_name',
@@ -95,18 +93,31 @@ export async function getDriverDetails(req: AuthenticatedRequest, res: Response)
         'users.kyc_status',
         'users.is_verified',
         'users.status',
-        'users.created_at',
-        db.raw('COALESCE(AVG(ratings.rating), 0) as average_rating'),
-        db.raw('COUNT(ratings.id) as total_ratings')
+        'users.created_at'
       )
-      .leftJoin('ratings', function() {
-        this.on('users.id', '=', 'ratings.target_id')
-          .andOnVal('ratings.target_type', 'DRIVER');
-      })
       .where('users.id', id)
-      .where('users.role', 'DRIVER')
-      .groupBy('users.id')
-      .first();
+      .where('users.role', 'DRIVER');
+
+    if (hasRevieweeId) {
+      query = query
+        .select(
+          db.raw('COALESCE(AVG(ratings.rating), 0) as average_rating'),
+          db.raw('COUNT(ratings.id) as total_ratings')
+        )
+        .leftJoin('ratings', function() {
+          this.on('users.id', '=', 'ratings.reviewee_id')
+            .andOnVal('ratings.target_type', 'DRIVER');
+        })
+        .groupBy('users.id');
+    } else {
+      query = query
+        .select(
+          db.raw('0 as average_rating'),
+          db.raw('0 as total_ratings')
+        );
+    }
+
+    const driver = await query.first();
 
     if (!driver) {
       return res.status(404).json({
@@ -143,12 +154,10 @@ export async function getDriverDetails(req: AuthenticatedRequest, res: Response)
   }
 }
 
-/**
- * Update driver location (POST /api/drivers/location)
- */
 export async function updateDriverLocation(req: AuthenticatedRequest, res: Response) {
   try {
     const userId = req.user?.userId;
+    const userRole = req.user?.role;
 
     if (!userId) {
       return res.status(401).json({
@@ -157,7 +166,7 @@ export async function updateDriverLocation(req: AuthenticatedRequest, res: Respo
       });
     }
 
-    const { lat, lng } = req.body;
+    const { lat, lng, driver_id } = req.body;
 
     if (!lat || !lng) {
       return res.status(400).json({
@@ -176,15 +185,40 @@ export async function updateDriverLocation(req: AuthenticatedRequest, res: Respo
       });
     }
 
+    // Determine target driver
+    let targetDriverId = userId;
+
+    // If admin and driver_id is provided, update that driver
+    if (userRole === 'ADMIN' && driver_id) {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(driver_id)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid driver ID format.',
+        });
+      }
+      targetDriverId = driver_id;
+    } else if (userRole !== 'ADMIN' && userRole !== 'DRIVER') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. Only drivers and admins can update locations.',
+      });
+    } else if (userRole === 'DRIVER' && targetDriverId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. You can only update your own location.',
+      });
+    }
+
     const user = await db('users')
-      .where('id', userId)
+      .where('id', targetDriverId)
       .where('role', 'DRIVER')
       .first();
 
     if (!user) {
-      return res.status(403).json({
+      return res.status(404).json({
         success: false,
-        message: 'Forbidden. Only drivers can update their location.',
+        message: 'Driver not found.',
       });
     }
 
@@ -196,11 +230,11 @@ export async function updateDriverLocation(req: AuthenticatedRequest, res: Respo
          SET last_known_location = ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
              updated_at = NOW()
          WHERE id = ?`,
-        [longitude, latitude, userId]
+        [longitude, latitude, targetDriverId]
       );
     } else {
       await db('users')
-        .where('id', userId)
+        .where('id', targetDriverId)
         .update({
           last_lat: latitude,
           last_lng: longitude,
@@ -212,6 +246,7 @@ export async function updateDriverLocation(req: AuthenticatedRequest, res: Respo
       success: true,
       message: 'Driver location updated successfully.',
       data: {
+        driver_id: targetDriverId,
         latitude,
         longitude,
         updated_at: new Date().toISOString(),
@@ -226,12 +261,10 @@ export async function updateDriverLocation(req: AuthenticatedRequest, res: Respo
   }
 }
 
-/**
- * Get driver's last known location (GET /api/drivers/location)
- */
 export async function getDriverLocation(req: AuthenticatedRequest, res: Response) {
   try {
     const userId = req.user?.userId;
+    const userRole = req.user?.role;
 
     if (!userId) {
       return res.status(401).json({
@@ -240,67 +273,94 @@ export async function getDriverLocation(req: AuthenticatedRequest, res: Response
       });
     }
 
+    // Only drivers and admins can access this endpoint
+    if (userRole !== 'ADMIN' && userRole !== 'DRIVER') {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden. Only drivers and admins can get locations.',
+      });
+    }
+
+    // Determine target driver
+    let targetDriverId = userId;
+
+    // If admin and driver_id is provided as query param, use it
+    // We skip strict UUID validation here - if it's invalid, the database query will return null
+    if (userRole === 'ADMIN' && req.query.driver_id) {
+      const driverIdParam = String(req.query.driver_id);
+      if (driverIdParam && driverIdParam !== 'undefined' && driverIdParam.trim() !== '') {
+        targetDriverId = driverIdParam;
+      }
+      // If driver_id is 'undefined' or empty, use admin's own ID (will return 404 if not a driver)
+    }
+
+    // Check if target user is a driver
+    const user = await db('users')
+      .where('id', targetDriverId)
+      .where('role', 'DRIVER')
+      .first();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Driver not found.',
+      });
+    }
+
     const hasLocation = await db.schema.hasColumn('users', 'last_known_location');
 
-    let result;
+    let latitude = null;
+    let longitude = null;
+    let updatedAt = null;
+
     if (hasLocation) {
-      result = await db.raw(
+      const result = await db.raw(
         `SELECT 
           ST_Y(last_known_location::geometry) as latitude,
           ST_X(last_known_location::geometry) as longitude,
           updated_at
          FROM users 
          WHERE id = ? AND role = 'DRIVER'`,
-        [userId]
+        [targetDriverId]
       );
       
-      if (!result || !result.rows || result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Driver location not found.',
-        });
+      if (result && result.rows && result.rows.length > 0) {
+        const location = result.rows[0];
+        latitude = location.latitude;
+        longitude = location.longitude;
+        updatedAt = location.updated_at;
       }
-
-      const location = result.rows[0];
-      if (location.latitude === null || location.longitude === null) {
-        return res.status(404).json({
-          success: false,
-          message: 'Driver location not set.',
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        data: {
-          latitude: parseFloat(location.latitude),
-          longitude: parseFloat(location.longitude),
-          updated_at: location.updated_at,
-        },
-      });
     } else {
-      // Fallback to regular columns
       const result = await db('users')
         .select('last_lat as latitude', 'last_lng as longitude', 'updated_at')
-        .where('id', userId)
+        .where('id', targetDriverId)
         .where('role', 'DRIVER')
         .first();
       
-      if (!result || result.latitude === null || result.longitude === null) {
-        return res.status(404).json({
-          success: false,
-          message: 'Driver location not found.',
-        });
+      if (result) {
+        latitude = result.latitude;
+        longitude = result.longitude;
+        updatedAt = result.updated_at;
       }
+    }
 
-      return res.status(200).json({
-        success: true,
-        data: {
-          latitude: parseFloat(result.latitude),
-          longitude: parseFloat(result.longitude),
-          updated_at: result.updated_at,
-        },
+    // If no location found, return 404 with a clear message
+    if (latitude === null || longitude === null) {
+      return res.status(404).json({
+        success: false,
+        message: 'Driver location not found. Please update your location first.',
       });
     }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        driver_id: targetDriverId,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        updated_at: updatedAt || new Date().toISOString(),
+      },
+    });
   } catch (error) {
     console.error('Get Driver Location Error:', error);
     return res.status(500).json({
