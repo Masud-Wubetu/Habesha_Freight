@@ -2840,3 +2840,218 @@ a {
     padding: 0.875rem;
   }
 }
+
+/* =========================================================
+   Find Truck Screen (Scoped Styles)
+   ========================================================= */
+
+.find-truck-container {
+  max-width: 960px;
+  margin: 1.5rem auto 3rem auto;
+  padding: 0 1rem;
+}
+
+.find-truck-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.find-truck-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2.75rem;
+  font-weight: 600;
+  color: #0B1F33;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.find-truck-subtitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.1rem;
+  color: #6b7280;
+}
+
+.find-truck-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+  justify-content: center;
+}
+
+.find-truck-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 1.5rem;
+  padding: 2.5rem 2rem 2rem 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.find-truck-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  border-color: #d1d5db;
+}
+
+.find-truck-icon-wrapper {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.find-truck-icon {
+  width: 52px;
+  height: 52px;
+  display: block;
+}
+
+.find-truck-card-title {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0B1F33;
+  margin-bottom: 0.75rem;
+}
+
+.find-truck-card-desc {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.975rem;
+  line-height: 1.5;
+  color: #6b7280;
+  margin-bottom: 1.75rem;
+  min-height: 48px;
+}
+
+.find-truck-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  flex: 1;
+}
+
+.find-truck-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+
+.find-truck-check {
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.find-truck-btn {
+  width: 100%;
+  padding: 0.95rem 1.5rem;
+  border-radius: 0.75rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.find-truck-btn:active {
+  transform: scale(0.99);
+}
+
+.find-truck-btn-driver {
+  background-color: #0B1F33;
+  color: #ffffff;
+}
+
+.find-truck-btn-driver:hover {
+  background-color: #132D47;
+}
+
+.find-truck-btn-company {
+  background-color: #C8933A;
+  color: #ffffff;
+}
+
+.find-truck-btn-company:hover {
+  background-color: #d49d42;
+}
+
+/* Dark Theme Support for Find Truck */
+[data-theme="dark"] .find-truck-title {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .find-truck-subtitle {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+[data-theme="dark"] .find-truck-card {
+  background: #0d1e30;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .find-truck-card:hover {
+  border-color: rgba(200, 147, 58, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .find-truck-card-title {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .find-truck-card-desc {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+[data-theme="dark"] .find-truck-feature-item {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="dark"] .find-truck-check {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="dark"] .find-truck-btn-driver {
+  background-color: #163657;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .find-truck-btn-driver:hover {
+  background-color: #1f4770;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .find-truck-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .find-truck-title {
+    font-size: 2.25rem;
+  }
+
+  .find-truck-header {
+    margin-bottom: 2rem;
+  }
+
+  .find-truck-card {
+    padding: 2rem 1.5rem 1.5rem 1.5rem;
+  }
+}

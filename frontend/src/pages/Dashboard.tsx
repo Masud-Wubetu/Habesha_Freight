@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
+import FindTruck from '../components/FindTruck';
 
 type DashboardSection = 'dashboard' | 'find-truck' | 'requests' | 'deliveries' | 'history' | 'ratings' | 'profile';
 
@@ -227,11 +228,7 @@ export default function Dashboard() {
         );
 
       case 'find-truck':
-        return (
-          <div className="section-placeholder">
-            <p>Find Truck section - Coming soon</p>
-          </div>
-        );
+        return <FindTruck />;
 
       case 'requests':
         return (
