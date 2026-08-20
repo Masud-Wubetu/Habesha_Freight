@@ -1,20 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../services/api';
 
-interface Vehicle {
-  id?: string;
-  plate: string;
-  model: string;
-  type: string;
-  capacity: string;
-  driver?: string;
-  status: string;
-}
 
-interface FleetRequest {
-  id: string;
-  status: string;
-}
 
 function useCompanySidebar() {
   const [companyName, setCompanyName] = useState('');

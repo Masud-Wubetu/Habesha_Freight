@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStoredUser } from '../../services/authService';
+import { useDriverShipments } from '../../hooks/useDriverShipments';
 import '../../styles/active-delivery.css';
 
 /* ── Types ───────────────────────────────────────────────── */
@@ -119,16 +120,24 @@ export default function ActiveDelivery() {
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
   };
 
-  /* TODO: Replace mock delivery with API data */
-  const delivery = {
-    shipmentId: 'SHP-001',
-    origin: 'Addis Ababa',
-    destination: 'Dire Dawa',
-    cargoType: 'Electronics',
-    weightTons: 8,
-    budgetETB: 8500,
-    status: 'In Transit',
-  };
+  const { shipments } = useDriverShipments();
+
+  const activeShipment = shipments.find(
+    (s) => !['DELIVERED', 'CANCELLED'].includes(s.status)
+  );
+
+  /* Real delivery object (falls back to placeholder if no active shipment yet) */
+  const delivery = activeShipment
+    ? {
+        shipmentId: activeShipment.id.slice(0, 12),
+        origin: activeShipment.origin_city ?? '—',
+        destination: activeShipment.destination_city ?? '—',
+        cargoType: activeShipment.cargo_description ?? '—',
+        weightTons: activeShipment.weight_tons ?? 0,
+        budgetETB: 0,
+        status: activeShipment.status,
+      }
+    : null;
 
   return (
     <>
@@ -153,6 +162,14 @@ export default function ActiveDelivery() {
         </div>
 
         {/* ── Delivery Card ─────────────────────────────────── */}
+        {!delivery ? (
+          <div className="ad-card" style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', padding: '2rem' }}>
+            <p>No active delivery at the moment.</p>
+            <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+              Accept a bid to start a new delivery.
+            </p>
+          </div>
+        ) : (
         <div className="ad-card">
 
           {/* Top: shipment info + price */}
@@ -166,7 +183,9 @@ export default function ActiveDelivery() {
               </p>
             </div>
             <div className="ad-price-wrap">
-              <p className="ad-price">ETB {delivery.budgetETB.toLocaleString()}</p>
+              {delivery.budgetETB > 0 && (
+                <p className="ad-price">ETB {delivery.budgetETB.toLocaleString()}</p>
+              )}
               <span className={`ad-pill ${
                 step === 'delivered' ? 'ad-pill--delivered' :
                 step === 'loaded'    ? 'ad-pill--loaded' :
@@ -243,6 +262,7 @@ export default function ActiveDelivery() {
             </button>
           </div>
         </div>
+        )} {/* end delivery ternary */}
 
       </div>
 

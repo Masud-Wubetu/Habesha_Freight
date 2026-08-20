@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 type Role = 'shipper' | 'driver' | 'transport' | 'admin';
 
@@ -12,6 +13,7 @@ interface RoleOption {
 
 export default function Register() {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [step, setStep] = useState<'role' | 'details' | 'fayda'>('role');
   const [selectedRole, setSelectedRole] = useState<Role>('shipper');
   const [formData, setFormData] = useState({
@@ -138,23 +140,41 @@ export default function Register() {
     setFaydaError('');
   };
 
-  const handleVerifyToContinue = () => {
+  const handleVerifyToContinue = async () => {
     if (faydaVerified) {
-      // Store registration data in localStorage or state for OTP page
       const fullName = `${formData.firstName} ${formData.lastName}`;
-      const phoneNumber = `+251${formData.phoneNumber.replace(/\s/g, '')}`;
+      const phoneNumber = `+251${formData.phoneNumber.replace(/\s/g, '').replace(/^\+251/, '').replace(/^0/, '')}`;
       
-      const registrationData = {
-        full_name: fullName,
-        phone_number: phoneNumber,
-        email: formData.email || undefined,
-        password: formData.password,
-        role: selectedRole,
-        fayda_number: faydaNumber,
+      const roleMapping: Record<Role, string> = {
+        shipper: 'SHIPPER',
+        driver: 'DRIVER',
+        transport: 'FLEET_OWNER',
+        admin: 'ADMIN',
       };
 
-      localStorage.setItem('registrationData', JSON.stringify(registrationData));
-      navigate('/verify-otp');
+      setIsVerifying(true);
+      setFaydaError('');
+
+      try {
+        const res = await register(fullName, phoneNumber, formData.password, roleMapping[selectedRole]);
+        
+        const registrationData = {
+          full_name: fullName,
+          phone_number: phoneNumber,
+          email: formData.email || undefined,
+          password: formData.password,
+          role: selectedRole,
+          fayda_number: faydaNumber,
+          demo_otp: res?.demo_otp || '123456',
+        };
+
+        localStorage.setItem('registrationData', JSON.stringify(registrationData));
+        navigate('/verify-otp');
+      } catch (err: any) {
+        setFaydaError(err.message || 'Registration failed. Please try again.');
+      } finally {
+        setIsVerifying(false);
+      }
     }
   };
 

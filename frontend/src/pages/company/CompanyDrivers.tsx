@@ -1,22 +1,20 @@
-import { useState } from 'react';
-
-interface Driver {
-  id: string;
-  name: string;
-  phone: string;
-  licenseGrade: string;
-  assignedVehicle: string;
-  status: 'Available' | 'On Delivery' | 'Off Duty';
-}
+import { useCompanyDrivers } from '../../hooks/useCompanyDrivers';
+import { useCompanySettings } from '../../hooks/useCompanySettings';
 
 export default function CompanyDrivers() {
-  const [drivers] = useState<Driver[]>([
-    { id: 'D-1', name: 'Abebe Girma', phone: '+251 911 123 456', licenseGrade: 'Level 5 (Heavy Truck)', assignedVehicle: 'AAU-3421 (Isuzu FSR)', status: 'Available' },
-    { id: 'D-2', name: 'Tesfaye Haile', phone: '+251 912 987 654', licenseGrade: 'Level 5 (Articulated)', assignedVehicle: 'AA-45892 (Mercedes Actros)', status: 'On Delivery' },
-    { id: 'D-3', name: 'Selam Tadesse', phone: '+251 913 555 777', licenseGrade: 'Level 4 (Medium Truck)', assignedVehicle: 'AA-11034 (Volvo FH)', status: 'Available' },
-    { id: 'D-4', name: 'Kibru Alemu', phone: '+251 914 333 111', licenseGrade: 'Level 5 (Heavy Trailer)', assignedVehicle: 'AA-92340 (Sino Howo)', status: 'On Delivery' },
-  ]);
-
+  const { profile, loading: profileLoading } = useCompanySettings();
+  const companyId = profile?.id ?? '';
+  const { drivers, loading, error } = useCompanyDrivers(companyId);
+  if (profileLoading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-50">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-slate-600 font-medium">Loading company info…</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -38,25 +36,30 @@ export default function CompanyDrivers() {
                 <th className="p-3">Duty Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {drivers.map((d) => (
-                <tr key={d.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="p-3 font-bold text-slate-900">{d.name}</td>
-                  <td className="p-3 font-mono text-slate-600">{d.phone}</td>
-                  <td className="p-3 text-slate-700 font-medium">{d.licenseGrade}</td>
-                  <td className="p-3 font-semibold text-slate-800">{d.assignedVehicle}</td>
-                  <td className="p-3">
-                    <span
-                      className={`text-xs font-extrabold px-2.5 py-1 rounded-full ${
-                        d.status === 'Available' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
-                      }`}
-                    >
-                      {d.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            <tbody className="divide-y divide-slate-100 text-sm">{loading ? (
+              <tr><td colSpan={5} className="p-3 text-center">Loading drivers...</td></tr>
+            ) : error ? (
+              <tr><td colSpan={5} className="p-3 text-center text-red-500">{error}</td></tr>
+            ) : drivers.map((d) => (
+              <tr key={d.id} className="hover:bg-slate-50 transition-colors">
+                <td className="p-3 font-bold text-slate-900">{d.name}</td>
+                <td className="p-3 font-mono text-slate-600">{d.phone}</td>
+                <td className="p-3 text-slate-700 font-medium">{d.licenseGrade}</td>
+                <td className="p-3 font-semibold text-slate-800">{d.assignedVehicle}</td>
+                <td className="p-3">
+                  <span
+                    className={`text-xs font-extrabold px-2.5 py-1 rounded-full ${
+                      d.status === 'Available' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
+                    }`}
+                  >
+                    {d.status}
+                  </span>
+                </td>
+              </tr>
+            ))}</tbody>
+
+
+
           </table>
         </div>
       </div>

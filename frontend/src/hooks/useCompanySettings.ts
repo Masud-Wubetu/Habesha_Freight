@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../services/api';
-import { updateUserProfile, fetchCurrentUser } from '../services/authService';
+import { updateUserProfile } from '../services/authService';
 
 interface CompanyProfile {
+  id: string;
   name: string;
   email: string;
   phone: string;
@@ -12,6 +13,7 @@ interface CompanyProfile {
 
 export function useCompanySettings() {
   const [profile, setProfile] = useState<CompanyProfile>({
+    id: '',
     name: '',
     email: '',
     phone: '',
@@ -27,6 +29,7 @@ export function useCompanySettings() {
       // Attempt to get profile from auth/me
       const user = await api.get<any>('/auth/me');
       setProfile({
+        id: user?.id?.toString() || '',
         name: user?.full_name || '',
         email: user?.email || '',
         phone: user?.phone_number || '',

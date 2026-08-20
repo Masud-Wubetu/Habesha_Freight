@@ -72,6 +72,20 @@ export async function createLoad(req: AuthenticatedRequest, res: Response) {
 /**
  * List loads with optional filters (GET /api/loads)
  */
+
+export async function getShipperLoads(req: AuthenticatedRequest, res: Response) {
+  const shipperId = req.user?.userId;
+  try {
+    const loads = await db('loads')
+      .where({ shipper_id: shipperId })
+      .orderBy('created_at', 'desc');
+    return res.status(200).json({ success: true, data: loads });
+  } catch (error) {
+    console.error('Shipper Loads Error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error fetching shipper loads.' });
+  }
+}
+
 export async function listLoads(req: AuthenticatedRequest, res: Response) {
   try {
     const { status, origin_city, destination_city, page = 1, limit = 20 } = req.query;
@@ -166,6 +180,30 @@ export async function searchNearbyLoads(req: AuthenticatedRequest, res: Response
 /**
  * Get detailed load information by ID (GET /api/loads/:id)
  */
+
+export async function getShipperStats(req: AuthenticatedRequest, res: Response) {
+  const shipperId = req.user?.userId;
+  try {
+    const [{ total }]= await db('loads').where({ shipper_id: shipperId }).count('id as total');
+    const [{ active }]= await db('loads').where({ shipper_id: shipperId, status: 'POSTED' }).count('id as active');
+    const [{ completed }]= await db('loads').where({ shipper_id: shipperId, status: 'DELIVERED' }).count('id as completed');
+    const [{ pendingBids }]= await db('bids')
+      .join('loads', 'bids.load_id', 'loads.id')
+      .where({ shipper_id: shipperId, 'bids.status': 'PENDING' })
+      .count('bids.id as pendingBids');
+    const [{ totalSpend }]= await db('loads')
+      .where({ shipper_id: shipperId })
+      .sum('offered_price_etb as totalSpend');
+    return res.status(200).json({
+      success: true,
+      data: { total, active, completed, pendingBids, totalSpend },
+    });
+  } catch (error) {
+    console.error('Shipper Stats Error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error fetching shipper stats.' });
+  }
+}
+
 export async function getLoadDetails(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
@@ -189,10 +227,13 @@ export async function getLoadDetails(req: AuthenticatedRequest, res: Response) {
 
     const bids = await db('bids')
       .join('users', 'bids.driver_id', 'users.id')
+      .leftJoin('vehicles', 'bids.driver_id', 'vehicles.driver_id')
       .select(
         'bids.*',
         'users.full_name as driver_name',
-        'users.phone_number as driver_phone'
+        'users.phone_number as driver_phone',
+        'vehicles.vehicle_type as vehicle_type',
+        'vehicles.capacity_tons as capacity_tons'
       )
       .where('bids.load_id', id)
       .orderBy('bids.created_at', 'desc');

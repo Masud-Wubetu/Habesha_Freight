@@ -1,6 +1,5 @@
-import React, { useState, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { useCompanySettings } from '../../hooks/useCompanySettings';
-import { Link } from 'react-router-dom';
 
 export default function CompanySettings() {
   const { profile, setProfile, loading, saving, saveProfile } = useCompanySettings();

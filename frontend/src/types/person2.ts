@@ -28,6 +28,15 @@ export interface AuthUser {
   is_verified?: boolean;
 }
 
+export interface LoadStat {
+  total: number;
+  active: number;
+  completed: number;
+  pendingBids: number;
+  totalSpend: number;
+}
+
+
 export interface AdminDashboardStats {
   totalUsers: number;
   totalShippers: number;
@@ -140,4 +149,4 @@ export interface NavItem {
   children?: NavItem[];
 }
 
-export type Person2Role = 'driver' | 'company' | 'admin';
+export type Person2Role = 'driver' | 'company' | 'admin' | 'shipper';

@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import { hashPassword } from './utils/crypto';
 import type { Knex } from 'knex';
 
 import db from './config/db';
@@ -15,6 +16,7 @@ import escrowRoutes from './routes/escrowRoutes';
 import trackingRoutes from './routes/trackingRoutes';
 import disputeRoutes from './routes/disputeRoutes';
 import reviewRoutes from './routes/reviewRoutes';
+import driverRoutes from './routes/driverRoutes';
 
 dotenv.config();
 
@@ -41,6 +43,7 @@ export function createApp(database: Knex = db): Express {
   app.use('/api/tracking', trackingRoutes);
   app.use('/api/disputes', disputeRoutes);
   app.use('/api/reviews', reviewRoutes);
+  app.use('/api/driver', driverRoutes);
 
   // Global Error Handler
   app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
@@ -61,5 +64,36 @@ export function createApp(database: Knex = db): Express {
 
   return app;
 }
+
+// ------------------------------------------------------------
+// Ensure an admin user exists (dev convenience)
+// ------------------------------------------------------------
+async function ensureAdminExists() {
+  const adminPhone = process.env.ADMIN_PHONE;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPhone || !adminPassword) return;
+  try {
+    const existing = await db('users').where({ phone_number: adminPhone }).first();
+    if (!existing) {
+      const hashed = await hashPassword(adminPassword);
+      await db('users').insert({
+        full_name: 'System Administrator',
+        phone_number: adminPhone,
+        email: null,
+        password_hash: hashed,
+        role: 'ADMIN',
+        is_verified: true,
+        otp_code: null,
+        otp_expires_at: null,
+      });
+      console.log('🛠️  Created default admin user');
+    }
+  } catch (err) {
+    console.error('Error ensuring admin user:', err);
+  }
+}
+
+// Run the seeding when the module is loaded
+ensureAdminExists();
 
 export default createApp();

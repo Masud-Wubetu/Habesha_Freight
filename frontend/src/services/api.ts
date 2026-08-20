@@ -1,59 +1,87 @@
+import axios, { AxiosError, AxiosResponse } from 'axios';
+
+// Base URL from Vite environment variables
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-function getAuthHeaders(): Record<string, string> {
+// ── Raw Axios instance (used internally and exposed as axiosInstance) ──────
+export const axiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
+});
+
+// ── Request interceptor: attach Bearer token ─────────────────────────────
+axiosInstance.interceptors.request.use((config) => {
   const token =
-    localStorage.getItem('authToken') ||
     localStorage.getItem('hf_token') ||
+    localStorage.getItem('authToken') ||
     localStorage.getItem('token');
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    config.headers = config.headers ?? {};
+    (config.headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
   }
-  return headers;
-}
+  return config;
+});
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const errorMsg = data?.message || `API Request failed with status ${response.status}`;
-    throw new Error(errorMsg);
+// ── Response interceptor: reject on HTTP errors ───────────────────────────
+axiosInstance.interceptors.response.use(
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => {
+    const msg =
+      (error.response?.data as any)?.message ||
+      error.message ||
+      'API Request failed';
+    return Promise.reject(new Error(msg));
   }
-  return data as T;
-}
+);
 
-export const api = {
-  get: async <T>(endpoint: string, _requireAuth?: boolean): Promise<T> => {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<T>(response);
-  },
+// ────────────────────────────────────────────────────────────────────────────
+// Convenience helpers
+//   Each helper calls the backend and unwraps the standard envelope:
+//     { success: true, message: "...", data: <payload> }
+//   → returns <payload> directly
+// ────────────────────────────────────────────────────────────────────────────
 
-  post: async <T>(endpoint: string, body?: unknown, _requireAuth?: boolean): Promise<T> => {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return handleResponse<T>(response);
-  },
-
-  patch: async <T>(endpoint: string, body?: unknown, _requireAuth?: boolean): Promise<T> => {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'PATCH',
-      headers: getAuthHeaders(),
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    return handleResponse<T>(response);
-  },
-
-  delete: async <T>(endpoint: string, _requireAuth?: boolean): Promise<T> => {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    return handleResponse<T>(response);
-  },
+export const get = async <T>(endpoint: string, params?: Record<string, any> | boolean): Promise<T> => {
+  const axiosParams = typeof params === 'object' && params !== null ? params : undefined;
+  const res = await axiosInstance.get(endpoint, { params: axiosParams });
+  const body = res.data as any;
+  // Unwrap { success, data } envelope if present; otherwise return body directly
+  return body?.data !== undefined ? body.data : body;
 };
+
+export const post = async <T>(endpoint: string, body?: unknown): Promise<T> => {
+  const res = await axiosInstance.post(endpoint, body);
+  const resBody = res.data as any;
+  return resBody?.data !== undefined ? resBody.data : resBody;
+};
+
+export const patch = async <T>(endpoint: string, body?: unknown): Promise<T> => {
+  const res = await axiosInstance.patch(endpoint, body);
+  const resBody = res.data as any;
+  return resBody?.data !== undefined ? resBody.data : resBody;
+};
+
+export const del = async <T>(endpoint: string): Promise<T> => {
+  const res = await axiosInstance.delete(endpoint);
+  const resBody = res.data as any;
+  return resBody?.data !== undefined ? resBody.data : resBody;
+};
+
+// ────────────────────────────────────────────────────────────────────────────
+// Backward-compatible "api" object
+//   Old code does: api.get<T>('/path') and expects the unwrapped payload.
+//   We proxy these through our helpers so that migration is transparent.
+// ────────────────────────────────────────────────────────────────────────────
+export const api = {
+  get: <T>(endpoint: string, params?: Record<string, any> | boolean): Promise<T> =>
+    get<T>(endpoint, params),
+  post: <T>(endpoint: string, body?: unknown, _options?: unknown): Promise<T> =>
+    post<T>(endpoint, body),
+  patch: <T>(endpoint: string, body?: unknown, _options?: unknown): Promise<T> =>
+    patch<T>(endpoint, body),
+  delete: <T>(endpoint: string): Promise<T> =>
+    del<T>(endpoint),
+};
+
+export default api;

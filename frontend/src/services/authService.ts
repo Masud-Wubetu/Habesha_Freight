@@ -1,5 +1,5 @@
-import { api } from './api';
-import type { ApiResponse, AuthUser } from '../types/person2';
+import { get, post, patch } from './api';
+import type { AuthUser } from '../types/person2';
 
 const TOKEN_KEY = 'hf_token';
 const USER_KEY = 'hf_user';
@@ -28,37 +28,50 @@ export function clearSession(): void {
   localStorage.removeItem(USER_KEY);
 }
 
+/**
+ * Login: POST /api/auth/login
+ * Backend returns { success, data: { token, user } }
+ * The post() helper unwraps to { token, user }
+ */
 export async function loginWithPhone(
   phone_number: string,
   password: string
 ): Promise<{ token: string; user: AuthUser }> {
-  const response = await api.post<ApiResponse<{ token: string; user: AuthUser }>>(
-    '/auth/login',
-    { phone_number, password }
-  );
-  persistSession(response.data.token, response.data.user);
-  return response.data;
+  const data = await post<{ token: string; user: AuthUser }>('/auth/login', {
+    phone_number,
+    password,
+  });
+  persistSession(data.token, data.user);
+  return data;
 }
 
+/**
+ * Fetch current user profile: GET /api/auth/me
+ * Backend returns { success, data: User }
+ * The get() helper unwraps to User
+ */
 export async function fetchCurrentUser(): Promise<AuthUser> {
-  const response = await api.get<ApiResponse<AuthUser>>('/auth/me');
-  persistSession(getStoredToken() ?? '', response.data);
-  return response.data;
+  const user = await get<AuthUser>('/auth/me');
+  persistSession(getStoredToken() ?? '', user);
+  return user;
 }
 
+/**
+ * Update profile: PATCH /api/auth/profile
+ */
 export async function updateUserProfile(data: {
   full_name?: string;
   email?: string;
 }): Promise<AuthUser> {
-  const response = await api.patch<ApiResponse<AuthUser>>('/auth/profile', data);
+  const user = await patch<AuthUser>('/auth/profile', data);
   const token = getStoredToken();
-  if (token) persistSession(token, response.data);
-  return response.data;
+  if (token) persistSession(token, user);
+  return user;
 }
 
 export async function logoutUser(): Promise<void> {
   try {
-    await api.post('/auth/logout', undefined);
+    await post('/auth/logout', undefined);
   } finally {
     clearSession();
   }

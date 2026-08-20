@@ -1,9 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import ProtectedRoute from './routes/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Layout from './layouts/MainLayout';
 import DriverLayout from './layouts/DriverLayout';
 import CompanyLayout from './layouts/CompanyLayout';
+import ShipperLayout from './pages/shipper/ShipperLayout';
 
 // Public / Shipper pages
 import {
@@ -17,6 +19,8 @@ import {
   ShipperCreateShipment,
   ShipperBids,
   ShipperTracking,
+  ShipperHistory,
+  ShipperRatings,
   ShipperFleet,
   ShipperPayments,
 } from './pages/shipper';
@@ -77,51 +81,151 @@ function App() {
         >
           <Routes>
             {/* ── Admin portal routes ── */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/drivers" element={<AdminDrivers />} />
-            <Route path="/admin/companies" element={<AdminCompanies />} />
-            <Route path="/admin/vehicles" element={<AdminVehicles />} />
-            <Route path="/admin/deliveries" element={<AdminDeliveries />} />
-            <Route path="/admin/verification" element={<AdminVerification />} />
-            <Route path="/admin/payments" element={<AdminPayments />} />
-            <Route path="/admin/escrow" element={<AdminPayments />} />
-            <Route path="/admin/disputes" element={<AdminDisputes />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/admin/audit-logs" element={<AdminAuditLogs />} />
-            <Route path="/admin/logs" element={<AdminAuditLogs />} />
-            <Route path="/admin/*" element={<AdminDashboard />} />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminUsers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/drivers"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminDrivers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/companies"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminCompanies />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/vehicles"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminVehicles />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/deliveries"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminDeliveries />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/verification"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminVerification />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/payments"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminPayments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/escrow"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminPayments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/disputes"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminDisputes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminReports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/audit-logs"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminAuditLogs />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/logs"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminAuditLogs />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
 
             {/* ── Driver portal routes ── */}
             <Route
               path="/driver/*"
               element={
-                <DriverLayout>
-                  <Routes>
-                    <Route index element={<DriverDashboard />} />
-                    <Route path="dashboard" element={<DriverDashboard />} />
-                    <Route path="requests" element={<IncomingRequests />} />
-                    <Route path="requests/loads" element={<AvailableLoads />} />
-                    <Route path="requests/:id" element={<RequestDetails />} />
-                    <Route path="bids" element={<BidHistory />} />
-                    <Route path="bids/history" element={<BidHistory />} />
-                    <Route path="bids/submit" element={<SubmitBid />} />
-                    <Route path="active-delivery" element={<ActiveDelivery />} />
-                    <Route path="active-delivery/:id" element={<DeliveryDetails />} />
-                    <Route path="deliveries/active" element={<ActiveDelivery />} />
-                    <Route path="deliveries/tracking" element={<LiveTracking />} />
-                    <Route path="deliveries/history" element={<DeliveryHistory />} />
-                    <Route path="history" element={<DeliveryHistory />} />
-                    <Route path="history/tracking" element={<LiveTracking />} />
-                    <Route path="ratings" element={<DriverRatings />} />
-                    <Route path="messages" element={<DriverMessages />} />
-                    <Route path="profile" element={<DriverInfo />} />
-                    <Route path="profile/info" element={<DriverInfo />} />
-                    <Route path="profile/license" element={<DriverLicense />} />
-                    <Route path="profile/settings" element={<DriverSettings />} />
-                    <Route path="*" element={<Navigate to="dashboard" replace />} />
-                  </Routes>
-                </DriverLayout>
+                <ProtectedRoute allowedRoles={['DRIVER']}>
+                  <DriverLayout>
+                    <Routes>
+                      <Route index element={<DriverDashboard />} />
+                      <Route path="dashboard" element={<DriverDashboard />} />
+                      <Route path="requests" element={<IncomingRequests />} />
+                      <Route path="requests/loads" element={<AvailableLoads />} />
+                      <Route path="requests/:id" element={<RequestDetails />} />
+                      <Route path="bids" element={<BidHistory />} />
+                      <Route path="bids/history" element={<BidHistory />} />
+                      <Route path="bids/submit" element={<SubmitBid />} />
+                      <Route path="active-delivery" element={<ActiveDelivery />} />
+                      <Route path="active-delivery/:id" element={<DeliveryDetails />} />
+                      <Route path="deliveries/active" element={<ActiveDelivery />} />
+                      <Route path="deliveries/tracking" element={<LiveTracking />} />
+                      <Route path="deliveries/history" element={<DeliveryHistory />} />
+                      <Route path="history" element={<DeliveryHistory />} />
+                      <Route path="history/tracking" element={<LiveTracking />} />
+                      <Route path="ratings" element={<DriverRatings />} />
+                      <Route path="messages" element={<DriverMessages />} />
+                      <Route path="profile" element={<DriverInfo />} />
+                      <Route path="profile/info" element={<DriverInfo />} />
+                      <Route path="profile/license" element={<DriverLicense />} />
+                      <Route path="profile/settings" element={<DriverSettings />} />
+                      <Route path="*" element={<Navigate to="dashboard" replace />} />
+                    </Routes>
+                  </DriverLayout>
+                </ProtectedRoute>
               }
             />
 
@@ -129,46 +233,62 @@ function App() {
             <Route
               path="/company/*"
               element={
-                <CompanyLayout>
-                  <Routes>
-                    <Route index element={<Navigate to="dashboard" replace />} />
-                    <Route path="dashboard" element={<CompanyDashboard />} />
-                    <Route path="fleet-requests" element={<CompanyFleetRequests />} />
-                    <Route path="deliveries" element={<CompanyDeliveries />} />
-                    <Route path="vehicles" element={<CompanyVehicles />} />
-                    <Route path="drivers" element={<CompanyDrivers />} />
-                    <Route path="ratings" element={<CompanyRatings />} />
-                    <Route path="settings" element={<CompanySettings />} />
-                    <Route path="profile" element={<CompanyProfile />} />
-                     <Route path="*" element={<Navigate to="dashboard" replace />} />
-                  </Routes>
-                </CompanyLayout>
+                <ProtectedRoute allowedRoles={['FLEET_OWNER']}>
+                  <CompanyLayout>
+                    <Routes>
+                      <Route index element={<Navigate to="dashboard" replace />} />
+                      <Route path="dashboard" element={<CompanyDashboard />} />
+                      <Route path="fleet-requests" element={<CompanyFleetRequests />} />
+                      <Route path="deliveries" element={<CompanyDeliveries />} />
+                      <Route path="vehicles" element={<CompanyVehicles />} />
+                      <Route path="drivers" element={<CompanyDrivers />} />
+                      <Route path="ratings" element={<CompanyRatings />} />
+                      <Route path="settings" element={<CompanySettings />} />
+                      <Route path="profile" element={<CompanyProfile />} />
+                      <Route path="*" element={<Navigate to="dashboard" replace />} />
+                    </Routes>
+                  </CompanyLayout>
+                </ProtectedRoute>
               }
             />
 
-            {/* ── Public / shipper routes (use MainLayout) ── */}
+            {/* ── Public routes (use MainLayout) ── */}
             <Route
-              path="/*"
               element={
                 <Layout>
-                  <Routes>
-                    <Route path="/" element={<ShipperHome />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/verify-otp" element={<VerifyOTP />} />
-                    <Route path="/dashboard" element={<ShipperDashboard />} />
-                    <Route path="/profile" element={<ShipperProfile />} />
-                    <Route path="/shipments" element={<ShipperShipments />} />
-                    <Route path="/shipments/create" element={<ShipperCreateShipment />} />
-                    <Route path="/bids" element={<ShipperBids />} />
-                    <Route path="/tracking" element={<ShipperTracking />} />
-                    <Route path="/fleet" element={<ShipperFleet />} />
-                    <Route path="/payments" element={<ShipperPayments />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
+                  <Outlet />
                 </Layout>
               }
-            />
+            >
+              <Route path="/" element={<ShipperHome />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/verify-otp" element={<VerifyOTP />} />
+            </Route>
+
+            {/* ── Authenticated Shipper routes ── */}
+            <Route
+              element={
+                <ProtectedRoute allowedRoles={['SHIPPER']}>
+                  <ShipperLayout>
+                    <Outlet />
+                  </ShipperLayout>
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/dashboard" element={<ShipperDashboard />} />
+              <Route path="/profile" element={<ShipperProfile />} />
+              <Route path="/shipments" element={<ShipperShipments />} />
+              <Route path="/shipments/create" element={<ShipperCreateShipment />} />
+              <Route path="/bids" element={<ShipperBids />} />
+              <Route path="/tracking" element={<ShipperTracking />} />
+              <Route path="/history" element={<ShipperHistory />} />
+              <Route path="/ratings" element={<ShipperRatings />} />
+              <Route path="/fleet" element={<ShipperFleet />} />
+              <Route path="/payments" element={<ShipperPayments />} />
+            </Route>
+
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

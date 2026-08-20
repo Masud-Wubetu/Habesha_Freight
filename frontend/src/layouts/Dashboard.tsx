@@ -13,6 +13,7 @@ const roleLabels: Record<Person2Role, string> = {
   driver: 'Driver Portal',
   company: 'Company Portal',
   admin: 'Admin Console',
+  shipper: 'Shipper Dashboard',
 };
 
 export default function Person2Layout({ role, navItems, children }: Person2LayoutProps) {
@@ -29,7 +30,7 @@ export default function Person2Layout({ role, navItems, children }: Person2Layou
     <div className="p2-layout">
       <aside className={`p2-sidebar ${sidebarOpen ? 'p2-sidebar--open' : ''}`}>
         <div className="p2-sidebar-brand">
-          <Link to={`/${role}`} className="p2-brand-link">
+          <Link to={role === 'shipper' ? '/dashboard' : `/${role}`} className="p2-brand-link">
             <span className="p2-brand-habesha">Habesha</span>
             <span className="p2-brand-freight">Freight</span>
           </Link>

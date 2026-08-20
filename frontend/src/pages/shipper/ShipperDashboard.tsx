@@ -1,286 +1,154 @@
-import { useEffect, useState } from 'react';
-import Sidebar from '../../components/Sidebar';
-import DashboardHeader from '../../components/DashboardHeader';
+// src/pages/shipper/ShipperDashboard.tsx
+import { useNavigate } from 'react-router-dom';
+import { useShipperDashboard } from '../../hooks/useShipperDashboard';
+import { useTheme } from '../../context/ThemeContext';
+import { getStoredUser } from '../../services/authService';
 
-type DashboardSection = 'dashboard' | 'find-truck' | 'requests' | 'deliveries' | 'history' | 'ratings' | 'profile';
+const today = new Date().toLocaleDateString('en-US', {
+  weekday: 'long',
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
 
-interface Stat {
-  label: string;
-  value: string | number;
-  icon: string;
-  color: string;
-}
+const formatCurrency = (n: number) => `ETB ${Number(n).toLocaleString()}`;
 
-interface Delivery {
-  id: string;
-  origin: string;
-  destination: string;
-  cargo: string;
-  weight: string;
-  status: 'In Transit' | 'Assigned' | 'In Progress';
-  trucks?: number;
-}
+export default function ShipperDashboard() {
+  const navigate = useNavigate();
+  const { stats, loads, loading, error } = useShipperDashboard();
+  const { theme, toggleTheme } = useTheme();
+  const user = getStoredUser();
 
-export default function Dashboard() {
-  const [activeSection, setActiveSection] = useState<DashboardSection>('dashboard');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const initials = (user?.full_name ?? 'Sara Bekele')
+    .split(' ')
+    .map((w: string) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
-  const stats: Stat[] = [
-    { label: 'Active Deliveries', value: 3, icon: '🚚', color: '#0B1F33' },
-    { label: 'Pending Bids', value: 7, icon: '💰', color: '#C8933A' },
-    { label: 'Completed', value: 24, icon: '✅', color: '#059669' },
-    { label: 'Total Spent', value: 'ETB 184,500', icon: '💳', color: '#0B1F33' },
-  ];
-
-  const deliveries: Delivery[] = [
-    {
-      id: 'SHP-001',
-      origin: 'Addis Ababa',
-      destination: 'Dire Dawa',
-      cargo: 'Electronics',
-      weight: '8 tons',
-      status: 'In Transit',
-    },
-    {
-      id: 'SHP-002',
-      origin: 'Adama',
-      destination: 'Hawassa',
-      cargo: 'Agricultural Produce',
-      weight: '12 tons',
-      status: 'Assigned',
-    },
-    {
-      id: 'FR-003',
-      origin: 'Addis Ababa',
-      destination: 'Mekelle',
-      cargo: 'Industrial Equipment',
-      weight: '45 tons',
-      trucks: 5,
-      status: 'In Progress',
-    },
-  ];
-
-  const quickActions = [
-    { label: 'Find Single Truck', icon: '🚛' },
-    { label: 'Find Fleet Company', icon: '🏢' },
-    { label: 'View Requests', icon: '📋' },
-    { label: 'Delivery History', icon: '🗂️' },
-  ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'In Transit':
-        return '#0B1F33';
-      case 'Assigned':
-        return '#C8933A';
-      case 'In Progress':
-        return '#059669';
-      default:
-        return '#6b7280';
-    }
+  const getStatusBadgeClass = (status: string) => {
+    const s = status.toLowerCase();
+    if (s.includes('transit')) return 'bg-blue-100 text-blue-800';
+    if (s.includes('assigned')) return 'bg-pink-100 text-pink-800';
+    if (s.includes('progress') || s.includes('active')) return 'bg-purple-100 text-purple-800';
+    if (s.includes('pending')) return 'bg-amber-100 text-amber-800';
+    if (s.includes('complete')) return 'bg-emerald-100 text-emerald-800';
+    return 'bg-amber-100 text-amber-800';
   };
 
-  const getSectionTitle = (section: DashboardSection) => {
-    switch (section) {
-      case 'dashboard': return 'Dashboard';
-      case 'find-truck': return 'Find Truck';
-      case 'requests': return 'Requests';
-      case 'deliveries': return 'Deliveries';
-      case 'history': return 'History';
-      case 'ratings': return 'Ratings';
-      case 'profile': return 'Profile';
-      default: return 'Dashboard';
-    }
+  const getStatusDisplay = (status: string) => {
+    return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 500);
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="dashboard-loading">
-        <p>Loading dashboard...</p>
-      </div>
-    );
-  }
-
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'dashboard':
-        return (
-          <>
-            <div className="dashboard-stats-grid">
-              {stats.map((stat) => (
-                <div key={stat.label} className="stat-card">
-                  <div className="stat-card-icon" style={{ backgroundColor: stat.color }}>
-                    {stat.icon}
-                  </div>
-                  <div className="stat-card-content">
-                    <span className="stat-card-value">{stat.value}</span>
-                    <span className="stat-card-label">{stat.label}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="dashboard-content-grid">
-              <div className="deliveries-card">
-                <div className="deliveries-header">
-                  <h2 className="deliveries-title">Active Deliveries</h2>
-                  <button 
-                    className="deliveries-view-all"
-                    onClick={() => setActiveSection('deliveries')}
-                  >
-                    View all
-                  </button>
-                </div>
-
-                <div className="deliveries-list">
-                  {deliveries.map((delivery) => (
-                    <div key={delivery.id} className="delivery-item">
-                      <div className="delivery-header">
-                        <span className="delivery-id">{delivery.id}</span>
-                        <span className="delivery-route">
-                          {delivery.origin} → {delivery.destination}
-                        </span>
-                      </div>
-                      <div className="delivery-details">
-                        <span className="delivery-cargo">
-                          {delivery.cargo} · {delivery.weight}
-                          {delivery.trucks && ` · ${delivery.trucks} trucks`}
-                        </span>
-                        <span
-                          className="delivery-status"
-                          style={{ backgroundColor: getStatusColor(delivery.status) }}
-                        >
-                          {delivery.status}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="quick-actions-card">
-                <h2 className="quick-actions-title">Quick Actions</h2>
-                <div className="quick-actions-list">
-                  {quickActions.map((action) => (
-                    <button key={action.label} className="quick-action-item">
-                      <span className="quick-action-icon">{action.icon}</span>
-                      <span className="quick-action-label">{action.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </>
-        );
-
-      case 'deliveries':
-        return (
-          <div className="deliveries-page">
-            <div className="deliveries-stats">
-              <div className="delivery-stat-card">
-                <span className="delivery-stat-value">12</span>
-                <span className="delivery-stat-label">Total Deliveries</span>
-              </div>
-              <div className="delivery-stat-card">
-                <span className="delivery-stat-value">3</span>
-                <span className="delivery-stat-label">In Transit</span>
-              </div>
-              <div className="delivery-stat-card">
-                <span className="delivery-stat-value">5</span>
-                <span className="delivery-stat-label">Assigned</span>
-              </div>
-              <div className="delivery-stat-card">
-                <span className="delivery-stat-value">4</span>
-                <span className="delivery-stat-label">Completed</span>
-              </div>
-            </div>
-
-            <div className="deliveries-full-list">
-              {deliveries.map((delivery) => (
-                <div key={delivery.id} className="delivery-full-item">
-                  <div className="delivery-full-header">
-                    <span className="delivery-full-id">{delivery.id}</span>
-                    <span className="delivery-full-route">
-                      {delivery.origin} → {delivery.destination}
-                    </span>
-                    <span
-                      className="delivery-status"
-                      style={{ backgroundColor: getStatusColor(delivery.status) }}
-                    >
-                      {delivery.status}
-                    </span>
-                  </div>
-                  <div className="delivery-full-details">
-                    <span>📦 {delivery.cargo}</span>
-                    <span>⚖️ {delivery.weight}</span>
-                    {delivery.trucks && <span>🚛 {delivery.trucks} trucks</span>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'find-truck':
-        return (
-          <div className="section-placeholder">
-            <p>Find Truck section - Coming soon</p>
-          </div>
-        );
-
-      case 'requests':
-        return (
-          <div className="section-placeholder">
-            <p>Requests section - Coming soon</p>
-          </div>
-        );
-
-      case 'history':
-        return (
-          <div className="section-placeholder">
-            <p>History section - Coming soon</p>
-          </div>
-        );
-
-      case 'ratings':
-        return (
-          <div className="section-placeholder">
-            <p>Ratings section - Coming soon</p>
-          </div>
-        );
-
-      case 'profile':
-        return (
-          <div className="section-placeholder">
-            <p>Profile section - Coming soon</p>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
+  // Only show active deliveries in the main list
+  const activeDeliveries = loads.filter(l => 
+    !['COMPLETED', 'CANCELLED'].includes(l.status)
+  ).slice(0, 5);
 
   return (
-    <div className="dashboard-wrapper">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onClose={() => setIsSidebarOpen(false)}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-      />
-      
-      <div className="dashboard-main">
-        <DashboardHeader 
-          onMenuClick={() => setIsSidebarOpen(true)}
-          title={getSectionTitle(activeSection)}
-        />
-        {renderContent()}
+    <div className="p-8 font-sans text-slate-900 max-w-7xl mx-auto">
+      {/* ── Top header ── */}
+      <header className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-[1.75rem] font-bold text-slate-900 mb-1 leading-tight">Dashboard</h1>
+          <p className="text-sm text-slate-500">{today}</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={toggleTheme}
+            className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+          <div className="w-10 h-10 rounded-full bg-[#071426] text-white flex items-center justify-center text-sm font-bold cursor-pointer" onClick={() => navigate('/profile')}>
+            {initials}
+          </div>
+        </div>
+      </header>
+
+      {error && <div className="text-red-500 mb-4">{error}</div>}
+
+      {/* ── Stat cards ── */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <article className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/shipments')}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base bg-amber-50 text-amber-600 mb-2">🚚</div>
+          <p className="text-2xl font-bold text-slate-900">{loading ? '…' : (stats?.active ?? 0)}</p>
+          <p className="text-xs text-slate-500 mt-1">Active Deliveries</p>
+        </article>
+
+        <article className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/bids')}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base bg-amber-50 text-amber-500 mb-2">💰</div>
+          <p className="text-2xl font-bold text-slate-900">{loading ? '…' : (stats?.pendingBids ?? 0)}</p>
+          <p className="text-xs text-slate-500 mt-1">Pending Bids</p>
+        </article>
+
+        <article className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/shipments')}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base bg-green-50 text-green-500 mb-2">✅</div>
+          <p className="text-2xl font-bold text-slate-900">{loading ? '…' : (stats?.completed ?? 0)}</p>
+          <p className="text-xs text-slate-500 mt-1">Completed</p>
+        </article>
+
+        <article className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-base bg-amber-50 text-amber-500 mb-2">💳</div>
+          <p className="text-2xl font-bold text-slate-900">{loading ? '…' : formatCurrency(Number(stats?.totalSpend ?? 0))}</p>
+          <p className="text-xs text-slate-500 mt-1">Total Spent</p>
+        </article>
+      </section>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ── Active Deliveries ── */}
+        <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 lg:col-span-2">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold text-slate-900">Active Deliveries</h2>
+            <button className="text-amber-500 text-sm font-medium hover:text-amber-600 transition-colors" onClick={() => navigate('/shipments')}>View all</button>
+          </div>
+          
+          {loading ? (
+             <p className="text-slate-500 py-4">Loading deliveries…</p>
+          ) : activeDeliveries.length === 0 ? (
+             <p className="text-slate-500 py-4">No active deliveries found.</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {activeDeliveries.map((load) => (
+                <div key={load.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => navigate(`/loads/${load.id}`)}>
+                  <div className="text-xl">📦</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm text-slate-800 mb-1">
+                      SHP-{load.id.slice(0, 3).toUpperCase()} · {load.origin_city} → {load.destination_city}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {load.cargo_description} · {load.weight_tons} tons
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(load.status)}`}>
+                    {getStatusDisplay(load.status)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── Quick Actions ── */}
+        <aside className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 lg:col-span-1">
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-slate-900">Quick Actions</h2>
+          </div>
+          <div className="flex flex-col gap-3">
+            <button className="flex items-center gap-3 p-4 rounded-lg text-sm font-medium border border-transparent bg-slate-900 text-white hover:bg-slate-800 transition-colors cursor-pointer w-full text-left" onClick={() => navigate('/shipments/create')}>
+              <span>🚚</span> Find Single Truck
+            </button>
+            <button className="flex items-center gap-3 p-4 rounded-lg text-sm font-medium border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer w-full text-left" onClick={() => navigate('/fleet')}>
+              <span>🏢</span> Find Fleet Company
+            </button>
+            <button className="flex items-center gap-3 p-4 rounded-lg text-sm font-medium border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer w-full text-left" onClick={() => navigate('/shipments')}>
+              <span>📋</span> View Requests
+            </button>
+            <button className="flex items-center gap-3 p-4 rounded-lg text-sm font-medium border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer w-full text-left" onClick={() => navigate('/tracking')}>
+              <span>🗂️</span> Delivery History
+            </button>
+          </div>
+        </aside>
       </div>
     </div>
   );

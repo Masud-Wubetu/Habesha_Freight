@@ -1,11 +1,17 @@
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import PageHeader from '../../components/PageHeader';
+import { post } from '../../services/api';
 
 export default function SubmitBid() {
   const navigate = useNavigate();
   const location = useLocation();
-  const requestId = (location.state as { requestId?: string } | null)?.requestId ?? '';
+  const { id: paramId } = useParams<{ id: string }>();
+  // load_id may come from the URL param OR from navigation state
+  const requestId =
+    paramId ??
+    (location.state as { requestId?: string } | null)?.requestId ??
+    '';
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -14,13 +20,20 @@ export default function SubmitBid() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!requestId) {
+      setError('Load ID is missing. Please go back and try again.');
+      return;
+    }
     setSubmitting(true);
     try {
-      // TODO: Backend endpoint required: POST /api/driver/bids
-      await new Promise((r) => setTimeout(r, 500));
-      navigate('/driver/bids/history');
-    } catch {
-      setError('Unable to submit bid. Please try again.');
+      await post('/driver/bids', {
+        load_id: requestId,
+        bid_amount_etb: Number(amount),
+        note: note || undefined,
+      });
+      navigate('/driver/bids');
+    } catch (err: any) {
+      setError(err?.message ?? 'Unable to submit bid. Please try again.');
     } finally {
       setSubmitting(false);
     }

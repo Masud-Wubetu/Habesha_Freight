@@ -1,4 +1,3 @@
-import React from 'react';
 import { useCompanySettings } from '../../hooks/useCompanySettings';
 import { Link } from 'react-router-dom';
 

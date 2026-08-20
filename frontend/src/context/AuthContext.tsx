@@ -1,6 +1,6 @@
 
-import { createContext, ReactNode, useState, useEffect, useCallback  , useContext} from 'react';
-import { api } from '../services/api';
+import { createContext, ReactNode, useState, useEffect, useCallback, useContext } from 'react';
+import { get, post } from '../services/api';
 
 export interface User {
   id: string;
@@ -13,45 +13,38 @@ export interface User {
   kyc_status?: string;
 }
 
-interface AuthResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: User;
-    token: string;
-  };
-}
-
-interface UserProfileResponse {
-  success: boolean;
-  data: User;
-}
-
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (phoneNumber: string, password: string) => Promise<void>;
-  register: (fullName: string, phoneNumber: string, password: string, role: string) => Promise<void>;
+  login: (phoneNumber: string, password: string) => Promise<User>;
+  register: (fullName: string, phoneNumber: string, password: string, role: string) => Promise<{ user?: any; demo_otp?: string }>;
+  verifyOtp: (phoneNumber: string, otpCode: string) => Promise<User>;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('authToken'));
+  const [user, setUser] = useState<User | null>(() => {
+    const raw = localStorage.getItem('hf_user');
+    if (!raw) return null;
+    try { return JSON.parse(raw) as User; } catch { return null; }
+  });
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('hf_token'));
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchUserProfile = useCallback(async () => {
     try {
-      const res = await api.get<UserProfileResponse>('/auth/me');
-      if (res.success && res.data) {
-        setUser(res.data);
+      // get() unwraps the backend envelope → returns the User directly
+      const userData = await get<User>('/auth/me');
+      if (userData) {
+        setUser(userData);
+        localStorage.setItem('hf_user', JSON.stringify(userData));
       }
     } catch {
-      // If token is invalid or expired, clear local storage
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('hf_token');
+      localStorage.removeItem('hf_user');
       setToken(null);
       setUser(null);
     } finally {
@@ -67,45 +60,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [token, fetchUserProfile]);
 
-  const login = async (phoneNumber: string, password: string) => {
-    const res = await api.post<AuthResponse>('/auth/login', {
+  const login = async (phoneNumber: string, password: string): Promise<User> => {
+    // post() unwraps the envelope → returns { user, token }
+    const data = await post<{ user: User; token: string }>('/auth/login', {
       phone_number: phoneNumber,
       password,
     });
-
-    if (res.success && res.data) {
-      const authToken = res.data.token;
-      localStorage.setItem('authToken', authToken);
-      setToken(authToken);
-      setUser(res.data.user);
-    }
+    const authToken = data.token;
+    localStorage.setItem('hf_token', authToken);
+    localStorage.setItem('hf_user', JSON.stringify(data.user));
+    setToken(authToken);
+    setUser(data.user);
+    return data.user;
   };
 
   const register = async (fullName: string, phoneNumber: string, password: string, role: string) => {
-    const res = await api.post<AuthResponse>('/auth/register', {
+    // The register endpoint returns { user, demo_otp } (no token yet)
+    const data = await post<{ user?: any; demo_otp?: string }>('/auth/register', {
       full_name: fullName,
       phone_number: phoneNumber,
       password,
       role,
     });
+    return data;
+  };
 
-    if (res.success && res.data) {
-      const authToken = res.data.token;
-      localStorage.setItem('authToken', authToken);
-      setToken(authToken);
-      setUser(res.data.user);
-    }
+  const verifyOtp = async (phoneNumber: string, otpCode: string): Promise<User> => {
+    const data = await post<{ user: User; token: string }>('/auth/verify-otp', {
+      phone_number: phoneNumber,
+      otp_code: otpCode,
+    });
+    const authToken = data.token;
+    localStorage.setItem('hf_token', authToken);
+    localStorage.setItem('hf_user', JSON.stringify(data.user));
+    setToken(authToken);
+    setUser(data.user);
+    return data.user;
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('hf_token');
+    localStorage.removeItem('hf_user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, register, verifyOtp, logout }}>
       {children}
     </AuthContext.Provider>
   );

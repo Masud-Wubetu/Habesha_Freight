@@ -61,8 +61,14 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login(phoneNumber, password);
-      navigate('/dashboard');
+      const user = await login(phoneNumber, password);
+      const roleHome: Record<string, string> = {
+        DRIVER: '/driver',
+        FLEET_OWNER: '/company',
+        ADMIN: '/admin',
+        SHIPPER: '/dashboard',
+      };
+      navigate(roleHome[user.role] ?? '/');
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {

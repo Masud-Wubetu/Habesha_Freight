@@ -16,12 +16,12 @@ router.get('/', listShipments);
 router.get('/:id', getShipmentDetails);
 router.post(
   '/:id/pickup-verify',
-  authorizeRoles('DRIVER', 'ADMIN'),
+  authorizeRoles('DRIVER', 'ADMIN', 'SHIPPER'),
   verifyPickupOtp
 );
 router.post(
   '/:id/delivery-verify',
-  authorizeRoles('DRIVER', 'ADMIN'),
+  authorizeRoles('DRIVER', 'ADMIN', 'SHIPPER'),
   verifyDeliveryOtp
 );
 

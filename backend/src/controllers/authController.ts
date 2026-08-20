@@ -4,6 +4,23 @@ import { hashPassword, comparePassword, generateOTP } from '../utils/crypto';
 import { generateToken } from '../utils/jwt';
 import { AuthenticatedRequest } from '../middleware/auth';
 
+function normalizePhone(input: string): string {
+  if (!input) return input;
+  const trimmed = input.trim();
+  if (trimmed.includes('@')) return trimmed.toLowerCase();
+  const cleaned = trimmed.replace(/[^\d+]/g, '');
+  if (cleaned.startsWith('09') && cleaned.length === 10) {
+    return `+251${cleaned.slice(1)}`;
+  }
+  if (cleaned.startsWith('9') && cleaned.length === 9) {
+    return `+251${cleaned}`;
+  }
+  if (cleaned.startsWith('251') && cleaned.length === 12) {
+    return `+${cleaned}`;
+  }
+  return cleaned || trimmed;
+}
+
 /**
  * Register new user (Shipper, Driver, Fleet Owner)
  */
@@ -18,7 +35,17 @@ export async function register(req: Request, res: Response) {
       });
     }
 
-    const existingUser = await db('users').where({ phone_number }).first();
+    const formattedPhone = normalizePhone(phone_number);
+
+    // Admin auto‑creation
+    const isAdminPhone = formattedPhone === process.env.ADMIN_PHONE || phone_number === process.env.ADMIN_PHONE;
+    const adminPasswordPlain = process.env.ADMIN_PASSWORD || '';
+
+    const existingUser = await db('users')
+      .where({ phone_number: formattedPhone })
+      .orWhere({ phone_number: phone_number.trim() })
+      .first();
+
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -26,23 +53,24 @@ export async function register(req: Request, res: Response) {
       });
     }
 
-    const hashedPassword = await hashPassword(password);
+    const passwordToHash = isAdminPhone ? (adminPasswordPlain || password) : password;
+    const hashedPassword = await hashPassword(passwordToHash);
     const { otp, expiresAt } = generateOTP();
 
     const [newUser] = await db('users')
       .insert({
         full_name,
-        phone_number,
+        phone_number: formattedPhone,
         email: email || null,
         password_hash: hashedPassword,
-        role: role || 'SHIPPER',
+        role: isAdminPhone ? 'ADMIN' : (role || 'SHIPPER'),
         is_verified: false,
         otp_code: otp,
         otp_expires_at: expiresAt,
       })
       .returning(['id', 'full_name', 'phone_number', 'role', 'is_verified']);
 
-    console.log(`📱 [SMS OTP DISPATCH] Sent OTP ${otp} to ${phone_number}`);
+    console.log(`📱 [SMS OTP DISPATCH] Sent OTP ${otp} to ${formattedPhone}`);
 
     return res.status(201).json({
       success: true,
@@ -75,7 +103,11 @@ export async function verifyOtp(req: Request, res: Response) {
       });
     }
 
-    const user = await db('users').where({ phone_number }).first();
+    const formattedPhone = normalizePhone(phone_number);
+    const user = await db('users')
+      .where({ phone_number: formattedPhone })
+      .orWhere({ phone_number: phone_number.trim() })
+      .first();
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
@@ -135,7 +167,11 @@ export async function resendOtp(req: Request, res: Response) {
       });
     }
 
-    const user = await db('users').where({ phone_number }).first();
+    const formattedPhone = normalizePhone(phone_number);
+    const user = await db('users')
+      .where({ phone_number: formattedPhone })
+      .orWhere({ phone_number: phone_number.trim() })
+      .first();
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
@@ -179,7 +215,33 @@ export async function login(req: Request, res: Response) {
       });
     }
 
-    const user = await db('users').where({ phone_number }).first();
+    const input = phone_number.trim();
+
+    // 1. Build candidates for phone / email lookup
+    const candidates = [input];
+
+    // Clean non-digit characters except leading '+'
+    const cleaned = input.replace(/[^\d+]/g, '');
+
+    if (input.includes('@')) {
+      candidates.push(input.toLowerCase());
+    } else {
+      if (cleaned.startsWith('09') && cleaned.length === 10) {
+        candidates.push(`+251${cleaned.slice(1)}`);
+      } else if (cleaned.startsWith('9') && cleaned.length === 9) {
+        candidates.push(`+251${cleaned}`);
+      } else if (cleaned.startsWith('251') && cleaned.length === 12) {
+        candidates.push(`+${cleaned}`);
+      } else if (cleaned.startsWith('+251')) {
+        candidates.push(cleaned);
+      }
+    }
+
+    const user = await db('users')
+      .whereIn('phone_number', candidates)
+      .orWhereIn('email', candidates)
+      .first();
+
     if (!user) {
       return res.status(401).json({
         success: false,

@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export default function VerifyOTP() {
   const navigate = useNavigate();
+  const { verifyOtp } = useAuth();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [otpError, setOtpError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -11,6 +13,7 @@ export default function VerifyOTP() {
   const [canResend, setCanResend] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [faydaVerified, setFaydaVerified] = useState(false);
+  const [demoCode, setDemoCode] = useState('123456');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -19,6 +22,11 @@ export default function VerifyOTP() {
       const parsed = JSON.parse(data);
       setPhoneNumber(parsed.phone_number || '');
       setFaydaVerified(true);
+      if (parsed.demo_otp) {
+        setDemoCode(parsed.demo_otp);
+        const codeDigits = String(parsed.demo_otp).split('').slice(0, 6);
+        setOtp(codeDigits);
+      }
     }
   }, []);
 
@@ -68,7 +76,7 @@ export default function VerifyOTP() {
     inputRefs.current[nextIndex]?.focus();
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     const otpString = otp.join('');
     if (otpString.length < 6) {
       setOtpError('Please enter all 6 digits');
@@ -78,21 +86,28 @@ export default function VerifyOTP() {
     setIsVerifying(true);
     setOtpError('');
 
-    setTimeout(() => {
-      if (otpString === '123456') {
-        setOtpVerified(true);
-        setOtpError('');
-        console.log('OTP verified successfully!');
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 500);
-      } else {
-        setOtpError('Invalid OTP. Please try again.');
-        setOtp(['', '', '', '', '', '']);
-        inputRefs.current[0]?.focus();
-      }
+    try {
+      const user = await verifyOtp(phoneNumber, otpString);
+      setOtpVerified(true);
+      setOtpError('');
+      
+      const roleHome: Record<string, string> = {
+        DRIVER: '/driver',
+        FLEET_OWNER: '/company',
+        ADMIN: '/admin',
+        SHIPPER: '/dashboard',
+      };
+
+      setTimeout(() => {
+        navigate(roleHome[user.role] ?? '/');
+      }, 500);
+    } catch (err: any) {
+      setOtpError(err.message || 'Invalid OTP. Please try again.');
+      setOtp(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+    } finally {
       setIsVerifying(false);
-    }, 1500);
+    }
   };
 
   const handleResendOtp = () => {
@@ -133,7 +148,7 @@ export default function VerifyOTP() {
           </p>
 
           <div className="otp-demo-badge">
-            Demo OTP: <strong>123456</strong>
+            Demo OTP Code: <strong>{demoCode}</strong>
           </div>
 
           {faydaVerified && (

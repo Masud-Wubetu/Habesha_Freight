@@ -68,7 +68,7 @@ export async function createReview(req: AuthenticatedRequest, res: Response) {
  */
 export async function listReviews(req: AuthenticatedRequest, res: Response) {
   try {
-    const { user_id, shipment_id } = req.query;
+    const { user_id, reviewer_id, shipment_id } = req.query;
 
     let query = db('reviews')
       .join('users as reviewer', 'reviews.reviewer_id', 'reviewer.id')
@@ -76,11 +76,15 @@ export async function listReviews(req: AuthenticatedRequest, res: Response) {
       .select(
         'reviews.*',
         'reviewer.full_name as reviewer_name',
-        'reviewee.full_name as reviewee_name'
+        'reviewee.full_name as reviewee_name',
+        'reviewee.role as reviewee_role'
       );
 
     if (user_id) {
       query = query.where('reviews.reviewee_id', String(user_id));
+    }
+    if (reviewer_id) {
+      query = query.where('reviews.reviewer_id', String(reviewer_id));
     }
     if (shipment_id) {
       query = query.where('reviews.shipment_id', String(shipment_id));
