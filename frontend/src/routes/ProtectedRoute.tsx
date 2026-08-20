@@ -1,15 +1,18 @@
 import { Navigate, Outlet } from 'react-router-dom';
+import type { ReactNode } from 'react';
 import type { BackendRole } from '../types/person2';
 import { getStoredToken, getStoredUser } from '../services/authService';
 
 interface ProtectedRouteProps {
   allowedRoles: BackendRole[];
   redirectTo?: string;
+  children?: ReactNode;
 }
 
 export default function ProtectedRoute({
   allowedRoles,
   redirectTo = '/login',
+  children,
 }: ProtectedRouteProps) {
   const token = getStoredToken();
   const user = getStoredUser();
@@ -28,5 +31,8 @@ export default function ProtectedRoute({
     return <Navigate to={roleHome[user.role] ?? '/'} replace />;
   }
 
-  return <Outlet />;
+  // Support both patterns:
+  //  1. <ProtectedRoute ...><SomeComponent /></ProtectedRoute>  (children prop)
+  //  2. <ProtectedRoute .../>  inside a Route element prop (Outlet pattern)
+  return children ? <>{children}</> : <Outlet />;
 }

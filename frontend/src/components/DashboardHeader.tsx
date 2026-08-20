@@ -1,4 +1,5 @@
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -7,6 +8,7 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ onMenuClick, title }: DashboardHeaderProps) {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   
   const today = new Date();
   const formattedDate = today.toLocaleDateString('en-US', {
@@ -38,6 +40,13 @@ export default function DashboardHeader({ onMenuClick, title }: DashboardHeaderP
       </div>
 
       <div className="dashboard-header-right">
+        <button
+          onClick={toggleTheme}
+          className="dashboard-dark-toggle"
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
         <div className="dashboard-avatar">
           {user?.full_name ? getInitials(user.full_name) : 'SB'}
         </div>

@@ -2,30 +2,32 @@ import { ReactNode, useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { clearSession, getStoredUser } from '../services/authService';
 import '../styles/driver-layout.css'; // reuse identical sidebar styles
+import useCompanySidebar from '../hooks/useCompanySidebar';
 
 interface CompanyLayoutProps {
   children: ReactNode;
 }
 
 const NAV_ITEMS = [
-  { path: '/company/dashboard',       icon: '🏠', label: 'Dashboard'       },
-  { path: '/company/fleet-requests',  icon: '📋', label: 'Fleet Requests'  },
-  { path: '/company/deliveries',      icon: '🚚', label: 'Deliveries'      },
-  { path: '/company/vehicles',        icon: '🚛', label: 'Vehicles / Fleet'},
-  { path: '/company/drivers',         icon: '👤', label: 'Drivers'         },
+  { path: '/company/dashboard', icon: '🏠', label: 'Dashboard' },
+  { path: '/company/fleet-requests', icon: '📋', label: 'Fleet Requests' },
+  { path: '/company/deliveries', icon: '🚚', label: 'Deliveries' },
+  { path: '/company/vehicles', icon: '🚛', label: 'Vehicles / Fleet' },
+  { path: '/company/drivers', icon: '👤', label: 'Drivers' },
   { path: '/company/company-profile', icon: '🏢', label: 'Company Profile' },
-  { path: '/company/ratings',         icon: '⭐', label: 'Ratings'         },
-  { path: '/company/settings',        icon: '⚙️', label: 'Settings'        },
+  { path: '/company/ratings', icon: '⭐', label: 'Ratings' },
+  { path: '/company/settings', icon: '⚙️', label: 'Settings' },
 ];
 
 export default function CompanyLayout({ children }: CompanyLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 769);
-
   const navigate = useNavigate();
   const location = useLocation();
-  const user     = getStoredUser();
+  const user = getStoredUser();
 
-  const initials = (user?.full_name ?? 'ET')
+  const { companyName, totalVehicles, pendingRequests } = useCompanySidebar();
+
+  const initials = (companyName || user?.full_name || 'ET')
     .split(' ')
     .map((w: string) => w[0])
     .join('')
@@ -47,7 +49,7 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const toggle = () => setSidebarOpen((v) => !v);
+  const toggle = () => setSidebarOpen(v => !v);
 
   const handleLogout = () => {
     clearSession();
@@ -55,8 +57,7 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
   };
 
   const currentPage =
-    NAV_ITEMS.find((n) => location.pathname.startsWith(n.path))?.label ??
-    'Dashboard';
+    NAV_ITEMS.find((n) => location.pathname.startsWith(n.path))?.label ?? 'Dashboard';
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -69,10 +70,7 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
     <div className={`dl-layout ${sidebarOpen ? 'dl-layout--sidebar-open' : 'dl-layout--sidebar-closed'}`}>
 
       {/* ── Sidebar ── */}
-      <aside
-        className={`dl-sidebar ${sidebarOpen ? 'dl-sidebar--open' : ''}`}
-        aria-label="Company navigation sidebar"
-      >
+      <aside className={`dl-sidebar ${sidebarOpen ? 'dl-sidebar--open' : ''}`} aria-label="Company navigation sidebar">
         {/* Brand header */}
         <div className="dl-brand">
           <button
@@ -94,19 +92,34 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
 
         {/* Nav */}
         <nav className="dl-nav" aria-label="Company navigation">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === '/company/dashboard'}
-              className={({ isActive }) =>
-                `dl-nav-item ${isActive ? 'dl-nav-item--active' : ''}`
-              }
-            >
-              <span className="dl-nav-icon">{item.icon}</span>
-              <span className="dl-nav-label">{item.label}</span>
-            </NavLink>
-          ))}
+          {NAV_ITEMS.map((item) => {
+            let badge = null;
+            if (item.label === 'Fleet Requests' && pendingRequests) {
+              badge = (
+                <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-100 rounded-full px-2 py-0.5">
+                  {pendingRequests}
+                </span>
+              );
+            }
+            if (item.label === 'Vehicles / Fleet' && totalVehicles) {
+              badge = (
+                <span className="ml-2 text-xs font-medium text-slate-600 bg-slate-100 rounded-full px-2 py-0.5">
+                  {totalVehicles}
+                </span>
+              );
+            }
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === '/company/dashboard'}
+                className={({ isActive }) => `dl-nav-item ${isActive ? 'dl-nav-item--active' : ''}`}
+              >
+                <span className="dl-nav-icon">{item.icon}</span>
+                <span className="dl-nav-label">{item.label}{badge}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* User footer */}
@@ -116,7 +129,7 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
               {initials}
             </div>
             <div className="dl-user-info">
-              <p className="dl-user-name">{user?.full_name ?? 'Ethio Transport'}</p>
+              <p className="dl-user-name">{companyName || user?.full_name || 'Ethio Transport'}</p>
               <p className="dl-user-meta">Transport Co.</p>
             </div>
           </div>
@@ -134,12 +147,7 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
 
       {/* ── Mobile backdrop ── */}
       {sidebarOpen && (
-        <button
-          type="button"
-          className="dl-backdrop"
-          aria-label="Close menu"
-          onClick={toggle}
-        />
+        <button type="button" className="dl-backdrop" aria-label="Close menu" onClick={toggle} />
       )}
 
       {/* ── Main area ── */}
@@ -173,7 +181,6 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
           {children}
         </main>
       </div>
-
     </div>
   );
 }

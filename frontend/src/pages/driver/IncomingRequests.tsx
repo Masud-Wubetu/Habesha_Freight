@@ -122,14 +122,7 @@ function formatBudget(value: number): string {
   return value.toLocaleString('en-US');
 }
 
-function formatDate(): string {
-  return new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+
 
 /* ── Chat SVG icon ───────────────────────────────────────── */
 function ChatIcon() {

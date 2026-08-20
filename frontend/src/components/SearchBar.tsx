@@ -10,13 +10,13 @@ export default function SearchBar({
   placeholder = 'Search...',
 }: SearchBarProps) {
   return (
-    <div className="p2-search-bar">
+    <div className="flex items-center w-full max-w-md mx-auto mb-4">
       <input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="p2-input"
+        className="w-full rounded-md border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
       />
     </div>
   );

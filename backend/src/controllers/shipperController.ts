@@ -89,7 +89,7 @@ export async function uploadProfilePhoto(req: AuthenticatedRequest, res: Respons
       return res.status(400).json({ success: false, message: validation.error });
     }
 
-    const fileUrl = await FileService.saveFile(file.buffer, file.originalname, userId, 'profile');
+    const fileUrl = await FileService.saveFile(file.buffer, file.originalname, userId!, 'profile');
 
     const [updated] = await db('users')
       .where('id', userId)
@@ -592,7 +592,7 @@ export async function openDispute(req: AuthenticatedRequest, res: Response) {
 export async function getMessages(req: AuthenticatedRequest, res: Response) {
   try {
     const userId = req.user?.userId;
-    const conversations = await MessageService.getConversations(userId);
+    const conversations = await MessageService.getConversations(userId!);
     return res.status(200).json({ success: true, data: conversations });
   } catch (error) {
     console.error('Get Messages Error:', error);
@@ -608,7 +608,7 @@ export async function getThreadMessages(req: AuthenticatedRequest, res: Response
 
     const messages = await MessageService.getThreadMessages(
       thread_id,
-      userId,
+      userId!,
       Number(limit),
       Number(offset)
     );
@@ -639,7 +639,7 @@ export async function sendMessage(req: AuthenticatedRequest, res: Response) {
       return res.status(404).json({ success: false, message: 'Receiver not found.' });
     }
 
-    const message = await MessageService.sendMessage(senderId, receiver_id, content, thread_id);
+    const message = await MessageService.sendMessage(senderId!, receiver_id, content, thread_id);
 
     return res.status(201).json({
       success: true,

@@ -22,17 +22,25 @@ export default function DataTable<T>({
   onRowClick,
   emptyMessage = 'No records found.',
 }: DataTableProps<T>) {
+  // If no rows, show a nicely styled empty state
+  if (rows.length === 0) {
+    return (
+      <div className="p-8 text-center text-slate-500 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        {emptyMessage}
+      </div>
+    );
+  }
   if (rows.length === 0) {
     return <div className="p2-table-empty">{emptyMessage}</div>;
   }
 
   return (
-    <div className="p2-table-wrap">
-      <table className="p2-table">
+    <div className="overflow-x-auto">
+      <table className="w-full text-left border-collapse bg-white rounded-2xl border border-slate-200 shadow-sm">
         <thead>
-          <tr>
+          <tr className="border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-50">
             {columns.map((col) => (
-              <th key={col.key} className={col.className}>
+              <th key={col.key} className={col.className ? col.className : 'p-3'}>
                 {col.header}
               </th>
             ))}
@@ -42,11 +50,15 @@ export default function DataTable<T>({
           {rows.map((row) => (
             <tr
               key={rowKey(row)}
-              className={onRowClick ? 'p2-table-row--clickable' : undefined}
+              className={
+                onRowClick
+                  ? 'hover:bg-slate-50 transition-colors cursor-pointer'
+                  : undefined
+              }
               onClick={() => onRowClick?.(row)}
             >
               {columns.map((col) => (
-                <td key={col.key} className={col.className}>
+                <td key={col.key} className={col.className ? col.className : 'p-3'}>
                   {col.render(row)}
                 </td>
               ))}

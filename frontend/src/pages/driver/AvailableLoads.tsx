@@ -5,55 +5,75 @@ import EmptyState from '../../components/EmptyState';
 import PageHeader from '../../components/PageHeader';
 import SearchBar from '../../components/SearchBar';
 import StatusBadge from '../../components/StatusBadge';
-import type { DriverRequest } from '../../types/person2';
+import { useAvailableLoads, AvailableLoad } from '../../hooks/useAvailableLoads';
 
 export default function AvailableLoads() {
   const [search, setSearch] = useState('');
-
-  // TODO: Replace mock data with API response from GET /api/driver/loads/available
-  const loads: DriverRequest[] = [];
+  const { loads, loading, error } = useAvailableLoads();
 
   const filtered = useMemo(() => {
     if (!search) return loads;
     const q = search.toLowerCase();
     return loads.filter(
       (l) =>
-        l.origin.toLowerCase().includes(q) ||
-        l.destination.toLowerCase().includes(q)
+        (l.origin_city ?? '').toLowerCase().includes(q) ||
+        (l.destination_city ?? '').toLowerCase().includes(q) ||
+        (l.cargo_description ?? '').toLowerCase().includes(q)
     );
   }, [loads, search]);
 
-  const columns: Column<DriverRequest>[] = [
-    { key: 'route', header: 'Route', render: (l) => `${l.origin} → ${l.destination}` },
-    { key: 'cargo', header: 'Cargo', render: (l) => l.cargoType },
-    { key: 'weight', header: 'Weight (t)', render: (l) => l.weight },
-    { key: 'bids', header: 'Bids', render: (l) => l.bidCount ?? 0 },
+  const columns: Column<AvailableLoad>[] = [
+    {
+      key: 'route',
+      header: 'Route',
+      render: (l) => `${l.origin_city} → ${l.destination_city}`,
+    },
+    { key: 'cargo', header: 'Cargo', render: (l) => l.cargo_description },
+    { key: 'weight', header: 'Weight (t)', render: (l) => l.weight_tons },
+    {
+      key: 'price',
+      header: 'Price (ETB)',
+      render: (l) => Number(l.offered_price_etb).toLocaleString(),
+    },
     { key: 'status', header: 'Status', render: (l) => <StatusBadge status={l.status} /> },
     {
       key: 'action',
       header: '',
       render: (l) => (
-        <Link to={`/driver/requests/${l.id}`} className="btn-primary" style={{ padding: '0.4rem 1rem', fontSize: '0.85rem' }}>
-          View & Bid
+        <Link
+          to={`/driver/requests/${l.id}`}
+          className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-sm transition-colors"
+        >
+          View &amp; Bid
         </Link>
       ),
     },
   ];
 
   return (
-    <div>
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       <PageHeader
         title="Available Shipments"
         subtitle="Browse open loads and submit your bid"
         actions={
-          <Link to="/driver/bids/history" className="btn-outline">
+          <Link
+            to="/driver/bids"
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-xs transition-colors"
+          >
             Bid History
           </Link>
         }
       />
       <SearchBar value={search} onChange={setSearch} placeholder="Search by route or cargo..." />
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="py-12 text-center">
+          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-slate-600 text-sm">Fetching available loads…</p>
+        </div>
+      ) : error ? (
+        <div className="py-12 text-center text-red-500">{error}</div>
+      ) : filtered.length === 0 ? (
         <EmptyState
           title="No available loads"
           description="Open shipment loads matching your routes will appear here."

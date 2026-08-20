@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import PageHeader from '../../components/PageHeader';
 import { updateUserProfile } from '../../services/authService';
 
 export default function DriverSettings() {

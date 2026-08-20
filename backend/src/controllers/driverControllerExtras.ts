@@ -88,7 +88,7 @@ export async function uploadDriverProfilePhoto(req: AuthenticatedRequest, res: R
       return res.status(400).json({ success: false, message: validation.error });
     }
 
-    const fileUrl = await FileService.saveFile(file.buffer, file.originalname, userId, 'profile');
+    const fileUrl = await FileService.saveFile(file.buffer, file.originalname, userId!, 'profile');
 
     const [updated] = await db('users')
       .where('id', userId)

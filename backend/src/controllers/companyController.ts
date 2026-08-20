@@ -107,7 +107,7 @@ export async function uploadCompanyLogo(req: AuthenticatedRequest, res: Response
       return res.status(400).json({ success: false, message: validation.error });
     }
 
-    const fileUrl = await FileService.saveFile(file.buffer, file.originalname, userId, 'logo');
+    const fileUrl = await FileService.saveFile(file.buffer, file.originalname, userId!, 'logo');
 
     const [updated] = await db('users')
       .where('id', userId)

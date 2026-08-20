@@ -1,11 +1,12 @@
 import { Response } from 'express';
+import db from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { MessageService } from '../services/messageService';
 
 export async function getConversations(req: AuthenticatedRequest, res: Response) {
   try {
     const userId = req.user?.userId;
-    const conversations = await MessageService.getConversations(userId);
+    const conversations = await MessageService.getConversations(userId!);
     return res.status(200).json({ success: true, data: conversations });
   } catch (error) {
     console.error('Get Conversations Error:', error);
@@ -21,7 +22,7 @@ export async function getThreadMessages(req: AuthenticatedRequest, res: Response
 
     const messages = await MessageService.getThreadMessages(
       thread_id,
-      userId,
+      userId!,
       Number(limit),
       Number(offset)
     );
@@ -45,7 +46,7 @@ export async function sendMessage(req: AuthenticatedRequest, res: Response) {
       return res.status(400).json({ success: false, message: 'Receiver ID and content are required.' });
     }
 
-    const message = await MessageService.sendMessage(senderId, receiver_id, content, thread_id);
+    const message = await MessageService.sendMessage(senderId!, receiver_id, content, thread_id);
 
     return res.status(201).json({
       success: true,
@@ -61,7 +62,7 @@ export async function sendMessage(req: AuthenticatedRequest, res: Response) {
 export async function getUnreadCount(req: AuthenticatedRequest, res: Response) {
   try {
     const userId = req.user?.userId;
-    const count = await MessageService.getUnreadCount(userId);
+    const count = await MessageService.getUnreadCount(userId!);
     return res.status(200).json({ success: true, data: { unread_count: count } });
   } catch (error) {
     console.error('Get Unread Count Error:', error);

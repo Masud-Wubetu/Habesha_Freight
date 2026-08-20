@@ -27,7 +27,6 @@ export default function Sidebar({ isOpen, onClose, activeSection, onSectionChang
   const handleNavClick = (section: DashboardSection) => {
     onSectionChange(section);
     onClose();
-    // If profile, navigate to /profile
     if (section === 'profile') {
       navigate('/profile');
     }
@@ -56,6 +55,7 @@ export default function Sidebar({ isOpen, onClose, activeSection, onSectionChang
               key={item.id}
               onClick={() => handleNavClick(item.id)}
               className={`sidebar-nav-item ${activeSection === item.id ? 'active' : ''}`}
+              type="button"
             >
               <span className="sidebar-nav-icon">{item.icon}</span>
               <span className="sidebar-nav-label">{item.label}</span>
@@ -73,7 +73,7 @@ export default function Sidebar({ isOpen, onClose, activeSection, onSectionChang
               <span className="sidebar-user-role">Shipper</span>
             </div>
           </div>
-          <button onClick={handleLogout} className="sidebar-logout-btn">
+          <button onClick={handleLogout} className="sidebar-logout-btn" type="button">
             ← Log Out
           </button>
         </div>
