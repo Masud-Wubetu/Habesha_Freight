@@ -19,19 +19,7 @@ interface Review {
   comment: string;
 }
 
-// Local PageHeader component
-const PageHeader: React.FC<{ title: string; subtitle: string }> = ({ title, subtitle }) => {
-  return (
-    <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #e8e8f0' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: 700, color: '#1a1a2e', margin: 0 }}>
-        {title}
-      </h1>
-      <p style={{ fontSize: '14px', color: '#7a7a92', margin: '4px 0 0 0' }}>
-        {subtitle}
-      </p>
-    </div>
-  );
-};
+
 
 // Local DashboardCard component
 const DashboardCard: React.FC<{ 
@@ -137,7 +125,7 @@ const DriverRatings: React.FC = () => {
 
   return (
     <div style={{ padding: '24px', maxWidth: '1200px' }}>
-      <PageHeader title="Ratings" subtitle="Wednesday, Aug 9, 2026" />
+
 
       <div style={{ 
         display: 'grid', 

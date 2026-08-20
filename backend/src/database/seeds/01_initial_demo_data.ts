@@ -1,14 +1,14 @@
 import { Knex } from 'knex';
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
-
-function hashOtp(otp: string): string {
-  return crypto.createHash('sha256').update(otp).digest('hex');
-}
 
 export async function seed(knex: Knex): Promise<void> {
-  // Clear existing entries in reverse dependency order
-  await knex('audit_logs').del();
+  // Clear existing entries in correct order (reverse dependency)
+  console.log('🧹 Clearing existing data...');
+  
+  // Disable foreign key checks temporarily
+  await knex.raw('SET session_replication_role = replica;');
+  
+  // Delete in correct order (child tables first)
   await knex('reviews').del();
   await knex('disputes').del();
   await knex('location_breadcrumbs').del();
@@ -17,11 +17,16 @@ export async function seed(knex: Knex): Promise<void> {
   await knex('bids').del();
   await knex('loads').del();
   await knex('vehicles').del();
+  await knex('audit_logs').del();
   await knex('users').del();
+  
+  // Re-enable foreign key checks
+  await knex.raw('SET session_replication_role = DEFAULT;');
 
   const defaultPassword = await bcrypt.hash('Password123!', 10);
 
   // Insert Users
+  console.log('👤 Creating users...');
   const [shipper] = await knex('users')
     .insert({
       full_name: 'Abebe Bikila Freight Ltd',
@@ -30,6 +35,8 @@ export async function seed(knex: Knex): Promise<void> {
       password_hash: defaultPassword,
       role: 'SHIPPER',
       is_verified: true,
+      status: 'ACTIVE',
+      kyc_status: 'APPROVED',
     })
     .returning('*');
 
@@ -41,10 +48,12 @@ export async function seed(knex: Knex): Promise<void> {
       password_hash: defaultPassword,
       role: 'DRIVER',
       is_verified: true,
+      status: 'ACTIVE',
+      kyc_status: 'APPROVED',
     })
     .returning('*');
 
-  await knex('users')
+  const [admin] = await knex('users')
     .insert({
       full_name: 'System Administrator',
       phone_number: '+251900000000',
@@ -52,55 +61,53 @@ export async function seed(knex: Knex): Promise<void> {
       password_hash: defaultPassword,
       role: 'ADMIN',
       is_verified: true,
-    });
+      status: 'ACTIVE',
+      kyc_status: 'APPROVED',
+    })
+    .returning('*');
 
-  // Insert Vehicle
-  const [vehicle] = await knex('vehicles')
+  const [fleetOwner] = await knex('users')
+    .insert({
+      full_name: 'Ethio Logistics PLC',
+      phone_number: '+251911987654',
+      email: 'fleet@habeshafreight.et',
+      password_hash: defaultPassword,
+      role: 'FLEET_OWNER',
+      is_verified: true,
+      status: 'ACTIVE',
+      kyc_status: 'APPROVED',
+    })
+    .returning('*');
+
+  // Insert Vehicles
+  console.log('🚗 Creating vehicles...');
+  const [vehicle1] = await knex('vehicles')
     .insert({
       driver_id: driver.id,
       plate_number: 'ET-3-45892',
       vehicle_type: 'SINO_TRUCK',
       capacity_tons: 25.0,
       is_active: true,
+      verification_status: 'VERIFIED',
     })
     .returning('*');
 
-  // Insert Loads
+  const [vehicle2] = await knex('vehicles')
+    .insert({
+      driver_id: driver.id,
+      plate_number: 'ET-4-12345',
+      vehicle_type: 'ISUZU_DRY',
+      capacity_tons: 15.0,
+      is_active: true,
+      verification_status: 'VERIFIED',
+    })
+    .returning('*');
+
+  // Insert Demo Loads
+  console.log('📦 Creating loads...');
+  
+  // Load 1: Addis Ababa -> Hawassa
   const [load1] = await knex('loads')
-    .insert({
-      shipper_id: shipper.id,
-      cargo_description: 'Construction Materials',
-      weight_tons: 15.0,
-      origin_city: 'Addis Ababa',
-      destination_city: 'Bahir Dar',
-      origin_lat: 8.9806,
-      origin_lng: 38.7578,
-      destination_lat: 11.5942,
-      destination_lng: 37.3881,
-      status: 'DELIVERED',
-      offered_price_etb: 11000.0,
-      created_at: new Date('2026-08-05T10:00:00Z'),
-    })
-    .returning('*');
-
-  const [load2] = await knex('loads')
-    .insert({
-      shipper_id: shipper.id,
-      cargo_description: 'General Goods',
-      weight_tons: 20.0,
-      origin_city: 'Adama',
-      destination_city: 'Dire Dawa',
-      origin_lat: 8.5414,
-      origin_lng: 39.2689,
-      destination_lat: 9.5931,
-      destination_lng: 41.8661,
-      status: 'DELIVERED',
-      offered_price_etb: 28500.0,
-      created_at: new Date('2026-07-28T14:30:00Z'),
-    })
-    .returning('*');
-
-  const [load3] = await knex('loads')
     .insert({
       shipper_id: shipper.id,
       cargo_description: 'Construction Cement Bags (500 Bags)',
@@ -111,102 +118,102 @@ export async function seed(knex: Knex): Promise<void> {
       origin_lng: 38.7578,
       destination_lat: 7.0621,
       destination_lng: 38.4763,
-      status: 'IN_TRANSIT',
+      status: 'POSTED',
       offered_price_etb: 45000.0,
     })
     .returning('*');
 
-  // Insert Bids
-  await knex('bids').insert([
-    {
-      load_id: load1.id,
-      driver_id: driver.id,
-      bid_amount_etb: 11000.0,
-      status: 'ACCEPTED',
-    },
-    {
-      load_id: load2.id,
-      driver_id: driver.id,
-      bid_amount_etb: 28500.0,
-      status: 'ACCEPTED',
-    },
-    {
-      load_id: load3.id,
-      driver_id: driver.id,
-      bid_amount_etb: 45000.0,
-      status: 'ACCEPTED',
-    },
-  ]);
-
-  // Insert Shipments
-  const [shipment1] = await knex('shipments')
+  // Load 2: Addis Ababa -> Bahir Dar
+  const [load2] = await knex('loads')
     .insert({
-      load_id: load1.id,
-      carrier_id: driver.id,
-      vehicle_id: vehicle.id,
-      status: 'DELIVERED',
-      pickup_otp_hash: hashOtp('123456'),
-      delivery_otp_hash: hashOtp('654321'),
-      pickup_verified_at: new Date('2026-08-05T12:00:00Z'),
-      delivery_verified_at: new Date('2026-08-06T16:00:00Z'),
-      created_at: new Date('2026-08-05T10:00:00Z'),
+      shipper_id: shipper.id,
+      cargo_description: 'Agricultural Machinery (3 Units)',
+      weight_tons: 18.0,
+      origin_city: 'Addis Ababa',
+      destination_city: 'Bahir Dar',
+      origin_lat: 8.9806,
+      origin_lng: 38.7578,
+      destination_lat: 11.5742,
+      destination_lng: 37.3614,
+      status: 'POSTED',
+      offered_price_etb: 52000.0,
     })
     .returning('*');
 
-  const [shipment2] = await knex('shipments')
+  // Load 3: Addis Ababa -> Dire Dawa
+  const [load3] = await knex('loads')
     .insert({
-      load_id: load2.id,
-      carrier_id: driver.id,
-      vehicle_id: vehicle.id,
-      status: 'DELIVERED',
-      pickup_otp_hash: hashOtp('111111'),
-      delivery_otp_hash: hashOtp('222222'),
-      pickup_verified_at: new Date('2026-07-28T16:00:00Z'),
-      delivery_verified_at: new Date('2026-07-29T18:00:00Z'),
-      created_at: new Date('2026-07-28T14:30:00Z'),
+      shipper_id: shipper.id,
+      cargo_description: 'Electronics and Appliances',
+      weight_tons: 12.0,
+      origin_city: 'Addis Ababa',
+      destination_city: 'Dire Dawa',
+      origin_lat: 8.9806,
+      origin_lng: 38.7578,
+      destination_lat: 9.6008,
+      destination_lng: 41.8501,
+      status: 'POSTED',
+      offered_price_etb: 38000.0,
     })
     .returning('*');
 
-  await knex('shipments').insert({
-    load_id: load3.id,
-    carrier_id: driver.id,
-    vehicle_id: vehicle.id,
-    status: 'IN_TRANSIT',
-    pickup_otp_hash: hashOtp('333333'),
-    delivery_otp_hash: hashOtp('444444'),
-    pickup_verified_at: new Date(),
+  // Insert Bids for Load 1
+  console.log('💰 Creating bids...');
+  await knex('bids').insert({
+    load_id: load1.id,
+    driver_id: driver.id,
+    bid_amount_etb: 44000.0,
+    status: 'PENDING',
   });
 
-  const [company] = await knex('users')
+  // Create a second driver for bids
+  const [driver2] = await knex('users')
     .insert({
-      full_name: 'Ethio Transport Solutions',
-      phone_number: '+251933998877',
-      email: 'company@ethiotransport.et',
+      full_name: 'Mekonnen Worku',
+      phone_number: '+251911888777',
+      email: 'driver2@habeshafreight.et',
       password_hash: defaultPassword,
-      role: 'FLEET_OWNER',
+      role: 'DRIVER',
       is_verified: true,
+      status: 'ACTIVE',
+      kyc_status: 'APPROVED',
     })
     .returning('*');
 
-  // Insert Reviews for Shipment 1 and Shipment 2 (matching Ratings mockup)
-  await knex('reviews').insert([
-    {
-      shipment_id: shipment1.id,
-      reviewer_id: shipper.id,
-      reviewee_id: driver.id,
-      rating: 5,
-      comment: 'Excellent driver, delivered on time!',
-      created_at: new Date('2026-08-05T10:00:00Z'),
-    },
-    {
-      shipment_id: shipment2.id,
-      reviewer_id: shipper.id,
-      reviewee_id: company.id,
-      rating: 4,
-      comment: 'Good coordination across 3 trucks.',
-      created_at: new Date('2026-07-28T14:30:00Z'),
-    },
-  ]);
+  const [vehicle3] = await knex('vehicles')
+    .insert({
+      driver_id: driver2.id,
+      plate_number: 'ET-5-67890',
+      vehicle_type: 'TRAILER',
+      capacity_tons: 35.0,
+      is_active: true,
+      verification_status: 'VERIFIED',
+    })
+    .returning('*');
 
-  console.log('✅ Demo seed data successfully populated with live shipments & ratings.');
+  await knex('bids').insert({
+    load_id: load1.id,
+    driver_id: driver2.id,
+    bid_amount_etb: 43000.0,
+    status: 'PENDING',
+  });
+
+  // Create a shipment for the first load
+  console.log('🚚 Creating shipments...');
+  await knex('shipments').insert({
+    load_id: load1.id,
+    carrier_id: driver.id,
+    vehicle_id: vehicle1.id,
+    status: 'ASSIGNED',
+    pickup_otp_hash: await bcrypt.hash('123456', 10),
+    delivery_otp_hash: await bcrypt.hash('654321', 10),
+  });
+
+  console.log('✅ Demo seed data successfully populated.');
+  console.log('📊 Data Summary:');
+  console.log(`  👤 Users: 5 (SHIPPER, DRIVER, ADMIN, FLEET_OWNER, DRIVER2)`);
+  console.log(`  🚗 Vehicles: 3`);
+  console.log(`  📦 Loads: 3`);
+  console.log(`  💰 Bids: 2`);
+  console.log(`  🚚 Shipments: 1`);
 }

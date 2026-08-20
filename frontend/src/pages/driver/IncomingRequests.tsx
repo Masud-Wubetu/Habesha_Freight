@@ -122,14 +122,7 @@ function formatBudget(value: number): string {
   return value.toLocaleString('en-US');
 }
 
-function formatDate(): string {
-  return new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+
 
 /* ── Chat SVG icon ───────────────────────────────────────── */
 function ChatIcon() {
@@ -203,11 +196,7 @@ export default function IncomingRequests() {
     <div className="dr-page">
 
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="dr-header">
-        <div className="dr-header-left">
-          <h1>Requests</h1>
-          <p className="dr-date">{formatDate()}</p>
-        </div>
+      <div className="dr-header" style={{ justifyContent: 'flex-end', padding: '10px 0' }}>
         <div className="dr-header-right">
           <div className="dr-status-badge">
             <span className="dr-status-dot" />

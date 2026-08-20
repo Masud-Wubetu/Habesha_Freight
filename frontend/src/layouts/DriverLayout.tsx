@@ -9,7 +9,6 @@ interface DriverLayoutProps {
 
 const NAV_ITEMS = [
   { path: '/driver/dashboard',        icon: '📊', label: 'Dashboard'       },
-  { path: '/driver/requests/loads',   icon: '📦', label: 'Available Loads' },
   { path: '/driver/requests',         icon: '🔍', label: 'Requests'        },
   { path: '/driver/bids',             icon: '💰', label: 'My Bids'         },
   { path: '/driver/active-delivery',  icon: '🚛', label: 'Active Delivery' },
@@ -60,6 +59,13 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
   const currentPage = NAV_ITEMS.find((n) =>
     location.pathname.startsWith(n.path)
   )?.label ?? 'Dashboard';
+
+  const today = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
 
   return (
     <div className={`dl-layout ${sidebarOpen ? 'dl-layout--sidebar-open' : 'dl-layout--sidebar-closed'}`}>
@@ -167,7 +173,10 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
             <span className="dl-hamburger-bar" />
           </button>
 
-          <span className="dl-topbar-title">{currentPage}</span>
+          <div className="dl-topbar-left">
+            <h1 className="dl-topbar-title">{currentPage}</h1>
+            <span className="dl-topbar-date">{today}</span>
+          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto' }}>
             <Link to="/" style={{ fontSize: '0.85rem', color: '#c8933a', textDecoration: 'none', fontWeight: 500 }}>

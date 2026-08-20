@@ -21,7 +21,7 @@ export function authorizeRoles(...allowedRoles: UserRole[]) {
 
     const userRole = req.user.role;
 
-    if (!allowedRoles.includes(userRole)) {
+    if (!allowedRoles.includes(userRole as UserRole)) {
       return res.status(403).json({
         success: false,
         message: `Forbidden. Access denied for role '${userRole}'. Required role(s): ${allowedRoles.join(', ')}.`,

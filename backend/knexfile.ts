@@ -1,7 +1,11 @@
 import type { Knex } from 'knex';
 import dotenv from 'dotenv';
 
-dotenv.config();
+if (process.env.NODE_ENV === 'test') {
+  dotenv.config({ path: '.env.test' });
+} else {
+  dotenv.config();
+}
 
 const config: { [key: string]: Knex.Config } = {
   development: {
@@ -12,6 +16,24 @@ const config: { [key: string]: Knex.Config } = {
       database: process.env.DB_NAME || 'habesha_freight_db',
       user: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'postgres',
+    },
+    migrations: {
+      directory: './src/database/migrations',
+      extension: 'ts',
+    },
+    seeds: {
+      directory: './src/database/seeds',
+      extension: 'ts',
+    },
+  },
+  test: {
+    client: 'pg',
+    connection: process.env.TEST_DATABASE_URL || {
+      host: process.env.TEST_DB_HOST || '127.0.0.1',
+      port: Number(process.env.TEST_DB_PORT) || 5432,
+      database: process.env.TEST_DB_NAME || 'habesha_freight_test',
+      user: process.env.TEST_DB_USER || 'postgres',
+      password: process.env.TEST_DB_PASSWORD || 'postgres',
     },
     migrations: {
       directory: './src/database/migrations',

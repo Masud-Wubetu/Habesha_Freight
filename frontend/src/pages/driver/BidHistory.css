@@ -1,0 +1,302 @@
+.driver-bids-page {
+  width: 100%;
+  min-height: 100%;
+  background: #f1f3f6;
+  padding: 24px 28px 35px;
+  box-sizing: border-box;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.driver-bids-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.driver-bids-header h1 {
+  margin: 0;
+  color: #0b1f33;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.driver-bids-header p {
+  margin: 6px 0 0;
+  color: #617489;
+  font-size: 14px;
+}
+
+.submit-bid-btn {
+  background: #0b1f33;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit-bid-btn:hover {
+  background: #132d47;
+}
+
+/* =========================
+   SUMMARY
+========================= */
+
+.bid-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.bid-summary-card {
+  background: #fff;
+  border: 1px solid #e1e6eb;
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 6px rgba(11, 31, 51, 0.04);
+}
+
+.bid-summary-card span {
+  display: block;
+  color: #617489;
+  font-size: 13px;
+  margin-bottom: 7px;
+}
+
+.bid-summary-card strong {
+  color: #0b1f33;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* =========================
+   MAIN CARD
+========================= */
+
+.bids-card {
+  background: #fff;
+  border: 1px solid #e1e6eb;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(11, 31, 51, 0.05);
+}
+
+/* =========================
+   CARD HEADER
+========================= */
+
+.bids-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #edf0f3;
+}
+
+.bids-card-header h2 {
+  margin: 0;
+  color: #0b1f33;
+  font-size: 19px;
+}
+
+/* =========================
+   FILTERS
+========================= */
+
+.bid-filters {
+  display: flex;
+  gap: 6px;
+}
+
+.bid-filters button {
+  border: 1px solid #dce2e8;
+  background: #fff;
+  color: #617489;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.bid-filters button:hover {
+  background: #f5f7f9;
+}
+
+.bid-filters button.active {
+  background: #0b1f33;
+  color: #fff;
+  border-color: #0b1f33;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.bids-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.bids-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bids-table th,
+.bids-table td {
+  text-align: left;
+  padding: 13px 18px;
+  border-bottom: 1px solid #edf0f3;
+  white-space: nowrap;
+}
+
+.bids-table th {
+  background: #f8f9fb;
+  color: #617489;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bids-table td {
+  color: #39526c;
+  font-size: 13px;
+}
+
+.bids-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.bids-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================
+   BID DATA
+========================= */
+
+.bid-id {
+  color: #0b1f33 !important;
+  font-weight: 600;
+}
+
+.bid-amount {
+  color: #0b1f33 !important;
+  font-weight: 700;
+}
+
+.bid-route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.route-arrow {
+  color: #a2adb8;
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.bid-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.bid-status.pending {
+  background: #fff1b8;
+  color: #ad7700;
+}
+
+.bid-status.accepted {
+  background: #dce9ff;
+  color: #2563c7;
+}
+
+.bid-status.completed {
+  background: #d8f6e3;
+  color: #07934b;
+}
+
+.bid-status.rejected {
+  background: #ffe0e0;
+  color: #b82020;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.no-bids {
+  padding: 45px 20px;
+  text-align: center;
+  color: #718096;
+  font-size: 14px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1000px) {
+  .bid-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bids-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .bid-filters {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 700px) {
+  .driver-bids-page {
+    padding: 18px;
+  }
+
+  .driver-bids-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .submit-bid-btn {
+    width: 100%;
+  }
+
+  .bid-summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .bid-summary-card {
+    padding: 13px 15px;
+  }
+
+  .bids-card-header {
+    padding: 16px;
+  }
+
+  .bids-table th,
+  .bids-table td {
+    padding: 11px 14px;
+  }
+}
