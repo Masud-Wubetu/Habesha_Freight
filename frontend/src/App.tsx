@@ -6,6 +6,7 @@ import Layout from './layouts/MainLayout';
 import DriverLayout from './layouts/DriverLayout';
 import CompanyLayout from './layouts/CompanyLayout';
 import ShipperLayout from './pages/shipper/ShipperLayout';
+import PendingApproval from './pages/PendingApproval';
 
 // Public / Shipper pages
 import {
@@ -245,6 +246,7 @@ function App() {
                       <Route path="ratings" element={<CompanyRatings />} />
                       <Route path="settings" element={<CompanySettings />} />
                       <Route path="profile" element={<CompanyProfile />} />
+                      <Route path="company-profile" element={<CompanyProfile />} />
                       <Route path="*" element={<Navigate to="dashboard" replace />} />
                     </Routes>
                   </CompanyLayout>
@@ -264,6 +266,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/verify-otp" element={<VerifyOTP />} />
+              <Route path="/pending-approval" element={<PendingApproval />} />
             </Route>
 
             {/* ── Authenticated Shipper routes ── */}
@@ -281,6 +284,7 @@ function App() {
               <Route path="/shipments" element={<ShipperShipments />} />
               <Route path="/shipments/create" element={<ShipperCreateShipment />} />
               <Route path="/bids" element={<ShipperBids />} />
+              <Route path="/messages" element={<DriverMessages />} />
               <Route path="/tracking" element={<ShipperTracking />} />
               <Route path="/history" element={<ShipperHistory />} />
               <Route path="/ratings" element={<ShipperRatings />} />

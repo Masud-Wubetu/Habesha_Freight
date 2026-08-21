@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { get, patch } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
+import ChatModal from '../../components/ChatModal';
 
 interface Bid {
   id: string;
@@ -15,6 +16,8 @@ interface Bid {
   bid_amount_etb: number;
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
   created_at: string;
+  completed_trips?: number;
+  driver_rating?: string;
 }
 
 interface Load {
@@ -60,10 +63,11 @@ export default function ShipperShipments() {
   const [counterPrice, setCounterPrice] = useState('');
   const [, setActiveBidId] = useState<string | null>(null);
 
-  // View Profile Modal State
+  // Chat & View Profile Modal State
+  const [chatTarget, setChatTarget] = useState<Bid | null>(null);
   const [showProfileModal, setShowProfileModal] = useState<Bid | null>(null);
 
-  const initials = (user?.full_name ?? 'Sara Bekele')
+  const initials = (user?.full_name ?? 'Shipper Partner')
     .split(' ')
     .map((w: string) => w[0])
     .join('')
@@ -144,12 +148,6 @@ export default function ShipperShipments() {
   const formatVehicleType = (type?: string) => {
     if (!type) return 'Standard Cargo Truck';
     return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
-
-  const getDriverRating = (name: string) => {
-    // Generate a consistent mock rating based on name
-    const num = (name.charCodeAt(0) + name.charCodeAt(1)) % 5;
-    return (4.5 + num * 0.1).toFixed(1);
   };
 
   return (
@@ -257,7 +255,7 @@ export default function ShipperShipments() {
                         .toUpperCase()
                         .slice(0, 2);
 
-                      const rating = getDriverRating(bid.driver_name);
+                      const rating = bid.driver_rating || '5.0';
 
                       return (
                         <div key={bid.id} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col gap-4">
@@ -306,6 +304,12 @@ export default function ShipperShipments() {
                                   className="px-5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-400 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
                                 >
                                   Counter Offer
+                                </button>
+                                <button
+                                  onClick={() => setChatTarget(bid)}
+                                  className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-semibold transition-colors cursor-pointer flex items-center gap-1"
+                                >
+                                  💬 Chat
                                 </button>
                               </>
                             ) : (
@@ -418,13 +422,13 @@ export default function ShipperShipments() {
                 <div>
                   <p className="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Rating</p>
                   <p className="text-sm font-semibold text-slate-800">
-                    ⭐ {getDriverRating(showProfileModal.driver_name)}
+                    ⭐ {showProfileModal.driver_rating || '5.0'}
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] text-slate-400 font-bold uppercase mb-0.5">Trips</p>
                   <p className="text-sm font-semibold text-slate-800">
-                    {showProfileModal.driver_name.length * 3} Completed
+                    {showProfileModal.completed_trips ?? 0} Completed
                   </p>
                 </div>
               </div>
@@ -437,6 +441,22 @@ export default function ShipperShipments() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* ── Modal: Chat with Driver ── */}
+      {chatTarget && (
+        <ChatModal
+          isOpen={!!chatTarget}
+          onClose={() => setChatTarget(null)}
+          receiverId={chatTarget.driver_id}
+          receiverName={chatTarget.driver_name}
+          receiverPhone={chatTarget.driver_phone}
+          loadTitle={
+            selectedLoad
+              ? `${selectedLoad.origin_city} → ${selectedLoad.destination_city}`
+              : undefined
+          }
+        />
       )}
     </div>
   );

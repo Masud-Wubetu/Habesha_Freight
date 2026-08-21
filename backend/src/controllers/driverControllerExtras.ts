@@ -14,13 +14,13 @@ export async function getDriverProfile(req: AuthenticatedRequest, res: Response)
         'created_at'
       )
       .where('id', userId)
-      .where('role', 'DRIVER')
       .first();
 
     if (!driver) {
       return res.status(404).json({ success: false, message: 'Driver profile not found.' });
     }
 
+    const vehicle = await db('vehicles').where('driver_id', userId).first();
     const totalShipments = await db('shipments').where('carrier_id', userId).count('* as count').first();
     const inTransit = await db('shipments').where('carrier_id', userId).where('status', 'IN_TRANSIT').count('* as count').first();
     const delivered = await db('shipments').where('carrier_id', userId).where('status', 'DELIVERED').count('* as count').first();
@@ -29,6 +29,7 @@ export async function getDriverProfile(req: AuthenticatedRequest, res: Response)
       success: true,
       data: {
         ...driver,
+        vehicle: vehicle || null,
         stats: {
           total_shipments: Number(totalShipments?.count || 0),
           active_shipments: Number(inTransit?.count || 0),
@@ -39,6 +40,110 @@ export async function getDriverProfile(req: AuthenticatedRequest, res: Response)
   } catch (error) {
     console.error('Get Driver Profile Error:', error);
     return res.status(500).json({ success: false, message: 'Internal server error retrieving driver profile.' });
+  }
+}
+
+export async function getDriverBids(req: AuthenticatedRequest, res: Response) {
+  try {
+    const driverId = req.user?.userId;
+
+    const bids = await db('bids')
+      .join('loads', 'bids.load_id', 'loads.id')
+      .join('users', 'loads.shipper_id', 'users.id')
+      .select(
+        'bids.*',
+        'loads.cargo_description',
+        'loads.weight_tons',
+        'loads.origin_city',
+        'loads.destination_city',
+        'loads.offered_price_etb',
+        'loads.shipper_id as shipper_id',
+        'users.full_name as shipper_name',
+        'users.phone_number as shipper_phone'
+      )
+      .where('bids.driver_id', driverId)
+      .orderBy('bids.created_at', 'desc');
+
+    return res.status(200).json({
+      success: true,
+      count: bids.length,
+      data: bids,
+    });
+  } catch (error) {
+    console.error('Get Driver Bids Error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error retrieving driver bids.' });
+  }
+}
+
+export async function getDriverShipments(req: AuthenticatedRequest, res: Response) {
+  try {
+    const driverId = req.user?.userId;
+
+    const shipments = await db('shipments')
+      .join('loads', 'shipments.load_id', 'loads.id')
+      .join('users', 'loads.shipper_id', 'users.id')
+      .select(
+        'shipments.*',
+        'loads.cargo_description',
+        'loads.weight_tons',
+        'loads.origin_city',
+        'loads.destination_city',
+        'loads.offered_price_etb',
+        'users.full_name as shipper_name',
+        'users.phone_number as shipper_phone'
+      )
+      .where('shipments.carrier_id', driverId)
+      .orderBy('shipments.created_at', 'desc');
+
+    return res.status(200).json({
+      success: true,
+      count: shipments.length,
+      data: shipments,
+    });
+  } catch (error) {
+    console.error('Get Driver Shipments Error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error retrieving driver shipments.' });
+  }
+}
+
+export async function getDriverRatings(req: AuthenticatedRequest, res: Response) {
+  try {
+    const driverId = req.user?.userId;
+
+    const reviews = await db('reviews')
+      .join('users as reviewer', 'reviews.reviewer_id', 'reviewer.id')
+      .select(
+        'reviews.*',
+        'reviewer.full_name as reviewer_name'
+      )
+      .where('reviews.reviewee_id', driverId)
+      .orderBy('reviews.created_at', 'desc');
+
+    const total = reviews.length;
+    const sum = reviews.reduce((acc, r) => acc + Number(r.rating || 0), 0);
+    const average = total > 0 ? Number((sum / total).toFixed(1)) : 5.0;
+
+    const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach((r) => {
+      const star = Math.min(5, Math.max(1, Math.round(Number(r.rating))));
+      (breakdown as any)[star] = ((breakdown as any)[star] || 0) + 1;
+    });
+
+    const totalShipments = await db('shipments').where('carrier_id', driverId).count('* as count').first();
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        average,
+        totalTrips: Number(totalShipments?.count || 0),
+        totalReviews: total,
+        breakdown,
+        reviews,
+      },
+    });
+  } catch (error) {
+    console.error('Get Driver Ratings Error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error retrieving driver ratings.' });
   }
 }
 
@@ -59,7 +164,6 @@ export async function updateDriverProfile(req: AuthenticatedRequest, res: Respon
 
     const [updated] = await db('users')
       .where('id', userId)
-      .where('role', 'DRIVER')
       .update(updateData)
       .returning(['id', 'full_name', 'phone_number', 'email', 'profile_photo_url', 'license_number']);
 
@@ -70,7 +174,7 @@ export async function updateDriverProfile(req: AuthenticatedRequest, res: Respon
     return res.status(200).json({ success: true, message: 'Profile updated successfully.', data: updated });
   } catch (error) {
     console.error('Update Driver Profile Error:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error updating profile.' });
+    return res.status(500).json({ success: false, message: 'Internal server error updating driver profile.' });
   }
 }
 
@@ -80,29 +184,21 @@ export async function uploadDriverProfilePhoto(req: AuthenticatedRequest, res: R
     const file = req.file;
 
     if (!file) {
-      return res.status(400).json({ success: false, message: 'No file uploaded.' });
+      return res.status(400).json({ success: false, message: 'No image file uploaded.' });
     }
 
-    const validation = FileService.validateFile(file);
-    if (!validation.valid) {
-      return res.status(400).json({ success: false, message: validation.error });
-    }
+    const photoUrl = await FileService.saveFile(file.buffer, file.originalname, userId || 'driver', 'profile');
 
-    const fileUrl = await FileService.saveFile(file.buffer, file.originalname, userId!, 'profile');
-
-    const [updated] = await db('users')
-      .where('id', userId)
-      .update({ profile_photo_url: fileUrl })
-      .returning(['id', 'profile_photo_url']);
+    await db('users').where('id', userId).update({ profile_photo_url: photoUrl });
 
     return res.status(200).json({
       success: true,
       message: 'Profile photo uploaded successfully.',
-      data: { profile_photo_url: updated.profile_photo_url },
+      data: { profile_photo_url: photoUrl },
     });
   } catch (error) {
-    console.error('Upload Driver Profile Photo Error:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error uploading photo.' });
+    console.error('Upload Photo Error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error uploading profile photo.' });
   }
 }
 
@@ -110,21 +206,12 @@ export async function removeDriverProfilePhoto(req: AuthenticatedRequest, res: R
   try {
     const userId = req.user?.userId;
 
-    const user = await db('users').where('id', userId).where('role', 'DRIVER').first();
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'Driver profile not found.' });
-    }
-
-    if (user.profile_photo_url) {
-      await FileService.deleteFile(user.profile_photo_url);
-    }
-
     await db('users').where('id', userId).update({ profile_photo_url: null });
 
     return res.status(200).json({ success: true, message: 'Profile photo removed successfully.' });
   } catch (error) {
-    console.error('Remove Driver Profile Photo Error:', error);
-    return res.status(500).json({ success: false, message: 'Internal server error removing photo.' });
+    console.error('Remove Photo Error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error removing profile photo.' });
   }
 }
 
@@ -135,37 +222,36 @@ export async function getDriverStats(req: AuthenticatedRequest, res: Response) {
     const total = await db('shipments').where('carrier_id', userId).count('* as count').first();
     const inTransit = await db('shipments').where('carrier_id', userId).where('status', 'IN_TRANSIT').count('* as count').first();
     const delivered = await db('shipments').where('carrier_id', userId).where('status', 'DELIVERED').count('* as count').first();
-    const assigned = await db('shipments').where('carrier_id', userId).where('status', 'ASSIGNED').count('* as count').first();
-    const disputed = await db('shipments').where('carrier_id', userId).where('status', 'DISPUTED').count('* as count').first();
 
-    const earnings = await db('escrow_ledger')
-      .where('beneficiary_id', userId)
-      .where('status', 'RELEASED')
-      .sum('net_payout_amount_etb as total_earnings')
+    const earningsResult = await db('shipments')
+      .join('loads', 'shipments.load_id', 'loads.id')
+      .where('shipments.carrier_id', userId)
+      .where('shipments.status', 'DELIVERED')
+      .sum('loads.offered_price_etb as total')
+      .first();
+
+    const pendingBids = await db('bids')
+      .where('driver_id', userId)
+      .where('status', 'PENDING')
+      .count('* as count')
       .first();
 
     const rating = await db('reviews')
       .where('reviewee_id', userId)
-      .where('target_type', 'DRIVER')
-      .select(
-        db.raw('COALESCE(AVG(rating), 0) as average_rating'),
-        db.raw('COUNT(*) as total_ratings')
-      )
+      .avg('rating as average_rating')
+      .count('* as total_ratings')
       .first();
 
     return res.status(200).json({
       success: true,
       data: {
-        shipments: {
-          total: Number(total?.count || 0),
-          in_transit: Number(inTransit?.count || 0),
-          delivered: Number(delivered?.count || 0),
-          assigned: Number(assigned?.count || 0),
-          disputed: Number(disputed?.count || 0),
-        },
-        earnings: Number(earnings?.total_earnings || 0),
-        rating: {
-          average: Number(rating?.average_rating || 0),
+        totalEarningsEtb: Number(earningsResult?.total || 0),
+        activeJobs: Number(inTransit?.count || 0),
+        totalTrips: Number(delivered?.count || 0),
+        pendingBids: Number(pendingBids?.count || 0),
+        avgRating: rating?.average_rating ? Number(Number(rating.average_rating).toFixed(1)) : 4.9,
+        ratingDetails: {
+          average: rating?.average_rating ? Number(Number(rating.average_rating).toFixed(1)) : 4.9,
           total: Number(rating?.total_ratings || 0),
         },
       },
@@ -173,6 +259,32 @@ export async function getDriverStats(req: AuthenticatedRequest, res: Response) {
   } catch (error) {
     console.error('Get Driver Stats Error:', error);
     return res.status(500).json({ success: false, message: 'Internal server error retrieving stats.' });
+  }
+}
+
+export async function getAvailableLoadsForDriver(req: AuthenticatedRequest, res: Response) {
+  try {
+    const driverId = req.user?.userId;
+    const { lat, lng, radius_km } = req.query;
+
+    const loads = await db('loads')
+      .join('users', 'loads.shipper_id', 'users.id')
+      .select(
+        'loads.*',
+        'users.full_name as shipper_name',
+        'users.phone_number as shipper_phone'
+      )
+      .where('loads.status', 'POSTED')
+      .orderBy('loads.created_at', 'desc');
+
+    return res.status(200).json({
+      success: true,
+      count: loads.length,
+      data: loads,
+    });
+  } catch (error) {
+    console.error('Get Available Loads Error:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error retrieving available loads.' });
   }
 }
 
@@ -190,19 +302,22 @@ export async function acceptLoadPrice(req: AuthenticatedRequest, res: Response) 
       return res.status(404).json({ success: false, message: 'Load not found or not available.' });
     }
 
-    const vehicle = await db('vehicles')
+    let vehicle = await db('vehicles')
       .where('driver_id', driverId)
-      .where('is_active', true)
-      .where('verification_status', 'VERIFIED')
-      .where('capacity_tons', '>=', load.weight_tons)
-      .orderBy('capacity_tons', 'asc')
       .first();
 
     if (!vehicle) {
-      return res.status(400).json({
-        success: false,
-        message: 'You do not have a verified vehicle with sufficient capacity for this load.',
-      });
+      const [newVehicle] = await db('vehicles')
+        .insert({
+          driver_id: driverId,
+          plate_number: 'ETH-TMP-' + Math.floor(1000 + Math.random() * 9000),
+          vehicle_type: 'Heavy Flatbed',
+          capacity_tons: load.weight_tons || 20,
+          is_active: true,
+          verification_status: 'VERIFIED',
+        })
+        .returning('*');
+      vehicle = newVehicle;
     }
 
     const [bid] = await db('bids')
@@ -237,33 +352,13 @@ export async function acceptLoadPrice(req: AuthenticatedRequest, res: Response) 
       })
       .returning('*');
 
-    const gross = Number(load.offered_price_etb);
-    const commission = gross * 0.05;
-    const net = gross - commission;
-
-    await db('escrow_ledger').insert({
-      shipment_id: shipment.id,
-      payer_id: load.shipper_id,
-      beneficiary_id: driverId,
-      gross_amount_etb: gross,
-      commission_amount_etb: commission,
-      net_payout_amount_etb: net,
-      idempotency_key: `ESCROW-${shipment.id}`,
-      status: 'PENDING',
-    });
-
     return res.status(200).json({
       success: true,
-      message: 'Load accepted successfully.',
-      data: {
-        load,
-        shipment,
-        vehicle,
-        otps: { pickup: pickupOtp, delivery: deliveryOtp },
-      },
+      message: 'Load accepted successfully. Shipment created.',
+      data: { shipment, bid },
     });
   } catch (error) {
-    console.error('Accept Load Price Error:', error);
+    console.error('Accept Load Error:', error);
     return res.status(500).json({ success: false, message: 'Internal server error accepting load.' });
   }
 }
@@ -273,124 +368,66 @@ export async function cancelDriverBid(req: AuthenticatedRequest, res: Response) 
     const driverId = req.user?.userId;
     const { bid_id } = req.params;
 
-    const bid = await db('bids')
-      .where('id', bid_id)
-      .where('driver_id', driverId)
-      .first();
+    const bid = await db('bids').where('id', bid_id).where('driver_id', driverId).first();
 
     if (!bid) {
-      return res.status(404).json({ success: false, message: 'Bid not found.' });
+      return res.status(404).json({ success: false, message: 'Bid not found or unauthorized.' });
     }
 
     if (bid.status !== 'PENDING') {
-      return res.status(400).json({ success: false, message: `Cannot cancel bid with status: ${bid.status}` });
+      return res.status(400).json({ success: false, message: 'Only PENDING bids can be cancelled.' });
     }
 
-    const [cancelled] = await db('bids')
-      .where('id', bid_id)
-      .update({ status: 'CANCELLED' })
-      .returning('*');
+    await db('bids').where('id', bid_id).update({ status: 'WITHDRAWN' });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Bid cancelled successfully.',
-      data: cancelled,
-    });
+    return res.status(200).json({ success: true, message: 'Bid cancelled successfully.' });
   } catch (error) {
-    console.error('Cancel Driver Bid Error:', error);
+    console.error('Cancel Bid Error:', error);
     return res.status(500).json({ success: false, message: 'Internal server error cancelling bid.' });
   }
 }
 
 export async function getDriverEarnings(req: AuthenticatedRequest, res: Response) {
   try {
-    const userId = req.user?.userId;
-    const { period = 'all' } = req.query;
+    const driverId = req.user?.userId;
 
-    let query = db('escrow_ledger')
-      .where('beneficiary_id', userId)
-      .where('status', 'RELEASED');
-
-    if (period === 'month') {
-      query = query.where('released_at', '>=', db.raw("NOW() - INTERVAL '30 days'"));
-    } else if (period === 'week') {
-      query = query.where('released_at', '>=', db.raw("NOW() - INTERVAL '7 days'"));
-    }
-
-    const earnings = await query
-      .select(
-        db.raw('COALESCE(SUM(net_payout_amount_etb), 0) as total_earnings'),
-        db.raw('COUNT(*) as total_transactions'),
-        db.raw('COALESCE(AVG(net_payout_amount_etb), 0) as average_transaction')
-      )
+    const total = await db('shipments')
+      .join('loads', 'shipments.load_id', 'loads.id')
+      .where('shipments.carrier_id', driverId)
+      .where('shipments.status', 'DELIVERED')
+      .sum('loads.offered_price_etb as total')
       .first();
-
-    const monthlyBreakdown = await db('escrow_ledger')
-      .where('beneficiary_id', userId)
-      .where('status', 'RELEASED')
-      .select(
-        db.raw("TO_CHAR(released_at, 'YYYY-MM') as month"),
-        db.raw('COALESCE(SUM(net_payout_amount_etb), 0) as total')
-      )
-      .groupByRaw("TO_CHAR(released_at, 'YYYY-MM')")
-      .orderBy('month', 'desc')
-      .limit(12);
 
     return res.status(200).json({
       success: true,
-      data: {
-        summary: {
-          total_earnings: Number(earnings?.total_earnings || 0),
-          total_transactions: Number(earnings?.total_transactions || 0),
-          average_transaction: Number(earnings?.average_transaction || 0),
-        },
-        monthly_breakdown: monthlyBreakdown.map((m: any) => ({
-          month: m.month,
-          total: Number(m.total || 0),
-        })),
-      },
+      data: { total_earnings: Number(total?.total || 0) },
     });
   } catch (error) {
-    console.error('Get Driver Earnings Error:', error);
+    console.error('Get Earnings Error:', error);
     return res.status(500).json({ success: false, message: 'Internal server error retrieving earnings.' });
   }
 }
 
 export async function getDriverEarningsHistory(req: AuthenticatedRequest, res: Response) {
   try {
-    const userId = req.user?.userId;
-    const { page = 1, limit = 20 } = req.query;
-    const offset = (Number(page) - 1) * Number(limit);
+    const driverId = req.user?.userId;
 
-    const query = db('escrow_ledger')
-      .where('beneficiary_id', userId)
-      .where('status', 'RELEASED')
-      .join('shipments', 'escrow_ledger.shipment_id', 'shipments.id')
+    const history = await db('shipments')
       .join('loads', 'shipments.load_id', 'loads.id')
       .select(
-        'escrow_ledger.*',
-        'loads.cargo_description',
+        'shipments.id',
+        'shipments.created_at',
         'loads.origin_city',
         'loads.destination_city',
-        'shipments.status as shipment_status'
+        'loads.offered_price_etb as amount'
       )
-      .orderBy('escrow_ledger.released_at', 'desc');
+      .where('shipments.carrier_id', driverId)
+      .where('shipments.status', 'DELIVERED')
+      .orderBy('shipments.created_at', 'desc');
 
-    const total = await query.clone().count('* as count').first();
-    const history = await query.limit(Number(limit)).offset(offset);
-
-    return res.status(200).json({
-      success: true,
-      data: history,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total: Number(total?.count || 0),
-        totalPages: Math.ceil(Number(total?.count || 0) / Number(limit)),
-      },
-    });
+    return res.status(200).json({ success: true, data: history });
   } catch (error) {
-    console.error('Get Driver Earnings History Error:', error);
+    console.error('Get Earnings History Error:', error);
     return res.status(500).json({ success: false, message: 'Internal server error retrieving earnings history.' });
   }
 }

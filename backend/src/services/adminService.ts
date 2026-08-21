@@ -780,7 +780,12 @@ export async function activateUser(dbClient: Knex = db, userId: string, actorId:
     }
 
     const hasStatusColumn = await hasColumn(trx, 'users', 'status');
-    await trx('users').where({ id: userId }).update(hasStatusColumn ? { status: 'ACTIVE' } : { is_verified: true });
+    const hasKycStatusColumn = await hasColumn(trx, 'users', 'kyc_status');
+    const updatePayload: Record<string, any> = { is_verified: true };
+    if (hasStatusColumn) updatePayload.status = 'ACTIVE';
+    if (hasKycStatusColumn) updatePayload.kyc_status = 'APPROVED';
+
+    await trx('users').where({ id: userId }).update(updatePayload);
     await logAudit(trx, actorId, ADMIN_AUDIT_ACTIONS.USER_ACTIVATED, 'User', userId, {
       previousState: user.status ?? user.is_verified ?? null,
     });
@@ -964,17 +969,22 @@ export async function approveKyc(
     }
 
     const hasKycStatusColumn = await hasColumn(trx, 'users', 'kyc_status');
+    const hasStatusColumn = await hasColumn(trx, 'users', 'status');
+    
+    const updatePayload: Record<string, any> = {
+      is_verified: true,
+    };
     if (hasKycStatusColumn) {
-      await trx('users').where({ id: userId }).update({
-        kyc_status: 'APPROVED',
-        is_verified: true,
-        kyc_reviewed_by: actorId,
-        kyc_reviewed_at: new Date(),
-        kyc_rejection_reason: rejectionReason ?? null,
-      });
-    } else {
-      await trx('users').where({ id: userId }).update({ is_verified: true });
+      updatePayload.kyc_status = 'APPROVED';
+      updatePayload.kyc_reviewed_by = actorId;
+      updatePayload.kyc_reviewed_at = new Date();
+      updatePayload.kyc_rejection_reason = rejectionReason ?? null;
     }
+    if (hasStatusColumn) {
+      updatePayload.status = 'ACTIVE';
+    }
+
+    await trx('users').where({ id: userId }).update(updatePayload);
 
     await logAudit(trx, actorId, ADMIN_AUDIT_ACTIONS.KYC_APPROVED, 'User', userId, {
       reason: rejectionReason ?? null,
@@ -1502,7 +1512,7 @@ export async function getDriverTrips(
     };
   }
 
-  let queryBuilder = dbClient('shipments').where('driver_id', driverId);
+  let queryBuilder = dbClient('shipments').where('carrier_id', driverId);
 
   if (status) {
     queryBuilder = queryBuilder.where('status', status);

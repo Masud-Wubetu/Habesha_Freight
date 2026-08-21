@@ -4,51 +4,95 @@ import { hashPassword, comparePassword, generateOTP } from '../utils/crypto';
 import { generateToken, verifyToken } from '../utils/jwt';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { FileService } from '../services/fileService';
+import { emailService } from '../services/emailService';
 
-// Existing methods...
 export async function register(req: Request, res: Response) {
   try {
-    const { full_name, phone_number, email, password, role } = req.body;
+    const {
+      full_name,
+      email,
+      phone_number,
+      password,
+      role,
+      license_number,
+      company_registration_number,
+    } = req.body;
+    const file = req.file;
 
-    if (role === "ADMIN") {
+    if (role === 'ADMIN') {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
-    if (!full_name || !phone_number || !password) {
+
+    if (!full_name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Full name, phone number, and password are required.',
+        message: 'Full name, email address, and password are required.',
       });
     }
 
-    const existingUser = await db('users').where({ phone_number }).first();
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existingUser = await db('users').where({ email: normalizedEmail }).first();
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: 'A user with this phone number already exists.',
+        message: 'A user with this email address already exists.',
       });
     }
 
     const hashedPassword = await hashPassword(password);
     const { otp, expiresAt } = generateOTP();
+    const targetRole = (role || 'SHIPPER').toUpperCase();
+
+    let uploadedDocUrl: string | null = null;
+    if (file) {
+      const validation = FileService.validateFile(file, 10);
+      if (!validation.valid) {
+        return res.status(400).json({ success: false, message: validation.error });
+      }
+      uploadedDocUrl = await FileService.saveFile(file.buffer, file.originalname, 'registration', 'license');
+    }
+
+    const isDriverOrFleet = targetRole === 'DRIVER' || targetRole === 'FLEET_OWNER';
+    const initialKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
+    const initialStatus = isDriverOrFleet ? 'PENDING_APPROVAL' : 'ACTIVE';
+
+    const generatedPhone = `+2519${Math.floor(10000000 + Math.random() * 90000000)}`;
+    const finalPhoneNumber = phone_number && phone_number.trim() ? phone_number.trim() : generatedPhone;
+
+    const insertData: Record<string, any> = {
+      full_name,
+      email: normalizedEmail,
+      phone_number: finalPhoneNumber,
+      password_hash: hashedPassword,
+      role: targetRole,
+      is_verified: false,
+      kyc_status: initialKycStatus,
+      status: initialStatus,
+      otp_code: otp,
+      otp_expires_at: expiresAt,
+    };
+
+    if (targetRole === 'DRIVER') {
+      if (license_number) insertData.license_number = license_number;
+      if (uploadedDocUrl) insertData.license_photo_url = uploadedDocUrl;
+    } else if (targetRole === 'FLEET_OWNER') {
+      if (company_registration_number) insertData.company_registration_number = company_registration_number;
+      if (uploadedDocUrl) insertData.license_photo_url = uploadedDocUrl;
+    }
 
     const [newUser] = await db('users')
-      .insert({
-        full_name,
-        phone_number,
-        email: email || null,
-        password_hash: hashedPassword,
-        role: role || 'SHIPPER',
-        is_verified: false,
-        otp_code: otp,
-        otp_expires_at: expiresAt,
-      })
-      .returning(['id', 'full_name', 'phone_number', 'role', 'is_verified']);
+      .insert(insertData)
+      .returning(['id', 'full_name', 'email', 'phone_number', 'role', 'is_verified', 'kyc_status', 'status']);
 
-    console.log(`📱 [SMS OTP DISPATCH] Sent OTP ${otp} to ${phone_number}`);
+    // Send real Email OTP in background
+    emailService.sendOtpEmail(normalizedEmail, otp, full_name).catch((err) => {
+      console.error('❌ [BACKGROUND EMAIL ERROR]:', err);
+    });
 
     return res.status(201).json({
       success: true,
-      message: 'Registration successful. OTP sent for phone verification.',
+      message: 'Registration successful. A 6-digit OTP has been sent to your email address.',
       data: { user: newUser, demo_otp: otp },
     });
   } catch (error) {
@@ -62,16 +106,19 @@ export async function register(req: Request, res: Response) {
 
 export async function verifyOtp(req: Request, res: Response) {
   try {
-    const { phone_number, otp_code } = req.body;
+    const { email, phone_number, otp_code } = req.body;
 
-    if (!phone_number || !otp_code) {
+    const identifier = email || phone_number;
+    if (!identifier || !otp_code) {
       return res.status(400).json({
         success: false,
-        message: 'Phone number and OTP code are required.',
+        message: 'Email address and OTP code are required.',
       });
     }
 
-    const user = await db('users').where({ phone_number }).first();
+    const user = email
+      ? await db('users').where({ email: email.toLowerCase().trim() }).first()
+      : await db('users').where({ phone_number }).first();
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
@@ -85,26 +132,41 @@ export async function verifyOtp(req: Request, res: Response) {
       return res.status(400).json({ success: false, message: 'OTP code has expired.' });
     }
 
+    const isDriverOrFleet = user.role === 'DRIVER' || user.role === 'FLEET_OWNER';
+    const updatedKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
+
     await db('users')
       .where({ id: user.id })
-      .update({ is_verified: true, otp_code: null, otp_expires_at: null });
+      .update({
+        is_verified: true,
+        kyc_status: updatedKycStatus,
+        otp_code: null,
+        otp_expires_at: null,
+      });
 
     const token = generateToken({
       userId: user.id,
       role: user.role,
       phoneNumber: user.phone_number,
+      email: user.email,
     });
 
     return res.status(200).json({
       success: true,
-      message: 'Phone number verified successfully.',
+      message: isDriverOrFleet
+        ? 'Email verified successfully. Your account is currently pending Admin verification.'
+        : 'Email verified successfully.',
       data: {
         token,
         user: {
           id: user.id,
           full_name: user.full_name,
+          email: user.email,
           phone_number: user.phone_number,
           role: user.role,
+          is_verified: true,
+          kyc_status: updatedKycStatus,
+          status: user.status,
         },
       },
     });
@@ -119,16 +181,19 @@ export async function verifyOtp(req: Request, res: Response) {
 
 export async function resendOtp(req: Request, res: Response) {
   try {
-    const { phone_number } = req.body;
+    const { email, phone_number } = req.body;
 
-    if (!phone_number) {
+    const identifier = email || phone_number;
+    if (!identifier) {
       return res.status(400).json({
         success: false,
-        message: 'Phone number is required.',
+        message: 'Email address is required.',
       });
     }
 
-    const user = await db('users').where({ phone_number }).first();
+    const user = email
+      ? await db('users').where({ email: email.toLowerCase().trim() }).first()
+      : await db('users').where({ phone_number }).first();
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
@@ -140,12 +205,13 @@ export async function resendOtp(req: Request, res: Response) {
       .where({ id: user.id })
       .update({ otp_code: otp, otp_expires_at: expiresAt });
 
-    console.log(`📱 [SMS OTP RESEND] Resent OTP ${otp} to ${phone_number}`);
+    emailService.sendOtpEmail(user.email, otp, user.full_name).catch((err) => {
+      console.error('❌ [BACKGROUND RESEND EMAIL ERROR]:', err);
+    });
 
     return res.status(200).json({
       success: true,
-      message: 'New OTP generated and sent successfully.',
-      data: { demo_otp: otp },
+      message: 'New OTP code sent to your email address.',
     });
   } catch (error) {
     console.error('Resend OTP Error:', error);
@@ -158,20 +224,24 @@ export async function resendOtp(req: Request, res: Response) {
 
 export async function login(req: Request, res: Response) {
   try {
-    const { phone_number, password } = req.body;
+    const { email, phone_number, password } = req.body;
 
-    if (!phone_number || !password) {
+    const identifier = email || phone_number;
+    if (!identifier || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Phone number and password are required.',
+        message: 'Email address (or phone) and password are required.',
       });
     }
 
-    const user = await db('users').where({ phone_number }).first();
+    const user = email
+      ? await db('users').where({ email: email.toLowerCase().trim() }).first()
+      : await db('users').where({ phone_number: identifier }).first();
+
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid phone number or password.',
+        message: 'Invalid email address or password.',
       });
     }
 
@@ -179,7 +249,17 @@ export async function login(req: Request, res: Response) {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid phone number or password.',
+        message: 'Invalid email address or password.',
+      });
+    }
+
+    if (!user.is_verified) {
+      return res.status(401).json({
+        success: false,
+        message: 'Your email address is not verified. Please verify your OTP code.',
+        requires_otp_verification: true,
+        email: user.email,
+        demo_otp: user.otp_code,
       });
     }
 
@@ -187,6 +267,7 @@ export async function login(req: Request, res: Response) {
       userId: user.id,
       role: user.role,
       phoneNumber: user.phone_number,
+      email: user.email,
     });
 
     return res.status(200).json({
@@ -197,9 +278,12 @@ export async function login(req: Request, res: Response) {
         user: {
           id: user.id,
           full_name: user.full_name,
+          email: user.email,
           phone_number: user.phone_number,
           role: user.role,
           is_verified: user.is_verified,
+          kyc_status: user.kyc_status,
+          status: user.status,
         },
       },
     });
@@ -217,7 +301,7 @@ export async function getMe(req: AuthenticatedRequest, res: Response) {
     const userId = req.user?.userId;
 
     const user = await db('users')
-      .select('id', 'full_name', 'phone_number', 'email', 'role', 'is_verified', 'created_at')
+      .select('id', 'full_name', 'phone_number', 'email', 'role', 'is_verified', 'kyc_status', 'status', 'created_at')
       .where({ id: userId })
       .first();
 

@@ -14,6 +14,7 @@ import {
   getShipperRequests,
   cancelRequest,
   getRequestBids,
+  getAllShipperBids,
   acceptBid,
   counterOffer,
   rejectBid,
@@ -25,6 +26,9 @@ import {
   getMessages,
   getThreadMessages,
   sendMessage,
+  searchFleetCompanies,
+  getCompanyDetails,
+  createFleetRequest,
 } from '../controllers/shipperController';
 
 const router = Router();
@@ -32,6 +36,11 @@ const router = Router();
 // All shipper routes require authentication
 router.use(authenticateToken);
 router.use(authorizeRoles('SHIPPER'));
+
+// Fleet Company Search & Requests
+router.get('/companies', searchFleetCompanies);
+router.get('/companies/:id', getCompanyDetails);
+router.post('/fleet-requests', createFleetRequest);
 
 // Profile Management
 router.get('/profile', getShipperProfile);
@@ -42,6 +51,7 @@ router.delete('/profile/photo', removeProfilePhoto);
 // Request Management
 router.post('/requests', createShipmentRequest);
 router.get('/requests', getShipperRequests);
+router.get('/bids', getAllShipperBids);
 router.patch('/requests/:id/cancel', cancelRequest);
 router.get('/requests/:id/bids', getRequestBids);
 router.patch('/requests/:id/bids/:bid_id/accept', acceptBid);

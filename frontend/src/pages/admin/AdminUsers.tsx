@@ -8,7 +8,8 @@ interface UserRecord {
   full_name: string;
   role: string;
   phone_number: string;
-  status: 'Active' | 'Suspended' | 'Pending';
+  email?: string;
+  status: 'Active' | 'Suspended' | 'Pending Approval';
   created_at: string;
 }
 
@@ -16,51 +17,7 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUserModal, setSelectedUserModal] = useState<UserRecord | null>(null);
-
-  const defaultUsers: UserRecord[] = [
-    {
-      id: 'USR-001',
-      full_name: 'Sara Bekele',
-      role: 'Shipper',
-      phone_number: '+251 911 223 344',
-      status: 'Active',
-      created_at: 'Jan 2026',
-    },
-    {
-      id: 'USR-002',
-      full_name: 'Abebe Girma',
-      role: 'Driver',
-      phone_number: '+251 912 345 678',
-      status: 'Active',
-      created_at: 'Feb 2026',
-    },
-    {
-      id: 'USR-003',
-      full_name: 'Tesfaye Haile',
-      role: 'Driver',
-      phone_number: '+251 913 456 789',
-      status: 'Suspended',
-      created_at: 'Mar 2026',
-    },
-    {
-      id: 'USR-004',
-      full_name: 'Yohannes Alemu',
-      role: 'Shipper',
-      phone_number: '+251 922 112 233',
-      status: 'Active',
-      created_at: 'Apr 2026',
-    },
-    {
-      id: 'USR-005',
-      full_name: 'Tigist Worku',
-      role: 'Fleet Owner',
-      phone_number: '+251 933 445 566',
-      status: 'Pending',
-      created_at: 'Aug 2026',
-    },
-  ];
-
-  const [users, setUsers] = useState<UserRecord[]>(defaultUsers);
+  const [users, setUsers] = useState<UserRecord[]>([]);
 
   useEffect(() => {
     fetchUsers(searchTerm);
@@ -70,63 +27,43 @@ export default function AdminUsers() {
     try {
       setLoading(true);
       const queryParam = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : '';
-      const res = await api.get<{
-        success: boolean;
-        data?: { users?: Record<string, unknown>[] };
-      }>(`/admin/users${queryParam}`, true);
+      const res: any = await api.get(`/admin/users${queryParam}`);
 
-      if (res && res.success && res.data?.users && res.data.users.length > 0) {
-        const fetchedUsers: UserRecord[] = res.data.users.map((u, index) => {
+      const items: any[] =
+        res?.users ||
+        res?.items ||
+        res?.data?.users ||
+        res?.data?.items ||
+        (Array.isArray(res) ? res : []);
+
+      if (Array.isArray(items) && items.length > 0) {
+        const fetchedUsers: UserRecord[] = items.map((u, index) => {
           const rawStatus = (u.status as string) || (u.is_verified ? 'ACTIVE' : 'PENDING');
-          let formattedStatus: 'Active' | 'Suspended' | 'Pending' = 'Active';
+          let formattedStatus: 'Active' | 'Suspended' | 'Pending Approval' = 'Active';
           if (rawStatus.toUpperCase() === 'SUSPENDED') formattedStatus = 'Suspended';
-          if (rawStatus.toUpperCase() === 'PENDING') formattedStatus = 'Pending';
+          if (rawStatus.toUpperCase() === 'PENDING_APPROVAL' || rawStatus.toUpperCase() === 'PENDING') formattedStatus = 'Pending Approval';
 
           const joinedDate = u.created_at
-            ? new Date(u.created_at as string).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-            : 'Jan 2026';
+            ? new Date(u.created_at as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'Recent';
 
           return {
             id: (u.id as string) || `USR-00${index + 1}`,
-            full_name: (u.full_name as string) || (u.name as string) || 'User Name',
-            role: (u.role as string) ? (u.role as string).replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) : 'Shipper',
-            phone_number: (u.phone_number as string) || (u.phone as string) || '+251 900 000 000',
+            full_name: (u.full_name as string) || 'User Name',
+            role: (u.role as string) ? (u.role as string).replace('_', ' ') : 'USER',
+            phone_number: (u.phone_number as string) || 'No phone',
+            email: u.email || '',
             status: formattedStatus,
             created_at: joinedDate,
           };
         });
         setUsers(fetchedUsers);
       } else {
-        // Local filtering on mock data if backend has no results
-        if (searchQuery) {
-          const lower = searchQuery.toLowerCase();
-          setUsers(
-            defaultUsers.filter(
-              (u) =>
-                u.full_name.toLowerCase().includes(lower) ||
-                u.phone_number.includes(lower) ||
-                u.role.toLowerCase().includes(lower)
-            )
-          );
-        } else {
-          setUsers(defaultUsers);
-        }
+        setUsers([]);
       }
-    } catch {
-      // Fallback filter
-      if (searchQuery) {
-        const lower = searchQuery.toLowerCase();
-        setUsers(
-          defaultUsers.filter(
-            (u) =>
-              u.full_name.toLowerCase().includes(lower) ||
-              u.phone_number.includes(lower) ||
-              u.role.toLowerCase().includes(lower)
-          )
-        );
-      } else {
-        setUsers(defaultUsers);
-      }
+    } catch (err) {
+      console.error('Failed to load users:', err);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -136,7 +73,6 @@ export default function AdminUsers() {
     const isCurrentlySuspended = user.status === 'Suspended';
     const actionEndpoint = isCurrentlySuspended ? `/admin/users/${user.id}/activate` : `/admin/users/${user.id}/suspend`;
 
-    // Optimistic UI update
     setUsers((prev) =>
       prev.map((u) => {
         if (u.id === user.id) {
@@ -150,9 +86,9 @@ export default function AdminUsers() {
     );
 
     try {
-      await api.post(actionEndpoint, {}, true);
+      await api.post(actionEndpoint, {});
     } catch (err) {
-      console.warn(`Status toggle performed in UI state for user ${user.id}`, err);
+      console.warn(`Status toggle error for user ${user.id}`, err);
     }
   };
 
@@ -169,7 +105,7 @@ export default function AdminUsers() {
         return { backgroundColor: '#DCFCE7', color: '#15803D' };
       case 'Suspended':
         return { backgroundColor: '#FEE2E2', color: '#B91C1C' };
-      case 'Pending':
+      case 'Pending Approval':
         return { backgroundColor: '#FEF3C7', color: '#B45309' };
       default:
         return { backgroundColor: '#F3F4F6', color: '#4B5563' };
@@ -182,20 +118,19 @@ export default function AdminUsers() {
         {/* Top Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Users</h1>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>System Users</h1>
             <div style={{ fontSize: '0.875rem', color: '#64748B', marginTop: '0.25rem' }}>{formattedDate}</div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {/* Open Disputes Alert Pill */}
             <Link
-              to="/admin/disputes"
+              to="/admin/verification"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                backgroundColor: '#FEE2E2',
-                color: '#DC2626',
+                backgroundColor: '#FEF3C7',
+                color: '#B45309',
                 padding: '0.4rem 0.9rem',
                 borderRadius: '2rem',
                 fontSize: '0.85rem',
@@ -203,30 +138,10 @@ export default function AdminUsers() {
                 textDecoration: 'none',
               }}
             >
-              <span>⚠️</span>
-              <span>2 open disputes</span>
+              <span>⏳</span>
+              <span>Pending Approvals: {users.filter(u => u.status === 'Pending Approval').length}</span>
             </Link>
 
-            {/* Dark Mode Toggle */}
-            <button
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: '#F1F5F9',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1rem',
-              }}
-              title="Toggle Theme"
-            >
-              🌙
-            </button>
-
-            {/* Profile Avatar */}
             <div
               style={{
                 width: '38px',
@@ -258,12 +173,14 @@ export default function AdminUsers() {
         >
           {/* Card Header & Search Box */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>All Users</h2>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+              All Platform Users ({users.length})
+            </h2>
 
             <div style={{ position: 'relative', width: '260px' }}>
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search by name, phone or role..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
@@ -298,7 +215,7 @@ export default function AdminUsers() {
                 <tr style={{ borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.85rem', fontWeight: 600 }}>
                   <th style={{ padding: '0.75rem 1rem 0.75rem 0' }}>Name</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Role</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Phone</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Phone / Email</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Status</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Joined</th>
                   <th style={{ padding: '0.75rem 0 0.75rem 1rem' }}>Actions</th>
@@ -308,21 +225,24 @@ export default function AdminUsers() {
                 {loading ? (
                   <tr>
                     <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
-                      Loading users...
+                      Loading platform users...
                     </td>
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
-                      No users found.
+                      No registered users found.
                     </td>
                   </tr>
                 ) : (
                   users.map((user) => (
                     <tr key={user.id} style={{ borderBottom: '1px solid #F1F5F9', fontSize: '0.9rem', color: '#0F172A' }}>
                       <td style={{ padding: '1rem 1rem 1rem 0', fontWeight: 700 }}>{user.full_name}</td>
-                      <td style={{ padding: '1rem', color: '#475569' }}>{user.role}</td>
-                      <td style={{ padding: '1rem', color: '#475569' }}>{user.phone_number}</td>
+                      <td style={{ padding: '1rem', color: '#475569', fontWeight: 600 }}>{user.role}</td>
+                      <td style={{ padding: '1rem', color: '#475569' }}>
+                        <div>{user.phone_number}</div>
+                        {user.email && <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{user.email}</div>}
+                      </td>
                       <td style={{ padding: '1rem' }}>
                         <span
                           style={{
@@ -425,8 +345,9 @@ export default function AdminUsers() {
               </div>
 
               <div>
-                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>PHONE NUMBER</span>
+                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>PHONE / EMAIL</span>
                 <span style={{ color: '#0F172A' }}>{selectedUserModal.phone_number}</span>
+                {selectedUserModal.email && <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{selectedUserModal.email}</div>}
               </div>
 
               <div>

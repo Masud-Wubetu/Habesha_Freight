@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-type Role = 'shipper' | 'driver' | 'transport' | 'admin';
+type Role = 'shipper' | 'driver' | 'transport';
 
 interface RoleOption {
   id: Role;
@@ -14,19 +14,22 @@ interface RoleOption {
 export default function Register() {
   const navigate = useNavigate();
   const { register } = useAuth();
-  const [step, setStep] = useState<'role' | 'details' | 'fayda'>('role');
+  const [step, setStep] = useState<'role' | 'details'>('role');
   const [selectedRole, setSelectedRole] = useState<Role>('shipper');
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    phoneNumber: '',
     email: '',
+    phoneNumber: '',
     password: '',
+    licenseNumber: '',
+    companyRegNumber: '',
   });
-  const [faydaNumber, setFaydaNumber] = useState('');
-  const [faydaVerified, setFaydaVerified] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [faydaError, setFaydaError] = useState('');
+
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const roles: RoleOption[] = [
@@ -48,133 +51,96 @@ export default function Register() {
       title: 'I manage a fleet',
       subtitle: 'Transport Company',
     },
-    {
-      id: 'admin',
-      icon: '⚙️',
-      title: 'I administer the platform',
-      subtitle: 'Main Admin',
-    },
   ];
 
   const roleLabels: Record<Role, string> = {
     shipper: 'Shipper',
     driver: 'Driver',
     transport: 'Transport Company',
-    admin: 'Main Admin',
   };
 
-  const handleContinue = () => {
-    setStep('details');
-  };
-
-  const handleBack = () => {
-    if (step === 'details') {
-      setStep('role');
-    } else if (step === 'fayda') {
-      setStep('details');
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
       });
+    }
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setDocumentFile(e.target.files[0]);
     }
   };
 
   const validateDetails = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email address is required';
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email address';
+    if (!formData.password.trim()) newErrors.password = 'Password is required';
+
+    if (selectedRole === 'driver' && !formData.licenseNumber.trim()) {
+      newErrors.licenseNumber = 'Driver license number is required';
     }
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    }
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Phone number is required';
-    }
-    if (!formData.password.trim()) {
-      newErrors.password = 'Password is required';
+    if (selectedRole === 'transport' && !formData.companyRegNumber.trim()) {
+      newErrors.companyRegNumber = 'Company registration number is required';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
-    if (validateDetails()) {
-      setStep('fayda');
-    }
-  };
+  const handleSubmit = async () => {
+    if (!validateDetails()) return;
 
-  const handleVerifyFayda = () => {
-    if (!faydaNumber.trim()) {
-      setFaydaError('Please enter your Fayda number');
-      return;
-    }
+    setIsSubmitting(true);
+    setErrorMessage('');
 
-    setIsVerifying(true);
-    setFaydaError('');
-
-    setTimeout(() => {
-      if (faydaNumber.length >= 10) {
-        setFaydaVerified(true);
-        setFaydaError('');
-      } else {
-        setFaydaError('Invalid Fayda number. Please check and try again.');
-        setFaydaVerified(false);
-      }
-      setIsVerifying(false);
-    }, 1500);
-  };
-
-  const handleFaydaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFaydaNumber(e.target.value);
-    setFaydaVerified(false);
-    setFaydaError('');
-  };
-
-  const handleVerifyToContinue = async () => {
-    if (faydaVerified) {
-      const fullName = `${formData.firstName} ${formData.lastName}`;
-      const phoneNumber = `+251${formData.phoneNumber.replace(/\s/g, '').replace(/^\+251/, '').replace(/^0/, '')}`;
-      
+    try {
+      const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
       const roleMapping: Record<Role, string> = {
         shipper: 'SHIPPER',
         driver: 'DRIVER',
         transport: 'FLEET_OWNER',
-        admin: 'ADMIN',
       };
 
-      setIsVerifying(true);
-      setFaydaError('');
+      const payload = new FormData();
+      payload.append('full_name', fullName);
+      payload.append('email', formData.email.trim());
+      payload.append('password', formData.password);
+      payload.append('role', roleMapping[selectedRole]);
+      if (formData.phoneNumber) payload.append('phone_number', formData.phoneNumber);
 
-      try {
-        const res = await register(fullName, phoneNumber, formData.password, roleMapping[selectedRole]);
-        
-        const registrationData = {
-          full_name: fullName,
-          phone_number: phoneNumber,
-          email: formData.email || undefined,
-          password: formData.password,
-          role: selectedRole,
-          fayda_number: faydaNumber,
-          demo_otp: res?.demo_otp || '123456',
-        };
-
-        localStorage.setItem('registrationData', JSON.stringify(registrationData));
-        navigate('/verify-otp');
-      } catch (err: any) {
-        setFaydaError(err.message || 'Registration failed. Please try again.');
-      } finally {
-        setIsVerifying(false);
+      if (selectedRole === 'driver') {
+        payload.append('license_number', formData.licenseNumber);
+      } else if (selectedRole === 'transport') {
+        payload.append('company_registration_number', formData.companyRegNumber);
       }
+
+      if (documentFile) {
+        payload.append('document', documentFile);
+      }
+
+      const res: any = await register(payload);
+
+      localStorage.setItem('registrationEmail', formData.email.trim());
+      localStorage.setItem('registrationRole', selectedRole);
+      const demoOtp = res?.data?.demo_otp || res?.demo_otp || res?.user?.otp_code;
+      if (demoOtp) {
+        localStorage.setItem('demoOtp', String(demoOtp));
+      }
+      navigate('/verify-otp');
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -206,30 +172,25 @@ export default function Register() {
               <p className="register-subtitle">Choose your role on HabeshaFreight.</p>
 
               <div className="role-list">
-                {roles.map((role) => (
+                {roles.map((r) => (
                   <button
-                    key={role.id}
-                    onClick={() => setSelectedRole(role.id)}
-                    className={`role-item ${selectedRole === role.id ? 'selected' : ''}`}
+                    key={r.id}
+                    onClick={() => setSelectedRole(r.id)}
+                    className={`role-item ${selectedRole === r.id ? 'selected' : ''}`}
                   >
                     <div className="role-item-left">
-                      <span className="role-item-icon">{role.icon}</span>
+                      <span className="role-item-icon">{r.icon}</span>
                       <div className="role-item-text">
-                        <span className="role-item-title">{role.title}</span>
-                        <span className="role-item-subtitle">{role.subtitle}</span>
+                        <span className="role-item-title">{r.title}</span>
+                        <span className="role-item-subtitle">{r.subtitle}</span>
                       </div>
                     </div>
-                    {selectedRole === role.id && (
-                      <span className="role-item-check">✓</span>
-                    )}
+                    {selectedRole === r.id && <span className="role-item-check">✓</span>}
                   </button>
                 ))}
               </div>
 
-              <button
-                onClick={handleContinue}
-                className="register-continue-btn"
-              >
+              <button onClick={() => setStep('details')} className="register-continue-btn">
                 Continue →
               </button>
 
@@ -243,10 +204,12 @@ export default function Register() {
             <>
               <h1 className="register-welcome">Create Account</h1>
               <p className="register-subtitle">
-                Registering as {roleLabels[selectedRole]}
+                Registering as <strong>{roleLabels[selectedRole]}</strong>
               </p>
 
-              <form onSubmit={(e) => e.preventDefault()} className="register-details-form">
+              {errorMessage && <div className="auth-error-banner">{errorMessage}</div>}
+
+              <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="register-details-form">
                 <div className="form-row">
                   <div className="form-group">
                     <label>First Name</label>
@@ -258,9 +221,7 @@ export default function Register() {
                       placeholder="Dawit"
                       className={`form-input ${errors.firstName ? 'input-error' : ''}`}
                     />
-                    {errors.firstName && (
-                      <span className="input-error-text">{errors.firstName}</span>
-                    )}
+                    {errors.firstName && <span className="input-error-text">{errors.firstName}</span>}
                   </div>
 
                   <div className="form-group">
@@ -273,38 +234,31 @@ export default function Register() {
                       placeholder="Bekele"
                       className={`form-input ${errors.lastName ? 'input-error' : ''}`}
                     />
-                    {errors.lastName && (
-                      <span className="input-error-text">{errors.lastName}</span>
-                    )}
+                    {errors.lastName && <span className="input-error-text">{errors.lastName}</span>}
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label>Phone Number</label>
-                  <div className="phone-input-wrapper">
-                    <span className="phone-prefix">🇪🇹 +251</span>
-                    <input
-                      type="tel"
-                      name="phoneNumber"
-                      value={formData.phoneNumber}
-                      onChange={handleInputChange}
-                      placeholder="912 345 678"
-                      className={`form-input phone-input ${errors.phoneNumber ? 'input-error' : ''}`}
-                    />
-                  </div>
-                  {errors.phoneNumber && (
-                    <span className="input-error-text">{errors.phoneNumber}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label>Email <span className="field-optional">(optional)</span></label>
+                  <label>Email Address</label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="dawit@example.com"
+                    className={`form-input ${errors.email ? 'input-error' : ''}`}
+                  />
+                  {errors.email && <span className="input-error-text">{errors.email}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label>Phone Number <span className="field-optional">(optional)</span></label>
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    placeholder="+251 912 345 678"
                     className="form-input"
                   />
                 </div>
@@ -314,99 +268,87 @@ export default function Register() {
                   <input
                     type="password"
                     name="password"
+                    autoComplete="new-password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    placeholder="Enter your password"
+                    placeholder="Create a strong password"
                     className={`form-input ${errors.password ? 'input-error' : ''}`}
                   />
-                  {errors.password && (
-                    <span className="input-error-text">{errors.password}</span>
-                  )}
+                  {errors.password && <span className="input-error-text">{errors.password}</span>}
                 </div>
+
+                {/* Role-Specific KYC Inputs */}
+                {selectedRole === 'driver' && (
+                  <>
+                    <div className="form-group">
+                      <label>Driver License Number</label>
+                      <input
+                        type="text"
+                        name="licenseNumber"
+                        value={formData.licenseNumber}
+                        onChange={handleInputChange}
+                        placeholder="e.g. ET-LIC-887766"
+                        className={`form-input ${errors.licenseNumber ? 'input-error' : ''}`}
+                      />
+                      {errors.licenseNumber && <span className="input-error-text">{errors.licenseNumber}</span>}
+                    </div>
+
+                    <div className="form-group">
+                      <label>Driver License Document <span className="field-optional">(Photo / PDF)</span></label>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        onChange={handleFileChange}
+                        className="form-input file-input"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {selectedRole === 'transport' && (
+                  <>
+                    <div className="form-group">
+                      <label>Company Registration Number</label>
+                      <input
+                        type="text"
+                        name="companyRegNumber"
+                        value={formData.companyRegNumber}
+                        onChange={handleInputChange}
+                        placeholder="e.g. ET-REG-2026-09"
+                        className={`form-input ${errors.companyRegNumber ? 'input-error' : ''}`}
+                      />
+                      {errors.companyRegNumber && <span className="input-error-text">{errors.companyRegNumber}</span>}
+                    </div>
+
+                    <div className="form-group">
+                      <label>Business License Certificate <span className="field-optional">(Photo / PDF)</span></label>
+                      <input
+                        type="file"
+                        accept="image/*,.pdf"
+                        onChange={handleFileChange}
+                        className="form-input file-input"
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="register-details-actions">
                   <button
                     type="button"
-                    onClick={handleBack}
+                    onClick={() => setStep('role')}
                     className="register-back-btn"
                   >
                     Back
                   </button>
                   <button
-                    type="button"
-                    onClick={handleNext}
+                    type="submit"
+                    disabled={isSubmitting}
                     className="register-next-btn"
                   >
-                    Next →
+                    {isSubmitting ? 'Registering...' : 'Register & Verify Email →'}
                   </button>
                 </div>
               </form>
-            </>
-          )}
-
-          {step === 'fayda' && (
-            <>
-              <h1 className="register-welcome">🪪 Fayda Verification</h1>
-              <p className="register-subtitle">
-                Enter your Fayda number to verify your identity.<br />
-                This helps us keep HabeshaFreight safe and trusted.
-              </p>
-
-              <div className="fayda-verification-section">
-                <div className="form-group">
-                  <label>Fayda Number</label>
-                  <div className="fayda-input-wrapper">
-                    <input
-                      type="text"
-                      value={faydaNumber}
-                      onChange={handleFaydaChange}
-                      placeholder="e.g. FY-1234-5678-9012"
-                      className={`form-input fayda-input-field ${faydaVerified ? 'fayda-input-verified' : ''}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleVerifyFayda}
-                      disabled={isVerifying || faydaVerified || !faydaNumber.trim()}
-                      className="fayda-verify-action-btn"
-                    >
-                      {isVerifying ? 'Verifying...' : 'Verify'}
-                    </button>
-                  </div>
-                  {faydaError && (
-                    <span className="input-error-text">{faydaError}</span>
-                  )}
-                  {faydaVerified && (
-                    <span className="fayda-success-text">✓ Fayda Verified</span>
-                  )}
-                </div>
-
-                <p className="fayda-supporting-text">
-                  Your Fayda number can be found on your national ID card.<br />
-                  Verification is required to use HabeshaFreight.
-                </p>
-              </div>
-
-              <div className="register-details-actions">
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="register-back-btn"
-                >
-                  Back
-                </button>
-                <button
-                  type="button"
-                  onClick={handleVerifyToContinue}
-                  disabled={!faydaVerified}
-                  className={`register-next-btn ${!faydaVerified ? 'fayda-continue-disabled' : ''}`}
-                >
-                  Verify to Continue
-                </button>
-              </div>
-
-              <p className="fayda-footer-text">
-                Fayda verification is powered by Ethiopia's national digital ID system.
-              </p>
 
               <div className="register-login-prompt">
                 Already have an account? <Link to="/login" className="register-login-link">Log In</Link>
