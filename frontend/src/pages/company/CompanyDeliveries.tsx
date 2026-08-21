@@ -17,39 +17,26 @@ export default function CompanyDeliveries() {
   const fetchDeliveries = async () => {
     setLoading(true);
     try {
-      const loadsRes = await api.get<any>('/loads');
-      const loadList = Array.isArray(loadsRes)
-        ? loadsRes
-        : Array.isArray(loadsRes?.loads)
-        ? loadsRes.loads
+      const res = await api.get<any>('/company/deliveries');
+      const loadList = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.data)
+        ? res.data
         : [];
 
-      if (loadList.length > 0) {
-        setDeliveries(
-          loadList.map((l: any, idx: number) => ({
-            id: l.id || `FR-00${idx + 1}`,
-            shipper: l.shipperName || 'Commercial Shipper',
-            route: `${l.origin || 'Addis Ababa'} → ${l.destination || 'Dire Dawa'}`,
-            trucks: l.trucksNeeded || 3,
-            status: l.status === 'COMPLETED' ? 'Completed' : l.status === 'IN_TRANSIT' ? 'In Progress' : 'Accepted',
-            amount: l.budget ? `ETB ${Number(l.budget).toLocaleString()}` : 'ETB 42,000',
-          }))
-        );
-      } else {
-        setDeliveries([
-          { id: 'FR-001', shipper: 'Tigist Worku', route: 'Addis Ababa → Dire Dawa', trucks: 3, status: 'Pending', amount: 'ETB 42,000' },
-          { id: 'FR-002', shipper: 'Yohannes Alemu', route: 'Adama → Hawassa', trucks: 2, status: 'Accepted', amount: 'ETB 28,500' },
-          { id: 'FR-003', shipper: 'Sara Bekele', route: 'Addis Ababa → Mekelle', trucks: 5, status: 'In Progress', amount: 'ETB 75,000' },
-          { id: 'FR-004', shipper: 'Dawit Haile', route: 'Bahir Dar → Addis Ababa', trucks: 1, status: 'Completed', amount: 'ETB 14,200' },
-        ]);
-      }
+      setDeliveries(
+        loadList.map((l: any, idx: number) => ({
+          id: l.id ? `DEL-${l.id.slice(0, 8).toUpperCase()}` : `DEL-00${idx + 1}`,
+          shipper: l.cargo_description || 'Commercial Freight',
+          route: `${l.origin_city || 'Addis Ababa'} → ${l.destination_city || 'Regional Center'}`,
+          trucks: 1,
+          status: l.status === 'DELIVERED' ? 'Completed' : l.status === 'IN_TRANSIT' ? 'In Progress' : 'Accepted',
+          amount: l.offered_price_etb ? `ETB ${Number(l.offered_price_etb).toLocaleString()}` : 'N/A',
+        }))
+      );
     } catch (err) {
-      setDeliveries([
-        { id: 'FR-001', shipper: 'Tigist Worku', route: 'Addis Ababa → Dire Dawa', trucks: 3, status: 'Pending', amount: 'ETB 42,000' },
-        { id: 'FR-002', shipper: 'Yohannes Alemu', route: 'Adama → Hawassa', trucks: 2, status: 'Accepted', amount: 'ETB 28,500' },
-        { id: 'FR-003', shipper: 'Sara Bekele', route: 'Addis Ababa → Mekelle', trucks: 5, status: 'In Progress', amount: 'ETB 75,000' },
-        { id: 'FR-004', shipper: 'Dawit Haile', route: 'Bahir Dar → Addis Ababa', trucks: 1, status: 'Completed', amount: 'ETB 14,200' },
-      ]);
+      console.error('Error fetching company deliveries:', err);
+      setDeliveries([]);
     } finally {
       setLoading(false);
     }

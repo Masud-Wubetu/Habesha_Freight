@@ -10,7 +10,7 @@ export interface Driver {
   status: 'Available' | 'On Delivery' | 'Off Duty';
 }
 
-export function useCompanyDrivers(companyId?: string) {
+export function useCompanyDrivers(_companyId?: string) {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,20 +19,15 @@ export function useCompanyDrivers(companyId?: string) {
     setLoading(true);
     setError(null);
     try {
-      // Company drivers → GET /api/admin/companies/:id/drivers (admin) 
-      // or simply GET /api/admin/drivers for the logged-in company context
-      const endpoint = companyId
-        ? `/admin/companies/${companyId}/drivers`
-        : '/admin/drivers';
-      const data = await get<any>(endpoint);
+      const data = await get<any>('/company/drivers');
       const list: any[] = Array.isArray(data) ? data : data?.drivers ?? data?.data ?? [];
       const mapped: Driver[] = list.map((d: any) => ({
-        id: d.id ?? '',
-        name: d.full_name || d.name || '',
-        phone: d.phone_number || d.phone || '',
-        licenseGrade: d.license_grade || d.licenseGrade || '',
-        assignedVehicle: d.assigned_vehicle || d.assignedVehicle || '',
-        status: (d.status as Driver['status']) || 'Available',
+        id: d.id || d.driver_id || '',
+        name: d.full_name || d.name || 'Verified Driver',
+        phone: d.phone_number || d.phone || 'N/A',
+        licenseGrade: d.license_grade || d.licenseGrade || 'Heavy Freight Grade',
+        assignedVehicle: d.assigned_vehicle || d.assignedVehicle || 'Unassigned',
+        status: d.status === 'ACTIVE' ? 'Available' : 'Off Duty',
       }));
       setDrivers(mapped);
     } catch (e: any) {
@@ -41,7 +36,7 @@ export function useCompanyDrivers(companyId?: string) {
     } finally {
       setLoading(false);
     }
-  }, [companyId]);
+  }, []);
 
   useEffect(() => {
     fetchDrivers();

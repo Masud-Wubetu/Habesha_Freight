@@ -20,6 +20,7 @@ export interface DriverShipment {
   destination_city?: string;
   cargo_description?: string;
   weight_tons?: number;
+  offered_price_etb?: number | string;
   shipper_name?: string;
 }
 

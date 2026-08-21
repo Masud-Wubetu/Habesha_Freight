@@ -23,10 +23,17 @@ export interface FleetRequest {
   status: 'Pending' | 'Accepted' | 'In Progress' | 'Completed' | 'Declined';
 }
 
+interface CompanyStats {
+  totalEarnings: number;
+  ratingAverage: number;
+  ratingTotal: number;
+}
+
 interface CompanyDataHook {
   companyName: string;
   vehicles: Vehicle[];
   requests: FleetRequest[];
+  stats: CompanyStats;
   loading: boolean;
   refresh: () => void;
 }
@@ -35,49 +42,58 @@ export function useCompanyData(): CompanyDataHook {
   const [companyName, setCompanyName] = useState('');
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [requests, setRequests] = useState<FleetRequest[]>([]);
+  const [stats, setStats] = useState<CompanyStats>({ totalEarnings: 0, ratingAverage: 5.0, ratingTotal: 0 });
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      // profile → GET /api/auth/me
-      const profile = await get<any>('/auth/me');
-      setCompanyName(profile?.full_name || '');
+      const profileRes = await get<any>('/company/profile').catch(() => null);
+      const profile = profileRes?.data || profileRes;
+      if (profile) {
+        setCompanyName(profile.full_name || profile.company_name || 'Fleet Owner');
+      }
 
-      // vehicles → GET /api/vehicles
-      const vehData = await get<any>('/vehicles');
+      const statsRes = await get<any>('/company/stats').catch(() => null);
+      const statsData = statsRes?.data || statsRes;
+      if (statsData) {
+        setStats({
+          totalEarnings: Number(statsData.earnings || 0),
+          ratingAverage: statsData.rating?.average ? Number(statsData.rating.average) : 5.0,
+          ratingTotal: Number(statsData.rating?.total || 0),
+        });
+      }
+
+      const vehData = await get<any>('/company/vehicles').catch(() => get<any>('/vehicles'));
       const vehList = Array.isArray(vehData) ? vehData : vehData?.vehicles || vehData?.data || [];
       setVehicles(
         vehList.map((v: any) => ({
           id: v.id,
           plate: v.plate_number || v.plateNumber || v.plate || '-',
-          model: v.model || v.make_model || v.makeModel || '-',
-          type: v.type || '-',
-          capacity: v.capacity_tons ? `${v.capacity_tons}t` : v.capacity ? `${v.capacity}t` : '-',
-          driver: v.driverName || v.driver || 'Unassigned',
-          status: (v.status || 'AVAILABLE').toUpperCase() as any,
+          model: v.vehicle_type || v.model || v.make_model || 'Heavy Truck',
+          type: v.vehicle_type || 'Truck',
+          capacity: v.capacity_tons ? `${v.capacity_tons}t` : '-',
+          driver: v.driverName || v.assigned_driver_id || 'Unassigned',
+          status: v.is_active ? 'AVAILABLE' : 'MAINTENANCE',
         }))
       );
 
-      // loads / requests → GET /api/loads (filtered to FLEET_OWNER context)
-      const loadsData = await get<any>('/loads');
-      const loadList = Array.isArray(loadsData) ? loadsData : loadsData?.data || loadsData?.loads || [];
+      const loadsData = await get<any>('/company/fleet-requests').catch(() => get<any>('/loads'));
+      const loadList = Array.isArray(loadsData) ? loadsData : loadsData?.data || loadsData?.requests || [];
       setRequests(
         loadList.map((l: any, idx: number) => ({
-          id: l.id || `FR-00${idx + 1}`,
-          customer: l.shipper_name || l.shipperName || 'Commercial Shipper',
-          date: new Date(l.created_at || l.createdAt || Date.now()).toLocaleDateString('en-US', {
+          id: l.id ? `REQ-${l.id.slice(0, 6).toUpperCase()}` : `FR-00${idx + 1}`,
+          customer: l.cargo_description || 'Commercial Freight',
+          date: new Date(l.created_at || Date.now()).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
           }),
-          from: l.origin_city || l.origin || '-',
-          to: l.destination_city || l.destination || '-',
-          cargo: l.cargo_description || l.cargoType || '-',
-          trucks: l.trucksNeeded || 0,
+          from: l.origin_city || '-',
+          to: l.destination_city || '-',
+          cargo: l.cargo_description || '-',
+          trucks: 1,
           amount: l.offered_price_etb
             ? `ETB ${Number(l.offered_price_etb).toLocaleString()}`
-            : l.budget
-            ? `ETB ${Number(l.budget).toLocaleString()}`
             : '-',
           status:
             l.status === 'MATCHED' || l.status === 'ASSIGNED'
@@ -100,5 +116,5 @@ export function useCompanyData(): CompanyDataHook {
     fetchData();
   }, [fetchData]);
 
-  return { companyName, vehicles, requests, loading, refresh: fetchData };
+  return { companyName, vehicles, requests, stats, loading, refresh: fetchData };
 }

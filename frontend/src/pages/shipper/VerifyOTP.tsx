@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent, ClipboardEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { api } from '../../services/api';
 
 export default function VerifyOTP() {
   const navigate = useNavigate();
@@ -9,23 +10,24 @@ export default function VerifyOTP() {
   const [otpError, setOtpError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
-  const [resendTimer, setResendTimer] = useState(30);
+  const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [faydaVerified, setFaydaVerified] = useState(false);
-  const [demoCode, setDemoCode] = useState('123456');
+  const [resendMessage, setResendMessage] = useState('');
+  const [email, setEmail] = useState('');
+  const [demoCode, setDemoCode] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    const data = localStorage.getItem('registrationData');
-    if (data) {
-      const parsed = JSON.parse(data);
-      setPhoneNumber(parsed.phone_number || '');
-      setFaydaVerified(true);
-      if (parsed.demo_otp) {
-        setDemoCode(parsed.demo_otp);
-        const codeDigits = String(parsed.demo_otp).split('').slice(0, 6);
-        setOtp(codeDigits);
+    const savedEmail = localStorage.getItem('registrationEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+    }
+    const savedDemoOtp = localStorage.getItem('demoOtp');
+    if (savedDemoOtp) {
+      setDemoCode(savedDemoOtp);
+      const digits = String(savedDemoOtp).split('').slice(0, 6);
+      if (digits.length === 6) {
+        setOtp(digits);
       }
     }
   }, []);
@@ -33,7 +35,7 @@ export default function VerifyOTP() {
   useEffect(() => {
     if (resendTimer > 0) {
       const timer = setTimeout(() => {
-        setResendTimer(resendTimer - 1);
+        setResendTimer((prev) => prev - 1);
       }, 1000);
       return () => clearTimeout(timer);
     } else if (resendTimer === 0 && !canResend) {
@@ -54,13 +56,13 @@ export default function VerifyOTP() {
     }
   };
 
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleOtpKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
-  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+  const handleOtpPaste = (e: ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pasteData = e.clipboardData.getData('text').slice(0, 6);
     if (!/^\d*$/.test(pasteData)) return;
@@ -87,22 +89,27 @@ export default function VerifyOTP() {
     setOtpError('');
 
     try {
-      const user = await verifyOtp(phoneNumber, otpString);
+      const user = await verifyOtp(email, otpString);
       setOtpVerified(true);
-      setOtpError('');
       
-      const roleHome: Record<string, string> = {
-        DRIVER: '/driver',
-        FLEET_OWNER: '/company',
-        ADMIN: '/admin',
-        SHIPPER: '/dashboard',
-      };
+      const isPendingRole = user.role === 'DRIVER' || user.role === 'FLEET_OWNER';
+      const isPendingStatus = user.kyc_status === 'PENDING' || user.status === 'PENDING_APPROVAL';
 
       setTimeout(() => {
-        navigate(roleHome[user.role] ?? '/');
-      }, 500);
+        if (isPendingRole && isPendingStatus) {
+          navigate('/pending-approval');
+        } else {
+          const roleHome: Record<string, string> = {
+            DRIVER: '/driver',
+            FLEET_OWNER: '/company',
+            ADMIN: '/admin',
+            SHIPPER: '/dashboard',
+          };
+          navigate(roleHome[user.role] ?? '/');
+        }
+      }, 600);
     } catch (err: any) {
-      setOtpError(err.message || 'Invalid OTP. Please try again.');
+      setOtpError(err.message || 'Invalid OTP code. Please check your email and try again.');
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } finally {
@@ -110,13 +117,29 @@ export default function VerifyOTP() {
     }
   };
 
-  const handleResendOtp = () => {
-    if (canResend) {
+  const handleResendOtp = async () => {
+    if (!email) {
+      setOtpError('Please enter your email address first.');
+      return;
+    }
+    try {
+      setResendMessage('Sending new OTP code...');
+      const res: any = await api.post('/auth/resend-otp', { email: email.trim() });
       setOtp(['', '', '', '', '', '']);
       setOtpError('');
-      setResendTimer(30);
+      setResendTimer(60);
       setCanResend(false);
-      inputRefs.current[0]?.focus();
+      setResendMessage('New OTP sent to your email!');
+      const newOtp = res?.data?.demo_otp || res?.demo_otp || res?.otp;
+      if (newOtp) {
+        setDemoCode(String(newOtp));
+        localStorage.setItem('demoOtp', String(newOtp));
+        const digits = String(newOtp).split('').slice(0, 6);
+        if (digits.length === 6) setOtp(digits);
+      }
+    } catch (err: any) {
+      setOtpError(err.message || 'Failed to resend OTP.');
+      setResendMessage('');
     }
   };
 
@@ -142,18 +165,40 @@ export default function VerifyOTP() {
             <button className="register-tab active">Register</button>
           </div>
 
-          <h1 className="register-welcome">📱 Verify Phone</h1>
+          <h1 className="register-welcome">✉️ Verify Email Address</h1>
           <p className="register-subtitle">
-            Enter the 6-digit OTP sent to {phoneNumber}
+            Enter the 6-digit verification code for your account:
           </p>
 
-          <div className="otp-demo-badge">
-            Demo OTP Code: <strong>{demoCode}</strong>
+          <div className="form-group" style={{ marginBottom: '16px', textAlign: 'left' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>
+              Registered Email Address
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                localStorage.setItem('registrationEmail', e.target.value.trim());
+              }}
+              placeholder="Enter your registered email address"
+              className="form-input"
+            />
           </div>
 
-          {faydaVerified && (
-            <div className="otp-fayda-badge">
-              ✓ Fayda Verified
+          {demoCode && (
+            <div className="otp-demo-badge" style={{
+              backgroundColor: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              borderRadius: '6px',
+              padding: '8px 12px',
+              color: '#1e40af',
+              fontSize: '13px',
+              fontWeight: 600,
+              textAlign: 'center',
+              marginBottom: '16px'
+            }}>
+              🔑 Dev Mode OTP Code: <strong>{demoCode}</strong>
             </div>
           )}
 
@@ -182,7 +227,7 @@ export default function VerifyOTP() {
 
           <div className="otp-resend">
             <span className="otp-resend-text">
-              {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : "Didn't receive the code?"}
+              {resendTimer > 0 ? `Resend code available in ${resendTimer}s` : "Didn't receive the email?"}
             </span>
             <button
               type="button"
@@ -193,6 +238,11 @@ export default function VerifyOTP() {
               Resend OTP
             </button>
           </div>
+          {resendMessage && (
+            <div style={{ color: '#059669', fontSize: '13px', textAlign: 'center', marginTop: '6px' }}>
+              {resendMessage}
+            </div>
+          )}
 
           <div className="register-details-actions">
             <button
@@ -208,7 +258,7 @@ export default function VerifyOTP() {
               disabled={otp.join('').length < 6 || isVerifying || otpVerified}
               className={`register-next-btn ${otp.join('').length < 6 ? 'otp-continue-disabled' : ''}`}
             >
-              {isVerifying ? 'Verifying...' : 'Verify & Enter →'}
+              {isVerifying ? 'Verifying...' : 'Verify & Continue →'}
             </button>
           </div>
 

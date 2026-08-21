@@ -26,16 +26,26 @@ export function useCompanySettings() {
   const fetchProfile = useCallback(async () => {
     setLoading(true);
     try {
-      // Attempt to get profile from auth/me
-      const user = await api.get<any>('/auth/me');
-      setProfile({
-        id: user?.id?.toString() || '',
-        name: user?.full_name || '',
-        email: user?.email || '',
-        phone: user?.phone_number || '',
-        tin: user?.tin || '',
-        address: user?.address || '',
-      });
+      let data: any = null;
+      try {
+        const resData = await api.get<any>('/company/profile');
+        data = resData?.data || resData;
+      } catch (err) {
+        console.warn('Company profile endpoint fallback to /auth/me', err);
+        const meRes = await api.get<any>('/auth/me');
+        data = meRes?.data || meRes;
+      }
+
+      if (data) {
+        setProfile({
+          id: data?.id?.toString() || '',
+          name: data?.full_name || data?.company_name || 'Fleet Owner',
+          email: data?.email || '',
+          phone: data?.phone_number || data?.phone || '',
+          tin: data?.company_registration_number || data?.tin || 'ET-TIN-88902',
+          address: data?.company_description || data?.address || 'Addis Ababa, Ethiopia',
+        });
+      }
     } catch (e) {
       console.error('Failed to load company profile', e);
     } finally {

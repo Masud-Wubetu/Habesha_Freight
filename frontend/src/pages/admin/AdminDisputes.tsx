@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import AdminLayout from '../../layouts/AdminLayout';
 
@@ -18,32 +17,7 @@ interface DisputeItem {
 export default function AdminDisputes() {
   const [loading, setLoading] = useState(false);
   const [infoModalItem, setInfoModalItem] = useState<DisputeItem | null>(null);
-
-  const defaultDisputes: DisputeItem[] = [
-    {
-      id: 'DIS-001',
-      reason: 'Late Delivery',
-      status: 'Open',
-      shipper_name: 'Yohannes',
-      driver_name: 'Dawit',
-      shipment_id: 'SHP-002',
-      date: 'Aug 8',
-      details: 'The shipment arrived 6 hours past agreed schedule, causing warehouse unloading delay penalties.',
-    },
-    {
-      id: 'DIS-002',
-      reason: 'Cargo Damage',
-      status: 'Resolved',
-      shipper_name: 'Sara',
-      driver_name: 'Tesfaye',
-      shipment_id: 'SHP-005',
-      date: 'Jul 30',
-      details: 'Minor damage to 2 textile boxes during transit. Partial refund issued to shipper.',
-      resolution: 'Resolved in Shipper Favor',
-    },
-  ];
-
-  const [disputes, setDisputes] = useState<DisputeItem[]>(defaultDisputes);
+  const [disputes, setDisputes] = useState<DisputeItem[]>([]);
 
   useEffect(() => {
     fetchDisputes();
@@ -52,13 +26,12 @@ export default function AdminDisputes() {
   const fetchDisputes = async () => {
     try {
       setLoading(true);
-      const res = await api.get<{
-        success: boolean;
-        data?: { disputes?: Record<string, unknown>[] };
-      }>('/admin/disputes', true);
+      const res = await api.get<any>('/admin/disputes', true);
 
-      if (res && res.success && res.data?.disputes && res.data.disputes.length > 0) {
-        const fetched: DisputeItem[] = res.data.disputes.map((d, index) => {
+      const items: any[] = res?.data?.items || res?.data?.disputes || res?.items || [];
+
+      if (Array.isArray(items) && items.length > 0) {
+        const fetched: DisputeItem[] = items.map((d, index) => {
           const rawStatus = (d.status as string) || 'OPEN';
           let formattedStatus: 'Open' | 'Resolved' | 'Under Review' = 'Open';
           if (rawStatus.toUpperCase() === 'RESOLVED' || rawStatus.toUpperCase() === 'CLOSED') formattedStatus = 'Resolved';
@@ -66,31 +39,33 @@ export default function AdminDisputes() {
 
           const formattedDate = d.created_at
             ? new Date(d.created_at as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            : 'Aug 8';
+            : 'Recent';
 
           return {
-            id: (d.id as string) || (d.dispute_number as string) || `DIS-00${index + 1}`,
-            reason: (d.reason as string) || (d.issue_type as string) || 'Late Delivery',
+            id: d.id ? `DIS-${d.id.slice(0, 6)}` : `DIS-00${index + 1}`,
+            reason: (d.title as string) || (d.reason as string) || (d.issue_type as string) || 'Delivery Delay',
             status: formattedStatus,
-            shipper_name: (d.shipper_name as string) || (d.shipper as string) || 'Shipper',
-            driver_name: (d.driver_name as string) || (d.driver as string) || 'Driver',
-            shipment_id: (d.shipment_id as string) || (d.shipment_number as string) || `SHP-00${index + 1}`,
+            shipper_name: (d.shipper_name as string) || 'Shipper',
+            driver_name: (d.driver_name as string) || 'Driver',
+            shipment_id: d.shipment_id || d.load_id || 'SHP-001',
             date: formattedDate,
-            details: (d.description as string) || (d.details as string) || 'Dispute case open for administrative review.',
+            details: (d.description as string) || 'Dispute claim pending resolution.',
             resolution: d.resolution as string,
           };
         });
         setDisputes(fetched);
+      } else {
+        setDisputes([]);
       }
     } catch (err) {
-      console.warn('Backend API note: loading local dispute cases', err);
+      console.error('Error fetching disputes:', err);
+      setDisputes([]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleResolve = async (dispute: DisputeItem, favor: 'Shipper' | 'Driver') => {
-    // Optimistic UI state update
     setDisputes((prev) =>
       prev.map((d) => {
         if (d.id === dispute.id) {
@@ -111,7 +86,7 @@ export default function AdminDisputes() {
         true
       );
     } catch (err) {
-      console.warn(`Dispute resolved in UI state for ${dispute.id}`, err);
+      console.warn(`Dispute resolution error for ${dispute.id}`, err);
     }
   };
 
@@ -130,51 +105,28 @@ export default function AdminDisputes() {
         {/* Top Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Disputes</h1>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Disputes & Conflict Resolution</h1>
             <div style={{ fontSize: '0.875rem', color: '#64748B', marginTop: '0.25rem' }}>{formattedDate}</div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {/* Open Disputes Alert Pill */}
-            <Link
-              to="/admin/disputes"
+            <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                backgroundColor: '#FEE2E2',
-                color: '#DC2626',
+                backgroundColor: openDisputesCount > 0 ? '#FEE2E2' : '#DCFCE7',
+                color: openDisputesCount > 0 ? '#DC2626' : '#15803D',
                 padding: '0.4rem 0.9rem',
                 borderRadius: '2rem',
                 fontSize: '0.85rem',
                 fontWeight: 600,
-                textDecoration: 'none',
               }}
             >
               <span>⚠️</span>
-              <span>{openDisputesCount} open disputes</span>
-            </Link>
+              <span>{openDisputesCount} Open Disputes</span>
+            </div>
 
-            {/* Dark Mode Toggle */}
-            <button
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: '#F1F5F9',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1rem',
-              }}
-              title="Toggle Theme"
-            >
-              🌙
-            </button>
-
-            {/* Profile Avatar */}
             <div
               style={{
                 width: '38px',
@@ -207,6 +159,19 @@ export default function AdminDisputes() {
           >
             Loading disputes...
           </div>
+        ) : disputes.length === 0 ? (
+          <div
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '0.85rem',
+              padding: '3rem',
+              textAlign: 'center',
+              color: '#64748B',
+              border: '1px solid #E2E8F0',
+            }}
+          >
+            No active disputes found. All shipments running smoothly!
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {disputes.map((dispute) => (
@@ -220,7 +185,6 @@ export default function AdminDisputes() {
                   border: dispute.status === 'Open' ? '1px solid #FCA5A5' : '1px solid #E2E8F0',
                 }}
               >
-                {/* Header Title Row & Status Pill */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
                   <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
                     {dispute.id} · {dispute.reason}
@@ -239,7 +203,6 @@ export default function AdminDisputes() {
                   </span>
                 </div>
 
-                {/* Subtitle & Date Information */}
                 <div style={{ fontSize: '0.875rem', color: '#64748B', marginBottom: '0.25rem' }}>
                   {dispute.shipper_name} vs {dispute.driver_name} · {dispute.shipment_id}
                 </div>
@@ -247,7 +210,6 @@ export default function AdminDisputes() {
                   {dispute.date}
                 </div>
 
-                {/* Resolution Summary (If Resolved) */}
                 {dispute.status === 'Resolved' && dispute.resolution && (
                   <div
                     style={{
@@ -265,7 +227,6 @@ export default function AdminDisputes() {
                   </div>
                 )}
 
-                {/* Action Buttons Row (For Open Disputes) */}
                 {dispute.status === 'Open' && (
                   <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
                     <button
@@ -279,7 +240,6 @@ export default function AdminDisputes() {
                         fontSize: '0.875rem',
                         fontWeight: 700,
                         cursor: 'pointer',
-                        transition: 'background-color 0.2s',
                       }}
                     >
                       Resolve in Shipper's Favor
@@ -296,7 +256,6 @@ export default function AdminDisputes() {
                         fontSize: '0.875rem',
                         fontWeight: 700,
                         cursor: 'pointer',
-                        transition: 'background-color 0.2s',
                       }}
                     >
                       Resolve in Driver's Favor
@@ -313,10 +272,9 @@ export default function AdminDisputes() {
                         fontSize: '0.875rem',
                         fontWeight: 600,
                         cursor: 'pointer',
-                        transition: 'background-color 0.2s',
                       }}
                     >
-                      Request More Info
+                      Request Details
                     </button>
                   </div>
                 )}
@@ -326,7 +284,6 @@ export default function AdminDisputes() {
         )}
       </div>
 
-      {/* Dispute Details & Request Info Modal */}
       {infoModalItem && (
         <div
           style={{
@@ -370,15 +327,10 @@ export default function AdminDisputes() {
               </div>
 
               <div>
-                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>PARTIES INVOLVED</span>
+                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>PARTIES</span>
                 <span style={{ color: '#0F172A' }}>
                   Shipper: {infoModalItem.shipper_name} vs Driver: {infoModalItem.driver_name}
                 </span>
-              </div>
-
-              <div>
-                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>ASSOCIATED SHIPMENT</span>
-                <span style={{ color: '#0F172A' }}>{infoModalItem.shipment_id}</span>
               </div>
 
               <div>
@@ -389,7 +341,7 @@ export default function AdminDisputes() {
               </div>
             </div>
 
-            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
               <button
                 onClick={() => setInfoModalItem(null)}
                 style={{

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useCompanyData } from '../../hooks/useCompanyData';
 
 export default function CompanyDashboard() {
-  const { companyName, vehicles, requests, loading, refresh } = useCompanyData();
+  const { companyName, vehicles, requests, stats, loading, refresh } = useCompanyData();
 
   const totalFleetSize = vehicles.length;
   const availableTrucks = vehicles.filter((v) => v.status === 'AVAILABLE' || v.status === 'Available').length;
@@ -74,12 +74,12 @@ export default function CompanyDashboard() {
         <div className="bg-white/70 backdrop-blur-lg p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl mb-2">💳</div>
           <p className="text-xs text-slate-500 font-medium">Est. Revenue</p>
-          <p className="text-xl font-black text-slate-900 mt-1">ETB 160k</p>
+          <p className="text-xl font-black text-slate-900 mt-1">ETB {Number(stats?.totalEarnings || 0).toLocaleString()}</p>
         </div>
         <div className="bg-white/70 backdrop-blur-lg p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="w-10 h-10 bg-amber-100 text-amber-500 rounded-xl flex items-center justify-center text-xl mb-2">⭐</div>
           <p className="text-xs text-slate-500 font-medium">Fleet Rating</p>
-          <p className="text-2xl font-black text-slate-900 mt-1">4.9 / 5</p>
+          <p className="text-2xl font-black text-slate-900 mt-1">{stats?.ratingAverage ? Number(stats.ratingAverage).toFixed(1) : '5.0'} / 5</p>
         </div>
       </div>
 

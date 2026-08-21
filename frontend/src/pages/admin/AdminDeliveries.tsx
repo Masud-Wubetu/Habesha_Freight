@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import AdminLayout from '../../layouts/AdminLayout';
 
@@ -9,7 +8,7 @@ interface DeliveryRecord {
   driver_name: string;
   origin: string;
   destination: string;
-  status: 'In Transit' | 'Bidding' | 'Delivered' | 'Assigned';
+  status: string;
   amount: number;
   cargo_type?: string;
   weight?: string;
@@ -19,55 +18,7 @@ export default function AdminDeliveries() {
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedDeliveryModal, setSelectedDeliveryModal] = useState<DeliveryRecord | null>(null);
-
-  const defaultDeliveries: DeliveryRecord[] = [
-    {
-      id: 'SHP-001',
-      shipper_name: 'Sara Bekele',
-      driver_name: 'Abebe Girma',
-      origin: 'Addis',
-      destination: 'Dire Dawa',
-      status: 'In Transit',
-      amount: 8500,
-      cargo_type: 'Agricultural Goods',
-      weight: '12 Tons',
-    },
-    {
-      id: 'SHP-002',
-      shipper_name: 'Yohannes Alemu',
-      driver_name: '—',
-      origin: 'Adama',
-      destination: 'Hawassa',
-      status: 'Bidding',
-      amount: 9200,
-      cargo_type: 'Construction Materials',
-      weight: '18 Tons',
-    },
-    {
-      id: 'SHP-003',
-      shipper_name: 'Sara Bekele',
-      driver_name: 'Tesfaye Haile',
-      origin: 'Addis',
-      destination: 'Bahir Dar',
-      status: 'Delivered',
-      amount: 11000,
-      cargo_type: 'Consumer Electronics',
-      weight: '8 Tons',
-    },
-    {
-      id: 'SHP-004',
-      shipper_name: 'Tigist Worku',
-      driver_name: 'Dawit Bekele',
-      origin: 'Mekelle',
-      destination: 'Addis',
-      status: 'Assigned',
-      amount: 14200,
-      cargo_type: 'Textile Products',
-      weight: '15 Tons',
-    },
-  ];
-
-  const [deliveries, setDeliveries] = useState<DeliveryRecord[]>(defaultDeliveries);
+  const [deliveries, setDeliveries] = useState<DeliveryRecord[]>([]);
 
   useEffect(() => {
     fetchDeliveries(statusFilter);
@@ -77,47 +28,34 @@ export default function AdminDeliveries() {
     try {
       setLoading(true);
       const queryParam = filter !== 'ALL' ? `?status=${encodeURIComponent(filter)}` : '';
-      const res = await api.get<{
-        success: boolean;
-        data?: { deliveries?: Record<string, unknown>[]; shipments?: Record<string, unknown>[] };
-      }>(`/admin/deliveries${queryParam}`, true);
+      const res = await api.get<any>(`/admin/loads${queryParam}`, true);
 
-      const items = res?.data?.deliveries || res?.data?.shipments;
+      const items: any[] = res?.data?.items || res?.data?.deliveries || res?.data?.loads || res?.items || [];
 
-      if (res && res.success && items && items.length > 0) {
+      if (Array.isArray(items) && items.length > 0) {
         const fetched: DeliveryRecord[] = items.map((d, index) => {
-          const rawStatus = (d.status as string) || 'IN_TRANSIT';
-          let formattedStatus: 'In Transit' | 'Bidding' | 'Delivered' | 'Assigned' = 'In Transit';
-          if (rawStatus.toUpperCase().includes('BID')) formattedStatus = 'Bidding';
-          if (rawStatus.toUpperCase().includes('DELIVERED') || rawStatus.toUpperCase().includes('COMPLETE')) formattedStatus = 'Delivered';
-          if (rawStatus.toUpperCase().includes('ASSIGN')) formattedStatus = 'Assigned';
+          const rawStatus = (d.status as string) || 'POSTED';
+          let formattedStatus = rawStatus.replace('_', ' ');
 
           return {
-            id: (d.id as string) || (d.shipment_number as string) || `SHP-00${index + 1}`,
-            shipper_name: (d.shipper_name as string) || (d.shipper as string) || 'Shipper Name',
-            driver_name: (d.driver_name as string) || (d.driver as string) || '—',
-            origin: (d.origin as string) || (d.pickup_city as string) || 'Addis',
-            destination: (d.destination as string) || (d.dropoff_city as string) || 'Dire Dawa',
+            id: d.id ? `LOAD-${d.id.slice(0, 6)}` : `SHP-00${index + 1}`,
+            shipper_name: (d.shipper_name as string) || 'Shipper',
+            driver_name: (d.driver_name as string) || '—',
+            origin: (d.origin as string) || 'Addis Ababa',
+            destination: (d.destination as string) || 'Regional Destination',
             status: formattedStatus,
-            amount: Number(d.amount ?? d.price ?? 8500),
-            cargo_type: (d.cargo_type as string) || 'General Cargo',
-            weight: d.weight ? `${d.weight} Tons` : '10 Tons',
+            amount: Number(d.offered_price ?? d.budget ?? d.price ?? 5000),
+            cargo_type: (d.cargo_type as string) || 'General Freight',
+            weight: d.weight ? `${d.weight} Tons` : '15 Tons',
           };
         });
         setDeliveries(fetched);
       } else {
-        if (filter !== 'ALL') {
-          setDeliveries(defaultDeliveries.filter((d) => d.status.toUpperCase().replace(' ', '_') === filter.toUpperCase().replace(' ', '_')));
-        } else {
-          setDeliveries(defaultDeliveries);
-        }
+        setDeliveries([]);
       }
-    } catch {
-      if (filter !== 'ALL') {
-        setDeliveries(defaultDeliveries.filter((d) => d.status.toUpperCase().replace(' ', '_') === filter.toUpperCase().replace(' ', '_')));
-      } else {
-        setDeliveries(defaultDeliveries);
-      }
+    } catch (err) {
+      console.error('Failed to fetch deliveries:', err);
+      setDeliveries([]);
     } finally {
       setLoading(false);
     }
@@ -131,18 +69,17 @@ export default function AdminDeliveries() {
   });
 
   const getStatusBadgeStyle = (status: string) => {
-    switch (status) {
-      case 'In Transit':
-        return { backgroundColor: '#E0F2FE', color: '#0284C7' };
-      case 'Bidding':
-        return { backgroundColor: '#FEF3C7', color: '#D97706' };
-      case 'Delivered':
-        return { backgroundColor: '#DCFCE7', color: '#16A34A' };
-      case 'Assigned':
-        return { backgroundColor: '#F3E8FF', color: '#9333EA' };
-      default:
-        return { backgroundColor: '#F3F4F6', color: '#4B5563' };
+    const s = status.toUpperCase();
+    if (s.includes('TRANSIT') || s.includes('ASSIGNED')) {
+      return { backgroundColor: '#E0F2FE', color: '#0284C7' };
     }
+    if (s.includes('BID') || s.includes('POSTED') || s.includes('PENDING')) {
+      return { backgroundColor: '#FEF3C7', color: '#D97706' };
+    }
+    if (s.includes('DELIVERED') || s.includes('COMPLETED')) {
+      return { backgroundColor: '#DCFCE7', color: '#16A34A' };
+    }
+    return { backgroundColor: '#F3F4F6', color: '#4B5563' };
   };
 
   return (
@@ -151,51 +88,11 @@ export default function AdminDeliveries() {
         {/* Top Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Deliveries</h1>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Deliveries & Freight Loads</h1>
             <div style={{ fontSize: '0.875rem', color: '#64748B', marginTop: '0.25rem' }}>{formattedDate}</div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {/* Open Disputes Alert Pill */}
-            <Link
-              to="/admin/disputes"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                backgroundColor: '#FEE2E2',
-                color: '#DC2626',
-                padding: '0.4rem 0.9rem',
-                borderRadius: '2rem',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
-            >
-              <span>⚠️</span>
-              <span>2 open disputes</span>
-            </Link>
-
-            {/* Dark Mode Toggle */}
-            <button
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: '#F1F5F9',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1rem',
-              }}
-              title="Toggle Theme"
-            >
-              🌙
-            </button>
-
-            {/* Profile Avatar */}
             <div
               style={{
                 width: '38px',
@@ -225,9 +122,11 @@ export default function AdminDeliveries() {
             border: '1px solid #E2E8F0',
           }}
         >
-          {/* Card Header & Status Filter Dropdown */}
+          {/* Card Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>All Shipments</h2>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+              All Platform Loads ({deliveries.length})
+            </h2>
 
             <div>
               <select
@@ -245,10 +144,10 @@ export default function AdminDeliveries() {
                 }}
               >
                 <option value="ALL">All Statuses</option>
-                <option value="IN_TRANSIT">In Transit</option>
-                <option value="BIDDING">Bidding</option>
-                <option value="DELIVERED">Delivered</option>
+                <option value="POSTED">Posted / Open for Bids</option>
                 <option value="ASSIGNED">Assigned</option>
+                <option value="IN_TRANSIT">In Transit</option>
+                <option value="DELIVERED">Delivered</option>
               </select>
             </div>
           </div>
@@ -258,12 +157,12 @@ export default function AdminDeliveries() {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.85rem', fontWeight: 600 }}>
-                  <th style={{ padding: '0.75rem 1rem 0.75rem 0' }}>ID</th>
+                  <th style={{ padding: '0.75rem 1rem 0.75rem 0' }}>Load ID</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Shipper</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Driver</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Driver / Carrier</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Route</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Amount</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Offered Price</th>
                   <th style={{ padding: '0.75rem 0 0.75rem 1rem' }}>Actions</th>
                 </tr>
               </thead>
