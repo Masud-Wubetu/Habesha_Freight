@@ -5,50 +5,21 @@ import AdminLayout from '../../layouts/AdminLayout';
 
 interface CompanyRecord {
   id: string;
-  company_name: string;
-  contact: string;
+  name: string;
+  reg_number: string;
   fleet_size: number;
-  completed_trips: number;
-  rating: number;
-  status: 'Active' | 'Pending' | 'Suspended';
+  contact_person: string;
+  phone_number: string;
+  email?: string;
+  status: 'Active' | 'Suspended' | 'Pending Approval';
+  created_at: string;
 }
 
 export default function AdminCompanies() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCompanyModal, setSelectedCompanyModal] = useState<CompanyRecord | null>(null);
-
-  const defaultCompanies: CompanyRecord[] = [
-    {
-      id: 'CMP-001',
-      company_name: 'Ethio Transport Solutions',
-      contact: '+251 911 234 567',
-      fleet_size: 5,
-      completed_trips: 115,
-      rating: 4.8,
-      status: 'Active',
-    },
-    {
-      id: 'CMP-002',
-      company_name: 'Abay Freight Services',
-      contact: '+251 912 345 678',
-      fleet_size: 12,
-      completed_trips: 284,
-      rating: 4.6,
-      status: 'Active',
-    },
-    {
-      id: 'CMP-003',
-      company_name: 'Horn Logistics PLC',
-      contact: '+251 913 456 789',
-      fleet_size: 8,
-      completed_trips: 92,
-      rating: 4.3,
-      status: 'Pending',
-    },
-  ];
-
-  const [companies, setCompanies] = useState<CompanyRecord[]>(defaultCompanies);
+  const [companies, setCompanies] = useState<CompanyRecord[]>([]);
 
   useEffect(() => {
     fetchCompanies(searchTerm);
@@ -58,56 +29,46 @@ export default function AdminCompanies() {
     try {
       setLoading(true);
       const queryParam = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : '';
-      const res = await api.get<{
-        success: boolean;
-        data?: { companies?: Record<string, unknown>[] };
-      }>(`/admin/companies${queryParam}`, true);
+      const res: any = await api.get(`/admin/companies${queryParam}`);
 
-      if (res && res.success && res.data?.companies && res.data.companies.length > 0) {
-        const fetchedCompanies: CompanyRecord[] = res.data.companies.map((c, index) => {
+      const items: any[] =
+        res?.companies ||
+        res?.items ||
+        res?.users ||
+        res?.data?.companies ||
+        res?.data?.items ||
+        (Array.isArray(res) ? res : []);
+
+      if (Array.isArray(items) && items.length > 0) {
+        const fetchedCompanies: CompanyRecord[] = items.map((c, index) => {
           const rawStatus = (c.status as string) || (c.is_verified ? 'ACTIVE' : 'PENDING');
-          let formattedStatus: 'Active' | 'Pending' | 'Suspended' = 'Active';
+          let formattedStatus: 'Active' | 'Suspended' | 'Pending Approval' = 'Active';
           if (rawStatus.toUpperCase() === 'SUSPENDED') formattedStatus = 'Suspended';
-          if (rawStatus.toUpperCase() === 'PENDING') formattedStatus = 'Pending';
+          if (rawStatus.toUpperCase() === 'PENDING_APPROVAL' || rawStatus.toUpperCase() === 'PENDING') formattedStatus = 'Pending Approval';
+
+          const joinedDate = c.created_at
+            ? new Date(c.created_at as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'Recent';
 
           return {
             id: (c.id as string) || `CMP-00${index + 1}`,
-            company_name: (c.company_name as string) || (c.name as string) || 'Transport Company',
-            contact: (c.phone_number as string) || (c.contact as string) || '+251 900 000 000',
-            fleet_size: Number(c.fleet_size ?? c.vehicles_count ?? 5),
-            completed_trips: Number(c.completed_trips ?? c.trips_count ?? 100),
-            rating: Number(c.rating ?? 4.5),
+            name: (c.company_name as string) || (c.full_name as string) || 'Logistics Company',
+            reg_number: (c.company_registration_number as string) || `ETH-REG-${1000 + index}`,
+            fleet_size: Number(c.fleet_size ?? c.vehicles_count ?? 12),
+            contact_person: (c.full_name as string) || 'Manager',
+            phone_number: (c.phone_number as string) || 'No phone',
+            email: c.email || '',
             status: formattedStatus,
+            created_at: joinedDate,
           };
         });
         setCompanies(fetchedCompanies);
       } else {
-        if (searchQuery) {
-          const lower = searchQuery.toLowerCase();
-          setCompanies(
-            defaultCompanies.filter(
-              (c) =>
-                c.company_name.toLowerCase().includes(lower) ||
-                c.contact.includes(lower)
-            )
-          );
-        } else {
-          setCompanies(defaultCompanies);
-        }
+        setCompanies([]);
       }
-    } catch {
-      if (searchQuery) {
-        const lower = searchQuery.toLowerCase();
-        setCompanies(
-          defaultCompanies.filter(
-            (c) =>
-              c.company_name.toLowerCase().includes(lower) ||
-              c.contact.includes(lower)
-          )
-        );
-      } else {
-        setCompanies(defaultCompanies);
-      }
+    } catch (err) {
+      console.error('Failed to fetch companies:', err);
+      setCompanies([]);
     } finally {
       setLoading(false);
     }
@@ -115,15 +76,14 @@ export default function AdminCompanies() {
 
   const handleToggleStatus = async (company: CompanyRecord) => {
     const isCurrentlySuspended = company.status === 'Suspended';
-    const newStatus = isCurrentlySuspended ? 'Active' : 'Suspended';
+    const actionEndpoint = isCurrentlySuspended ? `/admin/users/${company.id}/activate` : `/admin/users/${company.id}/suspend`;
 
-    // Optimistic UI update
     setCompanies((prev) =>
       prev.map((c) => {
         if (c.id === company.id) {
           return {
             ...c,
-            status: newStatus,
+            status: isCurrentlySuspended ? 'Active' : 'Suspended',
           };
         }
         return c;
@@ -131,9 +91,9 @@ export default function AdminCompanies() {
     );
 
     try {
-      await api.patch(`/admin/companies/${company.id}/status`, { status: newStatus.toUpperCase() }, true);
+      await api.post(actionEndpoint, {});
     } catch (err) {
-      console.warn(`Company status updated in UI state for ${company.id}`, err);
+      console.warn(`Status toggle error for company ${company.id}`, err);
     }
   };
 
@@ -150,7 +110,7 @@ export default function AdminCompanies() {
         return { backgroundColor: '#DCFCE7', color: '#15803D' };
       case 'Suspended':
         return { backgroundColor: '#FEE2E2', color: '#B91C1C' };
-      case 'Pending':
+      case 'Pending Approval':
         return { backgroundColor: '#FEF3C7', color: '#B45309' };
       default:
         return { backgroundColor: '#F3F4F6', color: '#4B5563' };
@@ -168,15 +128,14 @@ export default function AdminCompanies() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {/* Open Disputes Alert Pill */}
             <Link
-              to="/admin/disputes"
+              to="/admin/verification"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                backgroundColor: '#FEE2E2',
-                color: '#DC2626',
+                backgroundColor: '#FEF3C7',
+                color: '#B45309',
                 padding: '0.4rem 0.9rem',
                 borderRadius: '2rem',
                 fontSize: '0.85rem',
@@ -184,30 +143,10 @@ export default function AdminCompanies() {
                 textDecoration: 'none',
               }}
             >
-              <span>⚠️</span>
-              <span>2 open disputes</span>
+              <span>⏳</span>
+              <span>Pending Companies: {companies.filter(c => c.status === 'Pending Approval').length}</span>
             </Link>
 
-            {/* Dark Mode Toggle */}
-            <button
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: '#F1F5F9',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1rem',
-              }}
-              title="Toggle Theme"
-            >
-              🌙
-            </button>
-
-            {/* Profile Avatar */}
             <div
               style={{
                 width: '38px',
@@ -227,7 +166,7 @@ export default function AdminCompanies() {
           </div>
         </div>
 
-        {/* Transport Companies Card Container */}
+        {/* Companies Table Card */}
         <div
           style={{
             backgroundColor: '#FFFFFF',
@@ -239,12 +178,14 @@ export default function AdminCompanies() {
         >
           {/* Card Header & Search Input */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Transport Companies</h2>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+              Registered Fleet Companies ({companies.length})
+            </h2>
 
             <div style={{ position: 'relative', width: '260px' }}>
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search by company, reg # or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
@@ -277,41 +218,35 @@ export default function AdminCompanies() {
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.85rem', fontWeight: 600 }}>
-                  <th style={{ padding: '0.75rem 1rem 0.75rem 0' }}>Company</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Contact</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Fleet Size</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Completed</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Rating</th>
+                  <th style={{ padding: '0.75rem 1rem 0.75rem 0' }}>Company Name</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Reg Number</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Manager / Contact</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Status</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Joined</th>
                   <th style={{ padding: '0.75rem 0 0.75rem 1rem' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
-                      Loading companies...
+                    <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
+                      Loading transport companies...
                     </td>
                   </tr>
                 ) : companies.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
-                      No transport companies found.
+                    <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
+                      No transport companies registered yet.
                     </td>
                   </tr>
                 ) : (
                   companies.map((company) => (
                     <tr key={company.id} style={{ borderBottom: '1px solid #F1F5F9', fontSize: '0.9rem', color: '#0F172A' }}>
-                      <td style={{ padding: '1rem 1rem 1rem 0', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '1rem', color: '#64748B' }}>🏢</span>
-                        <span>{company.company_name}</span>
-                      </td>
-                      <td style={{ padding: '1rem', color: '#475569' }}>{company.contact}</td>
-                      <td style={{ padding: '1rem', color: '#475569' }}>{company.fleet_size}</td>
-                      <td style={{ padding: '1rem', color: '#475569' }}>{company.completed_trips}</td>
-                      <td style={{ padding: '1rem', fontWeight: 600, color: '#0F172A' }}>
-                        <span style={{ color: '#EAB308', marginRight: '0.25rem' }}>⭐</span>
-                        {company.rating.toFixed(1)}
+                      <td style={{ padding: '1rem 1rem 1rem 0', fontWeight: 700 }}>{company.name}</td>
+                      <td style={{ padding: '1rem', color: '#475569', fontWeight: 600 }}>{company.reg_number}</td>
+                      <td style={{ padding: '1rem', color: '#475569' }}>
+                        <div>{company.contact_person}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>{company.phone_number}</div>
                       </td>
                       <td style={{ padding: '1rem' }}>
                         <span
@@ -326,6 +261,7 @@ export default function AdminCompanies() {
                           {company.status}
                         </span>
                       </td>
+                      <td style={{ padding: '1rem', color: '#64748B' }}>{company.created_at}</td>
                       <td style={{ padding: '1rem 0 1rem 1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                           <button
@@ -405,27 +341,18 @@ export default function AdminCompanies() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.925rem' }}>
               <div>
                 <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>COMPANY NAME</span>
-                <strong style={{ color: '#0F172A', fontSize: '1.05rem' }}>{selectedCompanyModal.company_name}</strong>
+                <strong style={{ color: '#0F172A' }}>{selectedCompanyModal.name}</strong>
               </div>
 
               <div>
-                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>CONTACT NUMBER</span>
-                <span style={{ color: '#0F172A' }}>{selectedCompanyModal.contact}</span>
+                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>REGISTRATION NUMBER</span>
+                <span style={{ color: '#0F172A' }}>{selectedCompanyModal.reg_number}</span>
               </div>
 
               <div>
-                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>FLEET SIZE</span>
-                <span style={{ color: '#0F172A' }}>{selectedCompanyModal.fleet_size} Registered Vehicles</span>
-              </div>
-
-              <div>
-                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>COMPLETED TRIPS</span>
-                <span style={{ color: '#0F172A' }}>{selectedCompanyModal.completed_trips} Deliveries</span>
-              </div>
-
-              <div>
-                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>RATING</span>
-                <span style={{ fontWeight: 600, color: '#0F172A' }}>⭐ {selectedCompanyModal.rating.toFixed(1)} / 5.0</span>
+                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>PRIMARY CONTACT</span>
+                <span style={{ color: '#0F172A' }}>{selectedCompanyModal.contact_person} ({selectedCompanyModal.phone_number})</span>
+                {selectedCompanyModal.email && <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{selectedCompanyModal.email}</div>}
               </div>
 
               <div>
@@ -443,6 +370,11 @@ export default function AdminCompanies() {
                 >
                   {selectedCompanyModal.status}
                 </span>
+              </div>
+
+              <div>
+                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>REGISTERED DATE</span>
+                <span style={{ color: '#0F172A' }}>{selectedCompanyModal.created_at}</span>
               </div>
             </div>
 

@@ -19,10 +19,10 @@ export default function CompanySettings() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-50">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-slate-600 font-medium">Loading company profile...</p>
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
+          <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-slate-600 font-medium text-sm">Loading company settings...</p>
         </div>
       </div>
     );

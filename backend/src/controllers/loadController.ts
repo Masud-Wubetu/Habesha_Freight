@@ -238,11 +238,31 @@ export async function getLoadDetails(req: AuthenticatedRequest, res: Response) {
       .where('bids.load_id', id)
       .orderBy('bids.created_at', 'desc');
 
+    const bidsWithStats = await Promise.all(
+      bids.map(async (b: any) => {
+        const completedRes = await db('shipments')
+          .where('carrier_id', b.driver_id)
+          .where('status', 'DELIVERED')
+          .count('* as count')
+          .first();
+        const ratingRes = await db('ratings')
+          .where('reviewee_id', b.driver_id)
+          .avg('rating as avg_rating')
+          .first();
+
+        return {
+          ...b,
+          completed_trips: Number(completedRes?.count || 0),
+          driver_rating: ratingRes?.avg_rating ? Number(ratingRes.avg_rating).toFixed(1) : '5.0',
+        };
+      })
+    );
+
     return res.status(200).json({
       success: true,
       data: {
         ...load,
-        bids,
+        bids: bidsWithStats,
       },
     });
   } catch (error) {

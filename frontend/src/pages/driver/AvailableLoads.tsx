@@ -28,6 +28,15 @@ export default function AvailableLoads() {
       header: 'Route',
       render: (l) => `${l.origin_city} → ${l.destination_city}`,
     },
+    {
+      key: 'distance',
+      header: 'Proximity',
+      render: (l) => (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          📍 {l.distance_km ?? 0} km
+        </span>
+      ),
+    },
     { key: 'cargo', header: 'Cargo', render: (l) => l.cargo_description },
     { key: 'weight', header: 'Weight (t)', render: (l) => l.weight_tons },
     {

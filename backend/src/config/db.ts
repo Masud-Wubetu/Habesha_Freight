@@ -29,11 +29,32 @@ const db = knex({
   },
 });
 
+// Ensure required columns exist on users table
+async function ensureUserSchema(): Promise<void> {
+  try {
+    const hasLicenseNumber = await db.schema.hasColumn('users', 'license_number');
+    if (!hasLicenseNumber) {
+      await db.schema.alterTable('users', (table) => {
+        table.string('license_number').nullable();
+        table.string('license_photo_url').nullable();
+        table.string('company_registration_number').nullable();
+        table.string('company_description').nullable();
+        table.string('company_logo_url').nullable();
+        table.string('profile_photo_url').nullable();
+      });
+      console.log('✅ Added driver and fleet owner metadata columns to users table.');
+    }
+  } catch (err) {
+    console.error('⚠️ Could not verify/alter users table schema:', (err as Error).message);
+  }
+}
+
 // Test connection function
 export async function testDbConnection(): Promise<boolean> {
   try {
     await db.raw('SELECT 1');
     console.log('✅ Database connected successfully');
+    await ensureUserSchema();
     return true;
   } catch (err) {
     console.error('❌ Database connection failed:', (err as Error).message);

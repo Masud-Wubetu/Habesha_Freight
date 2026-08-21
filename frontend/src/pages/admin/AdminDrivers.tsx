@@ -8,107 +8,65 @@ interface DriverRecord {
   full_name: string;
   role: string;
   phone_number: string;
-  status: 'Active' | 'Suspended' | 'Pending';
+  status: 'Active' | 'Suspended' | 'Pending Approval';
   created_at: string;
-  license_number?: string;
-  experience_years?: number;
+  license_number: string;
+  license_photo_url?: string;
+  experience_years: number;
 }
 
 export default function AdminDrivers() {
-  const [loading, setLoading] = useState(false);
+  const [drivers, setDrivers] = useState<DriverRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDriverModal, setSelectedDriverModal] = useState<DriverRecord | null>(null);
 
-  const defaultDrivers: DriverRecord[] = [
-    {
-      id: 'DRV-001',
-      full_name: 'Abebe Girma',
-      role: 'Driver',
-      phone_number: '+251 912 345 678',
-      status: 'Active',
-      created_at: 'Feb 2026',
-      license_number: 'ETH-DRV-98721',
-      experience_years: 6,
-    },
-    {
-      id: 'DRV-002',
-      full_name: 'Tesfaye Haile',
-      role: 'Driver',
-      phone_number: '+251 913 456 789',
-      status: 'Suspended',
-      created_at: 'Mar 2026',
-      license_number: 'ETH-DRV-65412',
-      experience_years: 4,
-    },
-  ];
-
-  const [drivers, setDrivers] = useState<DriverRecord[]>(defaultDrivers);
-
   useEffect(() => {
-    fetchDrivers(searchTerm);
-  }, [searchTerm]);
+    fetchDrivers();
+  }, []);
 
-  const fetchDrivers = async (searchQuery: string) => {
+  const fetchDrivers = async () => {
     try {
       setLoading(true);
-      const queryParam = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : '';
-      const res = await api.get<{
-        success: boolean;
-        data?: { drivers?: Record<string, unknown>[] };
-      }>(`/admin/drivers${queryParam}`, true);
+      const res: any = await api.get('/admin/drivers');
 
-      if (res && res.success && res.data?.drivers && res.data.drivers.length > 0) {
-        const fetchedDrivers: DriverRecord[] = res.data.drivers.map((d, index) => {
+      const items: any[] =
+        res?.drivers ||
+        res?.items ||
+        res?.data?.drivers ||
+        res?.data?.items ||
+        (Array.isArray(res) ? res : []);
+
+      if (Array.isArray(items) && items.length > 0) {
+        const fetchedDrivers: DriverRecord[] = items.map((d, index) => {
           const rawStatus = (d.status as string) || (d.is_verified ? 'ACTIVE' : 'PENDING');
-          let formattedStatus: 'Active' | 'Suspended' | 'Pending' = 'Active';
+          let formattedStatus: 'Active' | 'Suspended' | 'Pending Approval' = 'Active';
           if (rawStatus.toUpperCase() === 'SUSPENDED') formattedStatus = 'Suspended';
-          if (rawStatus.toUpperCase() === 'PENDING') formattedStatus = 'Pending';
+          if (rawStatus.toUpperCase() === 'PENDING_APPROVAL' || rawStatus.toUpperCase() === 'PENDING') formattedStatus = 'Pending Approval';
 
           const joinedDate = d.created_at
-            ? new Date(d.created_at as string).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-            : 'Feb 2026';
+            ? new Date(d.created_at as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'Recent';
 
           return {
-            id: (d.id as string) || (d.driver_id as string) || `DRV-00${index + 1}`,
-            full_name: (d.full_name as string) || (d.name as string) || 'Driver Name',
+            id: (d.id as string) || `DRV-00${index + 1}`,
+            full_name: (d.full_name as string) || 'Driver Name',
             role: 'Driver',
-            phone_number: (d.phone_number as string) || (d.phone as string) || '+251 912 345 678',
+            phone_number: (d.phone_number as string) || 'No phone',
             status: formattedStatus,
             created_at: joinedDate,
-            license_number: (d.license_number as string) || 'ETH-DRV-98721',
-            experience_years: Number(d.experience_years ?? 5),
+            license_number: (d.license_number as string) || 'ET-LIC-88900',
+            license_photo_url: d.license_photo_url || d.company_logo_url,
+            experience_years: Number(d.experience_years ?? 3),
           };
         });
         setDrivers(fetchedDrivers);
       } else {
-        if (searchQuery) {
-          const lower = searchQuery.toLowerCase();
-          setDrivers(
-            defaultDrivers.filter(
-              (d) =>
-                d.full_name.toLowerCase().includes(lower) ||
-                d.phone_number.includes(lower) ||
-                d.license_number?.toLowerCase().includes(lower)
-            )
-          );
-        } else {
-          setDrivers(defaultDrivers);
-        }
+        setDrivers([]);
       }
-    } catch {
-      if (searchQuery) {
-        const lower = searchQuery.toLowerCase();
-        setDrivers(
-          defaultDrivers.filter(
-            (d) =>
-              d.full_name.toLowerCase().includes(lower) ||
-              d.phone_number.includes(lower) ||
-              d.license_number?.toLowerCase().includes(lower)
-          )
-        );
-      } else {
-        setDrivers(defaultDrivers);
-      }
+    } catch (err) {
+      console.error('Failed to fetch drivers:', err);
+      setDrivers([]);
     } finally {
       setLoading(false);
     }
@@ -116,15 +74,14 @@ export default function AdminDrivers() {
 
   const handleToggleStatus = async (driver: DriverRecord) => {
     const isCurrentlySuspended = driver.status === 'Suspended';
-    const newStatus = isCurrentlySuspended ? 'Active' : 'Suspended';
+    const actionEndpoint = isCurrentlySuspended ? `/admin/users/${driver.id}/activate` : `/admin/users/${driver.id}/suspend`;
 
-    // Optimistic UI state update
     setDrivers((prev) =>
       prev.map((d) => {
         if (d.id === driver.id) {
           return {
             ...d,
-            status: newStatus,
+            status: isCurrentlySuspended ? 'Active' : 'Suspended',
           };
         }
         return d;
@@ -132,16 +89,19 @@ export default function AdminDrivers() {
     );
 
     try {
-      await api.patch(`/admin/drivers/${driver.id}/status`, { status: newStatus.toUpperCase() }, true);
-    } catch {
-      try {
-        const actionEndpoint = isCurrentlySuspended ? `/admin/users/${driver.id}/activate` : `/admin/users/${driver.id}/suspend`;
-        await api.post(actionEndpoint, {}, true);
-      } catch (err) {
-        console.warn(`Driver status updated in UI for driver ${driver.id}`, err);
-      }
+      await api.post(actionEndpoint, {});
+    } catch (err) {
+      console.error('Failed to update driver status:', err);
+      fetchDrivers();
     }
   };
+
+  const filteredDrivers = drivers.filter(
+    (d) =>
+      d.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.phone_number.includes(searchTerm) ||
+      d.license_number.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const formattedDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -150,17 +110,23 @@ export default function AdminDrivers() {
     year: 'numeric',
   });
 
-  const getStatusBadgeStyle = (status: string) => {
+  const getStatusBadgeStyle = (status: DriverRecord['status']) => {
     switch (status) {
       case 'Active':
         return { backgroundColor: '#DCFCE7', color: '#15803D' };
       case 'Suspended':
         return { backgroundColor: '#FEE2E2', color: '#B91C1C' };
-      case 'Pending':
+      case 'Pending Approval':
         return { backgroundColor: '#FEF3C7', color: '#B45309' };
       default:
         return { backgroundColor: '#F3F4F6', color: '#4B5563' };
     }
+  };
+
+  const getFullDocUrl = (fileUrl?: string) => {
+    if (!fileUrl) return '';
+    if (fileUrl.startsWith('http')) return fileUrl;
+    return `http://localhost:5000${fileUrl}`;
   };
 
   return (
@@ -169,20 +135,21 @@ export default function AdminDrivers() {
         {/* Top Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Drivers</h1>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+              Registered Drivers
+            </h1>
             <div style={{ fontSize: '0.875rem', color: '#64748B', marginTop: '0.25rem' }}>{formattedDate}</div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {/* Open Disputes Alert Pill */}
             <Link
-              to="/admin/disputes"
+              to="/admin/verification"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                backgroundColor: '#FEE2E2',
-                color: '#DC2626',
+                backgroundColor: '#FEF3C7',
+                color: '#B45309',
                 padding: '0.4rem 0.9rem',
                 borderRadius: '2rem',
                 fontSize: '0.85rem',
@@ -190,30 +157,10 @@ export default function AdminDrivers() {
                 textDecoration: 'none',
               }}
             >
-              <span>⚠️</span>
-              <span>2 open disputes</span>
+              <span>⏳</span>
+              <span>Pending Drivers: {drivers.filter(d => d.status === 'Pending Approval').length}</span>
             </Link>
 
-            {/* Dark Mode Toggle */}
-            <button
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: '#F1F5F9',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1rem',
-              }}
-              title="Toggle Theme"
-            >
-              🌙
-            </button>
-
-            {/* Profile Avatar */}
             <div
               style={{
                 width: '38px',
@@ -233,135 +180,145 @@ export default function AdminDrivers() {
           </div>
         </div>
 
-        {/* Drivers Table Card */}
+        {/* Filter Bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+          <div style={{ position: 'relative', width: '320px' }}>
+            <input
+              type="text"
+              placeholder="Search drivers by name, phone or license..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.6rem 1rem 0.6rem 2.25rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #CBD5E1',
+                fontSize: '0.875rem',
+                outline: 'none',
+              }}
+            />
+            <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }}>
+              🔍
+            </span>
+          </div>
+        </div>
+
+        {/* Table Container */}
         <div
           style={{
             backgroundColor: '#FFFFFF',
             borderRadius: '0.85rem',
-            padding: '1.75rem 2rem',
             boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
             border: '1px solid #E2E8F0',
+            overflow: 'hidden',
           }}
         >
-          {/* Card Header & Search Input */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Drivers</h2>
-
-            <div style={{ position: 'relative', width: '260px' }}>
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.55rem 1rem 0.55rem 2.25rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #E2E8F0',
-                  fontSize: '0.875rem',
-                  outline: 'none',
-                  color: '#0F172A',
-                }}
-              />
-              <span
-                style={{
-                  position: 'absolute',
-                  left: '0.75rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#94A3B8',
-                  fontSize: '0.9rem',
-                }}
-              >
-                🔍
-              </span>
-            </div>
-          </div>
-
-          {/* Table */}
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.85rem', fontWeight: 600 }}>
-                  <th style={{ padding: '0.75rem 1rem 0.75rem 0' }}>Name</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Role</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Phone</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Joined</th>
-                  <th style={{ padding: '0.75rem 0 0.75rem 1rem' }}>Actions</th>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', color: '#475569' }}>
+                <th style={{ padding: '1rem 1.25rem', fontWeight: 600 }}>DRIVER NAME</th>
+                <th style={{ padding: '1rem 1.25rem', fontWeight: 600 }}>PHONE</th>
+                <th style={{ padding: '1rem 1.25rem', fontWeight: 600 }}>LICENSE NO.</th>
+                <th style={{ padding: '1rem 1.25rem', fontWeight: 600 }}>STATUS</th>
+                <th style={{ padding: '1rem 1.25rem', fontWeight: 600 }}>REGISTERED</th>
+                <th style={{ padding: '1rem 1.25rem', fontWeight: 600, textAlign: 'right' }}>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} style={{ padding: '2.5rem', textAlign: 'center', color: '#64748B' }}>
+                    Loading live drivers database...
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
-                      Loading drivers...
-                    </td>
-                  </tr>
-                ) : drivers.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
-                      No drivers found.
-                    </td>
-                  </tr>
-                ) : (
-                  drivers.map((driver) => (
-                    <tr key={driver.id} style={{ borderBottom: '1px solid #F1F5F9', fontSize: '0.9rem', color: '#0F172A' }}>
-                      <td style={{ padding: '1rem 1rem 1rem 0', fontWeight: 700 }}>{driver.full_name}</td>
-                      <td style={{ padding: '1rem', color: '#475569' }}>{driver.role}</td>
-                      <td style={{ padding: '1rem', color: '#475569' }}>{driver.phone_number}</td>
-                      <td style={{ padding: '1rem' }}>
-                        <span
+              ) : filteredDrivers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ padding: '2.5rem', textAlign: 'center', color: '#64748B' }}>
+                    No driver records found.
+                  </td>
+                </tr>
+              ) : (
+                filteredDrivers.map((driver) => (
+                  <tr key={driver.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <td style={{ padding: '1rem 1.25rem', fontWeight: 600, color: '#0F172A' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div
                           style={{
-                            padding: '0.25rem 0.75rem',
-                            borderRadius: '1rem',
-                            fontSize: '0.775rem',
-                            fontWeight: 600,
-                            ...getStatusBadgeStyle(driver.status),
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            backgroundColor: '#EFF6FF',
+                            color: '#2563EB',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.75rem',
                           }}
                         >
-                          {driver.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem', color: '#64748B' }}>{driver.created_at}</td>
-                      <td style={{ padding: '1rem 0 1rem 1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                          <button
-                            onClick={() => setSelectedDriverModal(driver)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: '#2563EB',
-                              fontWeight: 600,
-                              fontSize: '0.85rem',
-                              cursor: 'pointer',
-                              padding: 0,
-                            }}
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleToggleStatus(driver)}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              color: driver.status === 'Suspended' ? '#2563EB' : '#EF4444',
-                              fontWeight: 600,
-                              fontSize: '0.85rem',
-                              cursor: 'pointer',
-                              padding: 0,
-                            }}
-                          >
-                            {driver.status === 'Suspended' ? 'Unsuspend' : 'Suspend'}
-                          </button>
+                          {driver.full_name.slice(0, 2).toUpperCase()}
                         </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                        <div>
+                          <div>{driver.full_name}</div>
+                          {driver.license_photo_url && (
+                            <span style={{ fontSize: '0.7rem', color: '#2563EB', fontWeight: 600 }}>📄 Document Attached</span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{ padding: '1rem 1.25rem', color: '#334155' }}>{driver.phone_number}</td>
+                    <td style={{ padding: '1rem 1.25rem', color: '#334155', fontFamily: 'monospace' }}>{driver.license_number}</td>
+                    <td style={{ padding: '1rem 1.25rem' }}>
+                      <span
+                        style={{
+                          padding: '0.25rem 0.65rem',
+                          borderRadius: '1rem',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          ...getStatusBadgeStyle(driver.status),
+                        }}
+                      >
+                        {driver.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem 1.25rem', color: '#64748B' }}>{driver.created_at}</td>
+                    <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={() => setSelectedDriverModal(driver)}
+                          style={{
+                            backgroundColor: '#F1F5F9',
+                            color: '#334155',
+                            border: 'none',
+                            padding: '0.35rem 0.75rem',
+                            borderRadius: '0.375rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          View Details 👁️
+                        </button>
+                        <button
+                          onClick={() => handleToggleStatus(driver)}
+                          style={{
+                            backgroundColor: driver.status === 'Suspended' ? '#DCFCE7' : '#FEE2E2',
+                            color: driver.status === 'Suspended' ? '#15803D' : '#B91C1C',
+                            border: 'none',
+                            padding: '0.35rem 0.75rem',
+                            borderRadius: '0.375rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {driver.status === 'Suspended' ? 'Unsuspend' : 'Suspend'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -374,7 +331,7 @@ export default function AdminDrivers() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: 'rgba(0,0,0,0.6)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -386,12 +343,15 @@ export default function AdminDrivers() {
               backgroundColor: '#FFFFFF',
               borderRadius: '0.85rem',
               padding: '2rem',
-              width: '450px',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+              width: '500px',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#0F172A' }}>Driver Profile</h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0, color: '#0F172A' }}>Driver Profile & License Document</h3>
               <button
                 onClick={() => setSelectedDriverModal(null)}
                 style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748B' }}
@@ -403,7 +363,7 @@ export default function AdminDrivers() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.925rem' }}>
               <div>
                 <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>FULL NAME</span>
-                <strong style={{ color: '#0F172A' }}>{selectedDriverModal.full_name}</strong>
+                <strong style={{ color: '#0F172A', fontSize: '1.05rem' }}>{selectedDriverModal.full_name}</strong>
               </div>
 
               <div>
@@ -413,12 +373,7 @@ export default function AdminDrivers() {
 
               <div>
                 <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>LICENSE NUMBER</span>
-                <span style={{ color: '#0F172A' }}>{selectedDriverModal.license_number}</span>
-              </div>
-
-              <div>
-                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>EXPERIENCE</span>
-                <span style={{ color: '#0F172A' }}>{selectedDriverModal.experience_years} Years</span>
+                <span style={{ color: '#0F172A', fontFamily: 'monospace', fontWeight: 700 }}>{selectedDriverModal.license_number}</span>
               </div>
 
               <div>
@@ -439,9 +394,41 @@ export default function AdminDrivers() {
               </div>
 
               <div>
-                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>JOINED</span>
+                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>REGISTERED DATE</span>
                 <span style={{ color: '#0F172A' }}>{selectedDriverModal.created_at}</span>
               </div>
+
+              {selectedDriverModal.license_photo_url ? (
+                <div style={{ marginTop: '1rem', textAlign: 'center', backgroundColor: '#F8FAFC', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E2E8F0' }}>
+                  <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem', marginBottom: '0.5rem', textAlign: 'left' }}>DRIVER LICENSE / DOCUMENT ATTACHMENT</span>
+                  {selectedDriverModal.license_photo_url.toLowerCase().endsWith('.pdf') ? (
+                    <iframe
+                      src={getFullDocUrl(selectedDriverModal.license_photo_url)}
+                      title="Driver License PDF"
+                      style={{ width: '100%', height: '240px', border: '1px solid #CBD5E1', borderRadius: '0.375rem' }}
+                    />
+                  ) : (
+                    <img
+                      src={getFullDocUrl(selectedDriverModal.license_photo_url)}
+                      crossOrigin="anonymous"
+                      alt="Driver License Attachment"
+                      style={{ maxWidth: '100%', maxHeight: '240px', borderRadius: '0.375rem', objectFit: 'contain', border: '1px solid #CBD5E1', backgroundColor: '#FFFFFF' }}
+                    />
+                  )}
+                  <a
+                    href={getFullDocUrl(selectedDriverModal.license_photo_url)}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'inline-block', color: '#2563EB', fontWeight: 600, fontSize: '0.85rem', marginTop: '0.5rem' }}
+                  >
+                    Open Document in New Tab ↗
+                  </a>
+                </div>
+              ) : (
+                <div style={{ marginTop: '0.5rem', padding: '0.75rem', backgroundColor: '#FEF3C7', color: '#92400E', borderRadius: '0.5rem', fontSize: '0.85rem' }}>
+                  No binary photo uploaded. Registered License No: <strong>{selectedDriverModal.license_number}</strong>
+                </div>
+              )}
             </div>
 
             <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>

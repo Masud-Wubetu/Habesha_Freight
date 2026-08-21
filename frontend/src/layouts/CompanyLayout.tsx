@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { path: '/company/deliveries', icon: '🚚', label: 'Deliveries' },
   { path: '/company/vehicles', icon: '🚛', label: 'Vehicles / Fleet' },
   { path: '/company/drivers', icon: '👤', label: 'Drivers' },
-  { path: '/company/company-profile', icon: '🏢', label: 'Company Profile' },
+  { path: '/company/profile', icon: '🏢', label: 'Company Profile' },
   { path: '/company/ratings', icon: '⭐', label: 'Ratings' },
   { path: '/company/settings', icon: '⚙️', label: 'Settings' },
 ];

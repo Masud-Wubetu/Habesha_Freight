@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 export interface UserPayload {
   userId: string;
   role: 'SHIPPER' | 'DRIVER' | 'FLEET_OWNER' | 'ADMIN';
-  phoneNumber: string;
+  phoneNumber?: string;
+  email?: string;
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default_fallback_jwt_secret';

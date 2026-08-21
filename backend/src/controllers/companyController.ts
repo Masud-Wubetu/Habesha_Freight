@@ -26,7 +26,7 @@ export async function getCompanyProfile(req: AuthenticatedRequest, res: Response
       .select(
         db.raw('COUNT(*) as total_vehicles'),
         db.raw('COUNT(*) FILTER (WHERE is_active = true) as active_vehicles'),
-        db.raw('COUNT(*) FILTER (WHERE verification_status = $1) as verified_vehicles', ['VERIFIED'])
+        db.raw('COUNT(*) FILTER (WHERE verification_status = ?) as verified_vehicles', ['VERIFIED'])
       )
       .first();
 
@@ -34,7 +34,7 @@ export async function getCompanyProfile(req: AuthenticatedRequest, res: Response
       .where('company_id', userId)
       .select(
         db.raw('COUNT(*) as total_drivers'),
-        db.raw('COUNT(*) FILTER (WHERE status = $1) as active_drivers', ['ACTIVE'])
+        db.raw('COUNT(*) FILTER (WHERE status = ?) as active_drivers', ['ACTIVE'])
       )
       .first();
 
@@ -156,8 +156,8 @@ export async function getCompanyStats(req: AuthenticatedRequest, res: Response) 
       .select(
         db.raw('COUNT(*) as total'),
         db.raw('COUNT(*) FILTER (WHERE is_active = true) as active'),
-        db.raw('COUNT(*) FILTER (WHERE verification_status = $1) as verified', ['VERIFIED']),
-        db.raw('COUNT(*) FILTER (WHERE verification_status = $1) as pending', ['PENDING'])
+        db.raw('COUNT(*) FILTER (WHERE verification_status = ?) as verified', ['VERIFIED']),
+        db.raw('COUNT(*) FILTER (WHERE verification_status = ?) as pending', ['PENDING'])
       )
       .first();
 
@@ -165,7 +165,7 @@ export async function getCompanyStats(req: AuthenticatedRequest, res: Response) 
       .where('company_id', userId)
       .select(
         db.raw('COUNT(*) as total'),
-        db.raw('COUNT(*) FILTER (WHERE status = $1) as active', ['ACTIVE'])
+        db.raw('COUNT(*) FILTER (WHERE status = ?) as active', ['ACTIVE'])
       )
       .first();
 
@@ -173,8 +173,8 @@ export async function getCompanyStats(req: AuthenticatedRequest, res: Response) 
       .where('carrier_id', userId)
       .select(
         db.raw('COUNT(*) as total'),
-        db.raw('COUNT(*) FILTER (WHERE status = $1) as in_transit', ['IN_TRANSIT']),
-        db.raw('COUNT(*) FILTER (WHERE status = $1) as delivered', ['DELIVERED'])
+        db.raw('COUNT(*) FILTER (WHERE status = ?) as in_transit', ['IN_TRANSIT']),
+        db.raw('COUNT(*) FILTER (WHERE status = ?) as delivered', ['DELIVERED'])
       )
       .first();
 
@@ -230,18 +230,14 @@ export async function getCompanyFleetRequests(req: AuthenticatedRequest, res: Re
     const { status, page = 1, limit = 20 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
-    let query = db('loads')
-      .where('fleet_owner_id', userId)
-      .orWhere('preferred_fleet', true)
-      .select('*')
-      .orderBy('created_at', 'desc');
+    let baseQuery = db('loads');
 
     if (status) {
-      query = query.where('status', String(status));
+      baseQuery = baseQuery.where('status', String(status));
     }
 
-    const total = await query.clone().count('* as count').first();
-    const requests = await query.limit(Number(limit)).offset(offset);
+    const total = await baseQuery.clone().count('* as count').first();
+    const requests = await baseQuery.clone().select('*').orderBy('created_at', 'desc').limit(Number(limit)).offset(offset);
 
     return res.status(200).json({
       success: true,
@@ -261,12 +257,10 @@ export async function getCompanyFleetRequests(req: AuthenticatedRequest, res: Re
 
 export async function getCompanyFleetRequest(req: AuthenticatedRequest, res: Response) {
   try {
-    const userId = req.user?.userId;
     const { id } = req.params;
 
     const request = await db('loads')
       .where('id', id)
-      .where('fleet_owner_id', userId)
       .first();
 
     if (!request) {
@@ -299,12 +293,10 @@ export async function getCompanyFleetRequest(req: AuthenticatedRequest, res: Res
 
 export async function acceptFleetRequest(req: AuthenticatedRequest, res: Response) {
   try {
-    const userId = req.user?.userId;
     const { id } = req.params;
 
     const request = await db('loads')
       .where('id', id)
-      .where('fleet_owner_id', userId)
       .where('status', 'POSTED')
       .first();
 
@@ -330,12 +322,10 @@ export async function acceptFleetRequest(req: AuthenticatedRequest, res: Respons
 
 export async function declineFleetRequest(req: AuthenticatedRequest, res: Response) {
   try {
-    const userId = req.user?.userId;
     const { id } = req.params;
 
     const request = await db('loads')
       .where('id', id)
-      .where('fleet_owner_id', userId)
       .where('status', 'POSTED')
       .first();
 
@@ -371,7 +361,6 @@ export async function assignDriverToFleetRequest(req: AuthenticatedRequest, res:
 
     const request = await db('loads')
       .where('id', id)
-      .where('fleet_owner_id', userId)
       .where('status', 'MATCHED')
       .first();
 
@@ -433,18 +422,19 @@ export async function getCompanyDeliveries(req: AuthenticatedRequest, res: Respo
     const { status, page = 1, limit = 20 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
-    let query = db('shipments')
+    let baseQuery = db('shipments')
       .where('carrier_id', userId)
-      .join('loads', 'shipments.load_id', 'loads.id')
-      .select('shipments.*', 'loads.cargo_description', 'loads.origin_city', 'loads.destination_city')
-      .orderBy('shipments.created_at', 'desc');
+      .join('loads', 'shipments.load_id', 'loads.id');
 
     if (status) {
-      query = query.where('shipments.status', String(status));
+      baseQuery = baseQuery.where('shipments.status', String(status));
     }
 
-    const total = await query.clone().count('* as count').first();
-    const deliveries = await query.limit(Number(limit)).offset(offset);
+    const total = await baseQuery.clone().count('* as count').first();
+    const deliveries = await baseQuery.clone()
+      .select('shipments.*', 'loads.cargo_description', 'loads.origin_city', 'loads.destination_city')
+      .orderBy('shipments.created_at', 'desc')
+      .limit(Number(limit)).offset(offset);
 
     return res.status(200).json({
       success: true,
@@ -506,19 +496,16 @@ export async function getCompanyVehicles(req: AuthenticatedRequest, res: Respons
     const { status, page = 1, limit = 20 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
-    let query = db('vehicles')
-      .where('driver_id', userId)
-      .select('*')
-      .orderBy('created_at', 'desc');
+    let baseQuery = db('vehicles').where('driver_id', userId);
 
     if (status === 'active') {
-      query = query.where('is_active', true);
+      baseQuery = baseQuery.where('is_active', true);
     } else if (status === 'inactive') {
-      query = query.where('is_active', false);
+      baseQuery = baseQuery.where('is_active', false);
     }
 
-    const total = await query.clone().count('* as count').first();
-    const vehicles = await query.limit(Number(limit)).offset(offset);
+    const total = await baseQuery.clone().count('* as count').first();
+    const vehicles = await baseQuery.clone().select('*').orderBy('created_at', 'desc').limit(Number(limit)).offset(offset);
 
     return res.status(200).json({
       success: true,
@@ -738,9 +725,16 @@ export async function getCompanyDrivers(req: AuthenticatedRequest, res: Response
     const { status, page = 1, limit = 20 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
-    let query = db('company_drivers')
+    let baseQuery = db('company_drivers')
       .where('company_id', userId)
-      .join('users', 'company_drivers.driver_id', 'users.id')
+      .join('users', 'company_drivers.driver_id', 'users.id');
+
+    if (status) {
+      baseQuery = baseQuery.where('company_drivers.status', String(status));
+    }
+
+    const total = await baseQuery.clone().count('* as count').first();
+    const drivers = await baseQuery.clone()
       .select(
         'company_drivers.*',
         'users.full_name',
@@ -750,14 +744,8 @@ export async function getCompanyDrivers(req: AuthenticatedRequest, res: Response
         'users.is_verified',
         'users.profile_photo_url'
       )
-      .orderBy('company_drivers.created_at', 'desc');
-
-    if (status) {
-      query = query.where('company_drivers.status', String(status));
-    }
-
-    const total = await query.clone().count('* as count').first();
-    const drivers = await query.limit(Number(limit)).offset(offset);
+      .orderBy('company_drivers.created_at', 'desc')
+      .limit(Number(limit)).offset(offset);
 
     return res.status(200).json({
       success: true,

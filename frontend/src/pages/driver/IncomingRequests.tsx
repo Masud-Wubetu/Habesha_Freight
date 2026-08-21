@@ -1,90 +1,11 @@
 import { useMemo, useState } from 'react';
 import { getStoredUser } from '../../services/authService';
+import { useAvailableLoads, AvailableLoad } from '../../hooks/useAvailableLoads';
+import { post } from '../../services/api';
+import ChatModal from '../../components/ChatModal';
 import '../../styles/driver-requests.css';
 
-/* ── Mock data matching the screenshot ───────────────────── */
-interface FreightRequest {
-  id: string;
-  origin: string;
-  destination: string;
-  cargoType: string;
-  weightTons: number;
-  distanceKm: number;
-  shipperName: string;
-  budgetETB: number;
-  isUrgent: boolean;
-}
-
-const MOCK_REQUESTS: FreightRequest[] = [
-  {
-    id: '1',
-    origin: 'Addis Ababa',
-    destination: 'Hawassa',
-    cargoType: 'Agricultural Produce',
-    weightTons: 12,
-    distanceKm: 275,
-    shipperName: 'Haile Trading',
-    budgetETB: 9200,
-    isUrgent: false,
-  },
-  {
-    id: '2',
-    origin: 'Adama',
-    destination: 'Dire Dawa',
-    cargoType: 'Electronics',
-    weightTons: 5,
-    distanceKm: 340,
-    shipperName: 'Tigist Imports',
-    budgetETB: 6800,
-    isUrgent: true,
-  },
-  {
-    id: '3',
-    origin: 'Addis Ababa',
-    destination: 'Bahir Dar',
-    cargoType: 'Construction Materials',
-    weightTons: 22,
-    distanceKm: 510,
-    shipperName: 'Selam Builders',
-    budgetETB: 16000,
-    isUrgent: false,
-  },
-  {
-    id: '4',
-    origin: 'Mekelle',
-    destination: 'Addis Ababa',
-    cargoType: 'General Goods',
-    weightTons: 8,
-    distanceKm: 780,
-    shipperName: 'Kebede Store',
-    budgetETB: 8500,
-    isUrgent: false,
-  },
-  {
-    id: '5',
-    origin: 'Jimma',
-    destination: 'Hawassa',
-    cargoType: 'Coffee Beans',
-    weightTons: 15,
-    distanceKm: 320,
-    shipperName: 'Buna Export PLC',
-    budgetETB: 11500,
-    isUrgent: false,
-  },
-  {
-    id: '6',
-    origin: 'Dire Dawa',
-    destination: 'Addis Ababa',
-    cargoType: 'Textiles',
-    weightTons: 6,
-    distanceKm: 450,
-    shipperName: 'Merkato Fabrics',
-    budgetETB: 7200,
-    isUrgent: true,
-  },
-];
-
-/* ── Route / city options extracted from mock data ────────── */
+/* ── Route / filter options ────────── */
 const ALL_ROUTES = 'All Routes';
 const ALL_CARGO = 'All Cargo Types';
 const ALL_DISTANCE = 'Any Distance';
@@ -98,6 +19,7 @@ const ROUTE_OPTIONS = [
   'Bahir Dar',
   'Mekelle',
   'Jimma',
+  'Gondar',
 ];
 
 const CARGO_OPTIONS = [
@@ -112,17 +34,16 @@ const CARGO_OPTIONS = [
 
 const DISTANCE_OPTIONS = [
   ALL_DISTANCE,
+  'Under 50 km (Nearby)',
   'Under 300 km',
   '300 – 500 km',
   'Over 500 km',
 ];
 
 /* ── Helpers ─────────────────────────────────────────────── */
-function formatBudget(value: number): string {
-  return value.toLocaleString('en-US');
+function formatBudget(value: number | string): string {
+  return Number(value || 0).toLocaleString('en-US');
 }
-
-
 
 /* ── Chat SVG icon ───────────────────────────────────────── */
 function ChatIcon() {
@@ -133,11 +54,11 @@ function ChatIcon() {
   );
 }
 
-/* ── Component ───────────────────────────────────────────── */
 export default function IncomingRequests() {
   const user = getStoredUser();
+  const { loads, loading, error, refresh } = useAvailableLoads();
 
-  const initials = (user?.full_name ?? 'AG')
+  const initials = (user?.full_name ?? 'Abebe Driver')
     .split(' ')
     .map((w: string) => w[0])
     .join('')
@@ -149,67 +70,121 @@ export default function IncomingRequests() {
   const [cargoFilter, setCargoFilter] = useState(ALL_CARGO);
   const [distanceFilter, setDistanceFilter] = useState(ALL_DISTANCE);
 
-  /* Bid modal */
-  const [bidTarget, setBidTarget] = useState<FreightRequest | null>(null);
+  /* Bid & Chat modal state */
+  const [bidTarget, setBidTarget] = useState<AvailableLoad | null>(null);
+  const [chatTarget, setChatTarget] = useState<AvailableLoad | null>(null);
   const [bidAmount, setBidAmount] = useState('');
   const [bidNote, setBidNote] = useState('');
+  const [submittingBid, setSubmittingBid] = useState(false);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   /* Filter logic */
   const filtered = useMemo(() => {
-    return MOCK_REQUESTS.filter((r) => {
-      // Route filter — matches either origin or destination
+    return loads.filter((r) => {
+      // Route filter — matches origin or destination
       if (routeFilter !== ALL_ROUTES) {
-        if (r.origin !== routeFilter && r.destination !== routeFilter) return false;
+        if (
+          !r.origin_city.toLowerCase().includes(routeFilter.toLowerCase()) &&
+          !r.destination_city.toLowerCase().includes(routeFilter.toLowerCase())
+        ) {
+          return false;
+        }
       }
-      // Cargo type
-      if (cargoFilter !== ALL_CARGO && r.cargoType !== cargoFilter) return false;
-      // Distance buckets
-      if (distanceFilter === 'Under 300 km' && r.distanceKm >= 300) return false;
-      if (distanceFilter === '300 – 500 km' && (r.distanceKm < 300 || r.distanceKm > 500)) return false;
-      if (distanceFilter === 'Over 500 km' && r.distanceKm <= 500) return false;
+      // Cargo filter
+      if (cargoFilter !== ALL_CARGO) {
+        if (!r.cargo_description.toLowerCase().includes(cargoFilter.toLowerCase())) {
+          return false;
+        }
+      }
+      // Distance filter
+      const dist = r.distance_km ?? 0;
+      if (distanceFilter === 'Under 50 km (Nearby)' && dist > 50) return false;
+      if (distanceFilter === 'Under 300 km' && dist >= 300) return false;
+      if (distanceFilter === '300 – 500 km' && (dist < 300 || dist > 500)) return false;
+      if (distanceFilter === 'Over 500 km' && dist <= 500) return false;
+
       return true;
     });
-  }, [routeFilter, cargoFilter, distanceFilter]);
+  }, [loads, routeFilter, cargoFilter, distanceFilter]);
 
   /* Handlers */
-  const openBidModal = (request: FreightRequest) => {
+  const openBidModal = (request: AvailableLoad) => {
     setBidTarget(request);
-    setBidAmount('');
+    setBidAmount(String(request.offered_price_etb));
     setBidNote('');
+    setActionError(null);
   };
 
-  const closeBidModal = () => setBidTarget(null);
+  const closeBidModal = () => {
+    setBidTarget(null);
+    setActionError(null);
+  };
 
-  const handleSubmitBid = () => {
+  const handleSubmitBid = async () => {
     if (!bidTarget || !bidAmount) return;
-    // TODO: POST /api/driver/bids  { loadId, amount, note }
-    alert(`Bid of ETB ${bidAmount} submitted for ${bidTarget.origin} → ${bidTarget.destination}`);
-    closeBidModal();
+    setSubmittingBid(true);
+    setActionError(null);
+
+    try {
+      await post('/bids', {
+        load_id: bidTarget.id,
+        bid_amount_etb: Number(bidAmount),
+        note: bidNote || undefined,
+      });
+
+      setActionSuccess(`Bid of ETB ${formatBudget(bidAmount)} submitted successfully!`);
+      closeBidModal();
+      refresh();
+      setTimeout(() => setActionSuccess(null), 4000);
+    } catch (err: any) {
+      console.error('Error submitting bid:', err);
+      setActionError(err.message || 'Failed to submit bid.');
+    } finally {
+      setSubmittingBid(false);
+    }
   };
 
-  const handleAcceptPrice = (request: FreightRequest) => {
-    // TODO: POST /api/driver/bids/accept  { loadId }
-    alert(`Price accepted for ${request.origin} → ${request.destination} at ETB ${formatBudget(request.budgetETB)}`);
+  const handleAcceptPrice = async (request: AvailableLoad) => {
+    if (!window.confirm(`Accept job ${request.origin_city} → ${request.destination_city} at ETB ${formatBudget(request.offered_price_etb)}?`)) {
+      return;
+    }
+
+    try {
+      await post(`/driver/loads/${request.id}/accept`, {});
+      setActionSuccess(`Load accepted! Shipment assigned for ${request.origin_city} → ${request.destination_city}.`);
+      refresh();
+      setTimeout(() => setActionSuccess(null), 5000);
+    } catch (err: any) {
+      console.error('Error accepting price:', err);
+      alert(err.message || 'Failed to accept load. Please make sure you have an active verified vehicle.');
+    }
   };
 
   return (
     <div className="dr-page">
-
-      {/* ── Header ─────────────────────────────────────────── */}
-      <div className="dr-header" style={{ justifyContent: 'flex-end', padding: '10px 0' }}>
+      {/* ── Top Header ─────────────────────────────────────────── */}
+      <div className="dr-header" style={{ justifyContent: 'space-between', padding: '10px 0' }}>
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">Available Load Requests</h1>
+          <p className="text-xs text-slate-500">Nearby shipments posted by shippers</p>
+        </div>
         <div className="dr-header-right">
           <div className="dr-status-badge">
             <span className="dr-status-dot" />
             Online &amp; Available
           </div>
-          <button className="dr-theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-            🌙
-          </button>
-          <div className="dr-avatar" title={user?.full_name ?? 'Abebe Girma'}>
+          <div className="dr-avatar" title={user?.full_name ?? 'Driver Account'}>
             {initials}
           </div>
         </div>
       </div>
+
+      {actionSuccess && (
+        <div className="p-4 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl mb-4 text-sm font-semibold">
+          ✅ {actionSuccess}
+        </div>
+      )}
 
       {/* ── Filter bar ─────────────────────────────────────── */}
       <div className="dr-filters">
@@ -248,7 +223,11 @@ export default function IncomingRequests() {
       </div>
 
       {/* ── Request cards ──────────────────────────────────── */}
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="py-12 text-center text-slate-400">Loading nearby shipment requests...</div>
+      ) : error ? (
+        <div className="p-4 bg-red-50 text-red-700 rounded-xl text-sm">{error}</div>
+      ) : filtered.length === 0 ? (
         <div className="dr-empty">
           <div className="dr-empty-icon">📦</div>
           <h3>No matching requests</h3>
@@ -261,16 +240,22 @@ export default function IncomingRequests() {
               <div className="dr-card-top">
                 <div>
                   <p className="dr-route">
-                    {req.origin} <span className="dr-route-arrow">→</span> {req.destination}
-                    {req.isUrgent && <span className="dr-urgent">Urgent</span>}
+                    {req.origin_city} <span className="dr-route-arrow">→</span> {req.destination_city}
+                    {req.distance_km !== undefined && (
+                      <span className="ml-2 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        📍 {req.distance_km} km away
+                      </span>
+                    )}
                   </p>
                   <p className="dr-cargo-details">
-                    {req.cargoType} <span>·</span> {req.weightTons} tons <span>·</span> {req.distanceKm} km
+                    {req.cargo_description} <span>·</span> {req.weight_tons} tons <span>·</span> {req.bidCount || 0} bids
                   </p>
-                  <p className="dr-shipper">Shipper: {req.shipperName}</p>
+                  <p className="dr-shipper">
+                    Shipper: <strong>{req.shipper_name || 'Verified Shipper'}</strong> ({req.shipper_phone || '+251 9XX XXX XXX'})
+                  </p>
                 </div>
                 <div className="dr-price-section">
-                  <p className="dr-price">ETB {formatBudget(req.budgetETB)}</p>
+                  <p className="dr-price">ETB {formatBudget(req.offered_price_etb)}</p>
                   <p className="dr-price-label">Posted budget</p>
                 </div>
               </div>
@@ -282,7 +267,12 @@ export default function IncomingRequests() {
                 <button className="dr-btn-accept" onClick={() => handleAcceptPrice(req)}>
                   Accept Price
                 </button>
-                <button className="dr-btn-chat" aria-label="Message shipper" title="Message shipper">
+                <button
+                  className="dr-btn-chat"
+                  aria-label="Message shipper"
+                  title="Message shipper"
+                  onClick={() => setChatTarget(req)}
+                >
                   <ChatIcon />
                 </button>
               </div>
@@ -297,10 +287,14 @@ export default function IncomingRequests() {
           <div className="dr-modal" onClick={(e) => e.stopPropagation()}>
             <h2>Submit Your Bid</h2>
             <p className="dr-modal-route">
-              {bidTarget.origin} → {bidTarget.destination} · {bidTarget.cargoType}
+              {bidTarget.origin_city} → {bidTarget.destination_city} · {bidTarget.cargo_description}
             </p>
 
-            <label className="dr-modal-label">Your bid amount</label>
+            {actionError && (
+              <div className="p-3 bg-red-50 text-red-700 rounded-lg text-xs mb-3">{actionError}</div>
+            )}
+
+            <label className="dr-modal-label">Your bid amount (ETB)</label>
             <div className="dr-modal-input-group">
               <span className="dr-modal-currency">ETB</span>
               <input
@@ -313,7 +307,7 @@ export default function IncomingRequests() {
               />
             </div>
             <p className="dr-modal-posted">
-              Posted budget: <strong>ETB {formatBudget(bidTarget.budgetETB)}</strong>
+              Posted budget: <strong>ETB {formatBudget(bidTarget.offered_price_etb)}</strong>
             </p>
 
             <label className="dr-modal-label">Note (optional)</label>
@@ -325,15 +319,27 @@ export default function IncomingRequests() {
             />
 
             <div className="dr-modal-actions">
-              <button className="dr-modal-cancel" onClick={closeBidModal}>
+              <button className="dr-modal-cancel" onClick={closeBidModal} disabled={submittingBid}>
                 Cancel
               </button>
-              <button className="dr-modal-submit" onClick={handleSubmitBid}>
-                Submit Bid
+              <button className="dr-modal-submit" onClick={handleSubmitBid} disabled={submittingBid}>
+                {submittingBid ? 'Submitting...' : 'Submit Bid'}
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── Chat Modal ────────────────────────────────────── */}
+      {chatTarget && (
+        <ChatModal
+          isOpen={!!chatTarget}
+          onClose={() => setChatTarget(null)}
+          receiverId={chatTarget.shipper_id || ''}
+          receiverName={chatTarget.shipper_name || 'Shipper'}
+          receiverPhone={chatTarget.shipper_phone}
+          loadTitle={`${chatTarget.origin_city} → ${chatTarget.destination_city}`}
+        />
       )}
     </div>
   );

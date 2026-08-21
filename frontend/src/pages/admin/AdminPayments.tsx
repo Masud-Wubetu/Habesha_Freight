@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import AdminLayout from '../../layouts/AdminLayout';
 
@@ -15,35 +14,10 @@ export default function AdminPayments() {
   const [loading, setLoading] = useState(false);
   const [selectedTxModal, setSelectedTxModal] = useState<EscrowTransaction | null>(null);
 
-  const [totalInEscrow, setTotalInEscrow] = useState(142500);
-  const [releasedToday, setReleasedToday] = useState(11000);
-  const [pendingRelease, setPendingRelease] = useState(22700);
-
-  const defaultTransactions: EscrowTransaction[] = [
-    {
-      id: 'ESC-001',
-      shipment_id: 'SHP-001',
-      amount: 8500,
-      status: 'Held',
-      payee_name: 'Abebe Girma',
-    },
-    {
-      id: 'ESC-002',
-      shipment_id: 'SHP-003',
-      amount: 11000,
-      status: 'Released',
-      payee_name: 'Tesfaye Haile',
-    },
-    {
-      id: 'ESC-003',
-      shipment_id: 'SHP-004',
-      amount: 14200,
-      status: 'Pending',
-      payee_name: 'Dawit Bekele',
-    },
-  ];
-
-  const [transactions, setTransactions] = useState<EscrowTransaction[]>(defaultTransactions);
+  const [totalInEscrow, setTotalInEscrow] = useState(0);
+  const [releasedToday, setReleasedToday] = useState(0);
+  const [pendingRelease, setPendingRelease] = useState(0);
+  const [transactions, setTransactions] = useState<EscrowTransaction[]>([]);
 
   useEffect(() => {
     fetchEscrowDetails();
@@ -52,51 +26,55 @@ export default function AdminPayments() {
   const fetchEscrowDetails = async () => {
     try {
       setLoading(true);
-      const res = await api.get<{
-        success: boolean;
-        data?: {
-          stats?: { total_escrow?: number; released_today?: number; pending_release?: number };
-          transactions?: Record<string, unknown>[];
-          escrows?: Record<string, unknown>[];
-        };
-      }>('/admin/escrow', true);
+      const res = await api.get<any>('/admin/payments', true);
 
-      if (res && res.success) {
-        if (res.data?.stats) {
-          setTotalInEscrow(res.data.stats.total_escrow ?? 142500);
-          setReleasedToday(res.data.stats.released_today ?? 11000);
-          setPendingRelease(res.data.stats.pending_release ?? 22700);
-        }
+      const items: any[] = res?.data?.items || res?.data?.payments || res?.items || [];
 
-        const items = res.data?.transactions || res.data?.escrows;
-        if (items && items.length > 0) {
-          const fetched: EscrowTransaction[] = items.map((item, index) => {
-            const rawStatus = (item.status as string) || 'HELD';
-            let formattedStatus: 'Held' | 'Released' | 'Pending' | 'Refunded' = 'Held';
-            if (rawStatus.toUpperCase() === 'RELEASED') formattedStatus = 'Released';
-            if (rawStatus.toUpperCase() === 'PENDING') formattedStatus = 'Pending';
-            if (rawStatus.toUpperCase() === 'REFUNDED') formattedStatus = 'Refunded';
+      if (Array.isArray(items) && items.length > 0) {
+        let total = 0;
+        let released = 0;
+        let pending = 0;
 
-            return {
-              id: (item.id as string) || (item.escrow_id as string) || `ESC-00${index + 1}`,
-              shipment_id: (item.shipment_id as string) || (item.shipment_number as string) || `SHP-00${index + 1}`,
-              amount: Number(item.amount ?? item.price ?? 8500),
-              status: formattedStatus,
-              payee_name: (item.driver_name as string) || (item.payee_name as string) || (item.payee as string) || 'Payee Name',
-            };
-          });
-          setTransactions(fetched);
-        }
+        const fetched: EscrowTransaction[] = items.map((item, index) => {
+          const rawStatus = (item.status as string) || 'HELD';
+          let formattedStatus: 'Held' | 'Released' | 'Pending' | 'Refunded' = 'Held';
+          if (rawStatus.toUpperCase() === 'RELEASED') formattedStatus = 'Released';
+          if (rawStatus.toUpperCase() === 'PENDING') formattedStatus = 'Pending';
+          if (rawStatus.toUpperCase() === 'REFUNDED') formattedStatus = 'Refunded';
+
+          const amt = Number(item.amount ?? item.price ?? 5000);
+          if (formattedStatus === 'Held') total += amt;
+          if (formattedStatus === 'Released') released += amt;
+          if (formattedStatus === 'Pending') pending += amt;
+
+          return {
+            id: item.id ? `ESC-${item.id.slice(0, 6)}` : `ESC-00${index + 1}`,
+            shipment_id: item.shipment_id || item.load_id || `SHP-00${index + 1}`,
+            amount: amt,
+            status: formattedStatus,
+            payee_name: item.payee_name || item.driver_name || 'Carrier',
+          };
+        });
+
+        setTransactions(fetched);
+        setTotalInEscrow(total);
+        setReleasedToday(released);
+        setPendingRelease(pending);
+      } else {
+        setTransactions([]);
+        setTotalInEscrow(0);
+        setReleasedToday(0);
+        setPendingRelease(0);
       }
     } catch (err) {
-      console.warn('Backend API note: loading local escrow transaction records', err);
+      console.error('Error loading payments/escrow:', err);
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleReleaseEscrow = async (tx: EscrowTransaction) => {
-    // Optimistic UI update
     setTransactions((prev) =>
       prev.map((t) => {
         if (t.id === tx.id) {
@@ -110,9 +88,9 @@ export default function AdminPayments() {
     setTotalInEscrow((prev) => Math.max(0, prev - tx.amount));
 
     try {
-      await api.post(`/admin/escrow/${tx.id}/release`, {}, true);
+      await api.patch(`/admin/payments/${tx.id}/release`, {}, true);
     } catch (err) {
-      console.warn(`Escrow released in UI state for ${tx.id}`, err);
+      console.warn(`Payment release error for ${tx.id}`, err);
     }
   };
 
@@ -144,51 +122,11 @@ export default function AdminPayments() {
         {/* Top Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Payments / Escrow</h1>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Payments & Escrow Management</h1>
             <div style={{ fontSize: '0.875rem', color: '#64748B', marginTop: '0.25rem' }}>{formattedDate}</div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {/* Open Disputes Alert Pill */}
-            <Link
-              to="/admin/disputes"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                backgroundColor: '#FEE2E2',
-                color: '#DC2626',
-                padding: '0.4rem 0.9rem',
-                borderRadius: '2rem',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
-            >
-              <span>⚠️</span>
-              <span>2 open disputes</span>
-            </Link>
-
-            {/* Dark Mode Toggle */}
-            <button
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: '#F1F5F9',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1rem',
-              }}
-              title="Toggle Theme"
-            >
-              🌙
-            </button>
-
-            {/* Profile Avatar */}
             <div
               style={{
                 width: '38px',
@@ -217,7 +155,6 @@ export default function AdminPayments() {
             marginBottom: '2rem',
           }}
         >
-          {/* Total in Escrow Card */}
           <div
             style={{
               backgroundColor: '#EFF6FF',
@@ -229,10 +166,9 @@ export default function AdminPayments() {
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#2563EB', marginBottom: '0.35rem' }}>
               ETB {totalInEscrow.toLocaleString()}
             </div>
-            <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#3B82F6' }}>Total in Escrow</div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#3B82F6' }}>Total Held in Escrow</div>
           </div>
 
-          {/* Released Today Card */}
           <div
             style={{
               backgroundColor: '#F0FDF4',
@@ -244,10 +180,9 @@ export default function AdminPayments() {
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#16A34A', marginBottom: '0.35rem' }}>
               ETB {releasedToday.toLocaleString()}
             </div>
-            <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#22C55E' }}>Released Today</div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#22C55E' }}>Total Released</div>
           </div>
 
-          {/* Pending Release Card */}
           <div
             style={{
               backgroundColor: '#FEFCE8',
@@ -259,7 +194,7 @@ export default function AdminPayments() {
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#B45309', marginBottom: '0.35rem' }}>
               ETB {pendingRelease.toLocaleString()}
             </div>
-            <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#D97706' }}>Pending Release</div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#D97706' }}>Pending Clearance</div>
           </div>
         </div>
 
@@ -273,9 +208,10 @@ export default function AdminPayments() {
             border: '1px solid #E2E8F0',
           }}
         >
-          {/* Card Header */}
           <div style={{ marginBottom: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Escrow Transactions</h2>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
+              Escrow & Financial Ledger ({transactions.length})
+            </h2>
           </div>
 
           {/* Table */}
@@ -284,10 +220,10 @@ export default function AdminPayments() {
               <thead>
                 <tr style={{ borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '0.85rem', fontWeight: 600 }}>
                   <th style={{ padding: '0.75rem 1rem 0.75rem 0' }}>Escrow ID</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Shipment</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Shipment / Load</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Amount</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Driver/Payee</th>
+                  <th style={{ padding: '0.75rem 1rem' }}>Payee</th>
                   <th style={{ padding: '0.75rem 0 0.75rem 1rem' }}>Action</th>
                 </tr>
               </thead>
@@ -339,7 +275,6 @@ export default function AdminPayments() {
                               fontSize: '0.825rem',
                               fontWeight: 600,
                               cursor: 'pointer',
-                              transition: 'background-color 0.2s',
                             }}
                           >
                             Release
@@ -422,11 +357,6 @@ export default function AdminPayments() {
                 <strong style={{ color: '#2563EB', fontSize: '1.1rem' }}>
                   ETB {selectedTxModal.amount.toLocaleString()}
                 </strong>
-              </div>
-
-              <div>
-                <span style={{ color: '#64748B', display: 'block', fontSize: '0.8rem' }}>BENEFICIARY / PAYEE</span>
-                <span style={{ color: '#0F172A' }}>{selectedTxModal.payee_name}</span>
               </div>
 
               <div>

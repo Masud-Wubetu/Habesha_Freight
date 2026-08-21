@@ -6,10 +6,10 @@ export default function CompanyProfile() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-50">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-slate-600 font-medium">Loading company profile...</p>
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
+          <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-slate-600 font-medium text-sm">Loading company profile...</p>
         </div>
       </div>
     );
@@ -41,7 +41,7 @@ export default function CompanyProfile() {
         </div>
         <div className="pt-4 flex justify-end">
           <Link
-            to="/company/company-profile"
+            to="/company/settings"
             className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow-md"
           >
             Edit Profile

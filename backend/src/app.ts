@@ -2,6 +2,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import path from 'path';
 import type { Knex } from 'knex';
 
 import db from './config/db';
@@ -15,18 +16,24 @@ import escrowRoutes from './routes/escrowRoutes';
 import trackingRoutes from './routes/trackingRoutes';
 import disputeRoutes from './routes/disputeRoutes';
 import reviewRoutes from './routes/reviewRoutes';
+import messageRoutes from './routes/messageRoutes';
 import driverRoutes from './routes/driverRoutes';
+import shipperRoutes from './routes/shipperRoutes';
+import companyRoutes from './routes/companyRoutes';
 
 dotenv.config();
 
 export function createApp(database: Knex = db): Express {
   const app = express();
 
-  // Security middleware
-  app.use(helmet());
+  // Security middleware with cross-origin resource policy allowed for media/uploads
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Serve uploaded files & documents statically
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // Health check endpoint
   app.get('/health', (_req: Request, res: Response) => {
@@ -43,6 +50,9 @@ export function createApp(database: Knex = db): Express {
   // API Routes
   app.use('/api/auth', authRoutes);
   app.use('/api/drivers', driverRoutes);
+  app.use('/api/driver', driverRoutes);
+  app.use('/api/shipper', shipperRoutes);
+  app.use('/api/company', companyRoutes);
   app.use('/api/admin', createAdminRouter(database));
   app.use('/api/loads', loadRoutes);
   app.use('/api/bids', bidRoutes);
@@ -52,6 +62,7 @@ export function createApp(database: Knex = db): Express {
   app.use('/api/tracking', trackingRoutes);
   app.use('/api/disputes', disputeRoutes);
   app.use('/api/reviews', reviewRoutes);
+  app.use('/api/messages', messageRoutes);
 
   // 404 handler
   app.use((_req: Request, res: Response) => {
@@ -99,6 +110,3 @@ export function createApp(database: Knex = db): Express {
 
   return app;
 }
-
-// Export only the function, not a default instance
-// Remove: export default createApp();

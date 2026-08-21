@@ -26,6 +26,8 @@ export interface AuthUser {
   email?: string | null;
   role: BackendRole;
   is_verified?: boolean;
+  status?: string;
+  kyc_status?: string;
 }
 
 export interface LoadStat {
