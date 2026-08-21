@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d habeshafreight"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,7 +34,7 @@ services:
     build: .
     container_name: habeshafreight_app
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: habeshafreight
@@ -51,12 +51,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    volumes:
-      - .:/app
-      - /app/node_modules
     networks:
       - habeshafreight_network
-    command: npm run dev
 
 volumes:
   postgres_data:

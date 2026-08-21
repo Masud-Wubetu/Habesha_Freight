@@ -311,7 +311,7 @@ export async function acceptLoadPrice(req: AuthenticatedRequest, res: Response) 
         .insert({
           driver_id: driverId,
           plate_number: 'ETH-TMP-' + Math.floor(1000 + Math.random() * 9000),
-          vehicle_type: 'Heavy Flatbed',
+          vehicle_type: 'TRAILER',
           capacity_tons: load.weight_tons || 20,
           is_active: true,
           verification_status: 'VERIFIED',

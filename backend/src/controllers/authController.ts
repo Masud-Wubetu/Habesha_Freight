@@ -54,8 +54,8 @@ export async function register(req: Request, res: Response) {
     }
 
     const isDriverOrFleet = targetRole === 'DRIVER' || targetRole === 'FLEET_OWNER';
-    const initialKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
-    const initialStatus = isDriverOrFleet ? 'PENDING_APPROVAL' : 'ACTIVE';
+  const initialKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
+const initialStatus = 'ACTIVE';
 
     const generatedPhone = `+2519${Math.floor(10000000 + Math.random() * 90000000)}`;
     const finalPhoneNumber = phone_number && phone_number.trim() ? phone_number.trim() : generatedPhone;

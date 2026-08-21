@@ -20,7 +20,7 @@ export default function CompanyVehicles() {
   const [newVehicle, setNewVehicle] = useState({
     plate: '',
     model: '',
-    type: 'Flatbed',
+    type: 'TRAILER',
     capacity: '10t',
     driver: '',
   });
@@ -41,7 +41,7 @@ export default function CompanyVehicles() {
             id: v.id,
             plate: v.plateNumber || v.plate || 'AA-00000',
             model: v.model || v.makeModel || 'Isuzu Truck',
-            type: v.type || 'Flatbed',
+            type: v.type || 'TRAILER',
             capacity: v.capacity ? `${v.capacity}t` : '10t',
             driver: v.driverName || v.driver || 'Unassigned',
             status: (v.status || 'AVAILABLE').toUpperCase() as any,
@@ -49,20 +49,20 @@ export default function CompanyVehicles() {
         );
       } else {
         setVehicles([
-          { plate: 'AAU-3421', model: 'Isuzu FSR', type: 'Flatbed', capacity: '10t', driver: 'Abebe Girma', status: 'AVAILABLE' },
-          { plate: 'AA-45892', model: 'Mercedes Actros', type: 'Refrigerated', capacity: '20t', driver: 'Tesfaye Haile', status: 'IN_TRANSIT' },
-          { plate: 'AA-11034', model: 'Volvo FH', type: 'Tanker', capacity: '25t', driver: 'Selam Tadesse', status: 'AVAILABLE' },
+          { plate: 'AAU-3421', model: 'Isuzu FSR', type: 'TRAILER', capacity: '10t', driver: 'Abebe Girma', status: 'AVAILABLE' },
+          { plate: 'AA-45892', model: 'Mercedes Actros', type: 'VAN', capacity: '20t', driver: 'Tesfaye Haile', status: 'IN_TRANSIT' },
+          { plate: 'AA-11034', model: 'Volvo FH', type: 'SINO_TRUCK', capacity: '25t', driver: 'Selam Tadesse', status: 'AVAILABLE' },
           { plate: 'AA-77821', model: 'Isuzu NPR', type: 'Box Truck', capacity: '5t', driver: 'Unassigned', status: 'MAINTENANCE' },
-          { plate: 'AA-92340', model: 'Sino Howo', type: 'Flatbed', capacity: '30t', driver: 'Kibru Alemu', status: 'IN_TRANSIT' },
+          { plate: 'AA-92340', model: 'Sino Howo', type: 'TRAILER', capacity: '30t', driver: 'Kibru Alemu', status: 'IN_TRANSIT' },
         ]);
       }
     } catch (err) {
       setVehicles([
-        { plate: 'AAU-3421', model: 'Isuzu FSR', type: 'Flatbed', capacity: '10t', driver: 'Abebe Girma', status: 'AVAILABLE' },
-        { plate: 'AA-45892', model: 'Mercedes Actros', type: 'Refrigerated', capacity: '20t', driver: 'Tesfaye Haile', status: 'IN_TRANSIT' },
-        { plate: 'AA-11034', model: 'Volvo FH', type: 'Tanker', capacity: '25t', driver: 'Selam Tadesse', status: 'AVAILABLE' },
+        { plate: 'AAU-3421', model: 'Isuzu FSR', type: 'TRAILER', capacity: '10t', driver: 'Abebe Girma', status: 'AVAILABLE' },
+        { plate: 'AA-45892', model: 'Mercedes Actros', type: 'VAN', capacity: '20t', driver: 'Tesfaye Haile', status: 'IN_TRANSIT' },
+        { plate: 'AA-11034', model: 'Volvo FH', type: 'SINO_TRUCK', capacity: '25t', driver: 'Selam Tadesse', status: 'AVAILABLE' },
         { plate: 'AA-77821', model: 'Isuzu NPR', type: 'Box Truck', capacity: '5t', driver: 'Unassigned', status: 'MAINTENANCE' },
-        { plate: 'AA-92340', model: 'Sino Howo', type: 'Flatbed', capacity: '30t', driver: 'Kibru Alemu', status: 'IN_TRANSIT' },
+        { plate: 'AA-92340', model: 'Sino Howo', type: 'TRAILER', capacity: '30t', driver: 'Kibru Alemu', status: 'IN_TRANSIT' },
       ]);
     } finally {
       setLoading(false);
@@ -106,7 +106,7 @@ export default function CompanyVehicles() {
     }
 
     setIsModalOpen(false);
-    setNewVehicle({ plate: '', model: '', type: 'Flatbed', capacity: '10t', driver: '' });
+    setNewVehicle({ plate: '', model: '', type: 'TRAILER', capacity: '10t', driver: '' });
   };
 
   return (
@@ -230,10 +230,10 @@ export default function CompanyVehicles() {
                     onChange={(e) => setNewVehicle({ ...newVehicle, type: e.target.value })}
                     className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500"
                   >
-                    <option value="Flatbed">Flatbed</option>
+                    <option value="TRAILER">TRAILER</option>
                     <option value="Box Truck">Box Truck</option>
-                    <option value="Refrigerated">Refrigerated</option>
-                    <option value="Tanker">Tanker</option>
+                    <option value="VAN">VAN</option>
+                    <option value="SINO_TRUCK">SINO_TRUCK</option>
                   </select>
                 </div>
 
