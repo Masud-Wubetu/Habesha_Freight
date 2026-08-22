@@ -128,7 +128,7 @@ export default function Home() {
       </section>
 
       {/* 4. FEATURES */}
-      <section className="section-padding">
+      <section id="features" className="section-padding">
         <div className="container" style={{ textAlign: 'center' }}>
           <h2 className="features-title" style={{
             fontFamily: 'Instrument Serif, serif',
@@ -178,7 +178,7 @@ export default function Home() {
       </section>
 
       {/* 5. KEY ETHIOPIAN CORRIDORS */}
-      <section className="bg-navy section-padding">
+      <section id="routes" className="bg-navy section-padding">
         <div className="container" style={{ textAlign: 'center' }}>
           <h2 className="routes-title" style={{
             fontFamily: 'Instrument Serif, serif',
