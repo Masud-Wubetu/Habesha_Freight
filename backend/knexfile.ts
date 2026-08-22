@@ -46,12 +46,18 @@ const config: { [key: string]: Knex.Config } = {
   },
   production: {
     client: 'pg',
-    connection: process.env.DATABASE_URL,
+    connection: {
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT || 5432),
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+    },
     migrations: {
-      directory: './dist/database/migrations',
+      directory: './src/database/migrations',
     },
     seeds: {
-      directory: './dist/database/seeds',
+      directory: './src/database/seeds',
     },
   },
 };
