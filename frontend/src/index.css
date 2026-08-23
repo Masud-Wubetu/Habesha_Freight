@@ -3615,3 +3615,21 @@ body.dark-mode textarea {
 body.dark-mode tr {
   border-bottom-color: rgba(255, 255, 255, 0.08) !important;
 }
+
+/* Hide Scrollbar Teller Across Sidebar and Dashboard Containers */
+.no-scrollbar::-webkit-scrollbar,
+aside::-webkit-scrollbar,
+nav::-webkit-scrollbar,
+.admin-sidebar-nav::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+aside,
+nav,
+.admin-sidebar-nav {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}

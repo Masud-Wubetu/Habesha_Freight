@@ -66,7 +66,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav style={{ flex: 1, padding: '1rem 0.75rem', overflowY: 'auto' }}>
+        <nav className="no-scrollbar admin-sidebar-nav" style={{ flex: 1, padding: '1rem 0.75rem', overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
           {adminNavItems.map((item) => (
             <NavLink
               key={item.path}
