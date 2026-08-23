@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { getStoredUser } from '../../services/authService';
 import { useDriverShipments } from '../../hooks/useDriverShipments';
 import { post } from '../../services/api';
-import '../../styles/active-delivery.css';
 
 /* ── Types ───────────────────────────────────────────────── */
 interface Message {

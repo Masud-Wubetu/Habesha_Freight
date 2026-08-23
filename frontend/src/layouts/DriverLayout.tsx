@@ -2,7 +2,6 @@ import { ReactNode, useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { clearSession, getStoredUser } from '../services/authService';
 import { toggleTheme } from '../services/themeService';
-import '../styles/driver-layout.css';
 
 interface DriverLayoutProps {
   children: ReactNode;

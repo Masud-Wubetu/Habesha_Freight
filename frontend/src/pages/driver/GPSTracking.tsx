@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GoogleMapView from '../../components/GoogleMapView';
 import { post } from '../../services/api';
-import '../../styles/active-delivery.css';
 
 export default function GPSTracking() {
   const navigate = useNavigate();
