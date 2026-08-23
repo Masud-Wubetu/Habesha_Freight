@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { clearSession, getStoredUser } from '../services/authService';
+import { toggleTheme } from '../services/themeService';
 import '../styles/driver-layout.css';
 
 interface DriverLayoutProps {
@@ -134,14 +135,33 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
             </div>
           </div>
 
-          <button
-            id="dl-logout-btn"
-            className="dl-logout-btn"
-            type="button"
-            onClick={handleLogout}
-          >
-            ← Log Out
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem' }}>
+            <button
+              id="dl-logout-btn"
+              className="dl-logout-btn"
+              type="button"
+              onClick={handleLogout}
+            >
+              ← Log Out
+            </button>
+
+            <button
+              onClick={() => toggleTheme()}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: 'none',
+                borderRadius: '0.4rem',
+                color: '#FFFFFF',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                padding: '0.3rem 0.6rem',
+                cursor: 'pointer',
+              }}
+              title="Toggle Light/Dark Theme"
+            >
+              🌙 / ☀️
+            </button>
+          </div>
         </div>
       </aside>
 

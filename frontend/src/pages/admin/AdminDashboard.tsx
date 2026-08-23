@@ -49,15 +49,15 @@ export default function AdminDashboard() {
 
       const data = res?.data ?? res;
 
-      if (data && (data.totalUsers !== undefined || data.users !== undefined || data.totalDrivers !== undefined)) {
+      if (data) {
         setStats({
-          totalUsers: Number(data.totalUsers ?? 12),
-          totalDrivers: Number(data.totalDrivers ?? 3),
-          totalCompanies: Number(data.totalFleetOwners ?? data.totalCompanies ?? 4),
-          totalVehicles: Number(data.totalVehicles ?? 1),
+          totalUsers: Number(data.totalUsers ?? 0),
+          totalDrivers: Number(data.totalDrivers ?? 0),
+          totalCompanies: Number(data.totalFleetOwners ?? data.totalCompanies ?? 0),
+          totalVehicles: Number(data.totalVehicles ?? 0),
           activeDeliveries: Number(data.activeShipments ?? data.totalLoads ?? 0),
           completedDeliveries: Number(data.completedShipments ?? 0),
-          pendingRequests: Number(data.pendingKyc ?? 2),
+          pendingRequests: Number(data.pendingKyc ?? 0),
           openDisputes: Number(data.activeDisputes ?? 0),
         });
       }

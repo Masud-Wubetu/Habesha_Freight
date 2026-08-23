@@ -3559,3 +3559,59 @@ a {
     text-align: center;
   }
 }
+
+/* Comprehensive Dark Mode Theme Support Across All Dashboards */
+body.dark-mode,
+[data-theme="dark"] {
+  background-color: #070F19 !important;
+  color: #F8FAFC !important;
+}
+
+body.dark-mode div[style*="background-color: #F4F6F9"],
+body.dark-mode div[style*="backgroundColor: '#F4F6F9'"],
+body.dark-mode div[style*="background-color: #f5f7fa"],
+body.dark-mode div[style*="backgroundColor: '#f5f7fa'"],
+body.dark-mode div[style*="background-color: #F8FAFC"] {
+  background-color: #070F19 !important;
+}
+
+body.dark-mode div[style*="background-color: #FFFFFF"],
+body.dark-mode div[style*="backgroundColor: '#FFFFFF'"],
+body.dark-mode div[style*="background-color: #ffffff"],
+body.dark-mode div[style*="backgroundColor: '#ffffff'"],
+body.dark-mode card,
+body.dark-mode table {
+  background-color: #0D1E30 !important;
+  color: #F8FAFC !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode strong,
+body.dark-mode td,
+body.dark-mode th {
+  color: #F8FAFC !important;
+}
+
+body.dark-mode p,
+body.dark-mode span:not([class*="badge"]),
+body.dark-mode div {
+  color: inherit;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background-color: #13273D !important;
+  color: #F8FAFC !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.dark-mode tr {
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}

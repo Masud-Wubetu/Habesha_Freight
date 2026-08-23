@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { clearSession, getStoredUser } from '../services/authService';
+import { getTheme, toggleTheme } from '../services/themeService';
+import { useState } from 'react';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -23,6 +23,12 @@ const adminNavItems = [
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const user = getStoredUser();
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(getTheme());
+
+  const handleToggleTheme = () => {
+    const next = toggleTheme();
+    setThemeMode(next);
+  };
 
   const handleLogout = () => {
     clearSession();
@@ -110,22 +116,44 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Super Admin</div>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(255,255,255,0.5)',
-              fontSize: '0.825rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              padding: 0,
-            }}
-          >
-            ← Log Out
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button
+              onClick={handleLogout}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'rgba(255,255,255,0.5)',
+                fontSize: '0.825rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: 0,
+              }}
+            >
+              ← Log Out
+            </button>
+
+            <button
+              onClick={handleToggleTheme}
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: 'none',
+                borderRadius: '0.4rem',
+                color: '#FFFFFF',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                padding: '0.3rem 0.6rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+              }}
+              title="Toggle Light/Dark Theme"
+            >
+              {themeMode === 'dark' ? '☀️ Light' : '🌙 Dark'}
+            </button>
+          </div>
         </div>
       </aside>
 

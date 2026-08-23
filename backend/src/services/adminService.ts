@@ -399,6 +399,10 @@ export async function getAdminDashboard(dbClient: Knex = db): Promise<AdminRespo
   const bidsTable = await tableExists(dbClient, 'bids');
   const auditTable = await tableExists(dbClient, 'audit_logs');
 
+  const shipmentsTable = await tableExists(dbClient, 'shipments');
+  const disputesTable = await tableExists(dbClient, 'disputes');
+  const escrowTable = await tableExists(dbClient, 'escrow_ledger');
+
   const dashboard: Record<string, unknown> = {
     totalUsers: 0,
     totalShippers: 0,
@@ -406,15 +410,15 @@ export async function getAdminDashboard(dbClient: Knex = db): Promise<AdminRespo
     totalFleetOwners: 0,
     totalVehicles: 0,
     totalLoads: 0,
-    activeShipments: 'not configured - no shipments table found',
-    completedShipments: 'not configured - no shipments table found',
-    cancelledShipments: 'not configured - no shipments table found',
-    pendingKyc: 'not configured - no KYC status column found',
-    pendingVehicleVerification: 'not configured - no verification_status column found',
-    activeDisputes: 'not configured - no disputes table found',
-    escrowBalance: 'not configured - no escrow table found',
-    totalTransactionAmount: 'not configured - no transactions table found',
-    platformCommission: 'not configured - no commission ledger found',
+    activeShipments: 0,
+    completedShipments: 0,
+    cancelledShipments: 0,
+    pendingKyc: 0,
+    pendingVehicleVerification: 0,
+    activeDisputes: 0,
+    escrowBalance: 0,
+    totalTransactionAmount: 0,
+    platformCommission: 0,
   };
 
   if (usersTable) {
@@ -435,7 +439,7 @@ export async function getAdminDashboard(dbClient: Knex = db): Promise<AdminRespo
     const hasKycStatus = await hasColumn(dbClient, 'users', 'kyc_status');
     if (hasKycStatus) {
       const kycStats = (await dbClient('users')
-        .select(dbClient.raw('COUNT(*) FILTER (WHERE kyc_status = ?) as "pendingKyc"', ['PENDING']))
+        .select(dbClient.raw('COUNT(*) FILTER (WHERE kyc_status = ?)::int as "pendingKyc"', ['PENDING']))
         .first()) as Record<string, unknown> | undefined;
       dashboard.pendingKyc = Number(kycStats?.pendingKyc ?? 0);
     } else {
@@ -454,7 +458,7 @@ export async function getAdminDashboard(dbClient: Knex = db): Promise<AdminRespo
     const hasVerificationStatus = await hasColumn(dbClient, 'vehicles', 'verification_status');
     if (hasVerificationStatus) {
       const verificationStats = (await dbClient('vehicles')
-        .select(dbClient.raw('COUNT(*) FILTER (WHERE verification_status = ?) as "pendingVehicleVerification"', ['PENDING']))
+        .select(dbClient.raw('COUNT(*) FILTER (WHERE verification_status = ?)::int as "pendingVehicleVerification"', ['PENDING']))
         .first()) as Record<string, unknown> | undefined;
       dashboard.pendingVehicleVerification = Number(verificationStats?.pendingVehicleVerification ?? 0);
     }
@@ -467,8 +471,40 @@ export async function getAdminDashboard(dbClient: Knex = db): Promise<AdminRespo
     dashboard.totalLoads = Number(loadStats?.totalLoads ?? 0);
   }
 
-  if (bidsTable && (await tableExists(dbClient, 'bids'))) {
-    dashboard.platformCommission = 'not configured - no payment ledger exists';
+  if (shipmentsTable) {
+    const shipmentStats = (await dbClient('shipments')
+      .select(
+        dbClient.raw('COUNT(*) FILTER (WHERE status IN (?, ?, ?))::int as "activeShipments"', ['ASSIGNED', 'DISPATCHED', 'IN_TRANSIT']),
+        dbClient.raw('COUNT(*) FILTER (WHERE status = ?)::int as "completedShipments"', ['DELIVERED']),
+        dbClient.raw('COUNT(*) FILTER (WHERE status = ?)::int as "cancelledShipments"', ['CANCELLED'])
+      )
+      .first()) as Record<string, unknown> | undefined;
+
+    dashboard.activeShipments = Number(shipmentStats?.activeShipments ?? 0);
+    dashboard.completedShipments = Number(shipmentStats?.completedShipments ?? 0);
+    dashboard.cancelledShipments = Number(shipmentStats?.cancelledShipments ?? 0);
+  }
+
+  if (disputesTable) {
+    const disputeStats = (await dbClient('disputes')
+      .select(dbClient.raw('COUNT(*) FILTER (WHERE status IN (?, ?))::int as "activeDisputes"', ['OPEN', 'PENDING']))
+      .first()) as Record<string, unknown> | undefined;
+
+    dashboard.activeDisputes = Number(disputeStats?.activeDisputes ?? 0);
+  }
+
+  if (escrowTable) {
+    const escrowStats = (await dbClient('escrow_ledger')
+      .select(
+        dbClient.raw('SUM(gross_amount_etb) FILTER (WHERE status = ?)::numeric as "escrowBalance"', ['LOCKED']),
+        dbClient.raw('SUM(gross_amount_etb)::numeric as "totalTransactionAmount"'),
+        dbClient.raw('SUM(commission_amount_etb)::numeric as "platformCommission"')
+      )
+      .first()) as Record<string, unknown> | undefined;
+
+    dashboard.escrowBalance = Number(escrowStats?.escrowBalance ?? 0);
+    dashboard.totalTransactionAmount = Number(escrowStats?.totalTransactionAmount ?? 0);
+    dashboard.platformCommission = Number(escrowStats?.platformCommission ?? 0);
   }
 
   if (auditTable) {

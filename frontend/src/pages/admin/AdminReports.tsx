@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
+import { toggleTheme } from '../../services/themeService';
 import AdminLayout from '../../layouts/AdminLayout';
 
 interface ReportCardData {
@@ -106,15 +107,93 @@ export default function AdminReports() {
     }
   };
 
-  const handleDownloadCSV = (report: ReportCardData) => {
-    const blob = new Blob([report.csvData], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', report.csvFilename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const [openDisputesCount, setOpenDisputesCount] = useState(0);
+
+  useEffect(() => {
+    fetchLiveMetrics();
+  }, []);
+
+  const fetchLiveMetrics = async () => {
+    try {
+      const res: any = await api.get('/admin/dashboard', true).catch(() => null);
+      if (res?.data?.activeDisputes !== undefined) {
+        setOpenDisputesCount(Number(res.data.activeDisputes));
+      }
+    } catch (err) {
+      console.warn('Dashboard metrics query:', err);
+    }
+  };
+
+  const handleDownloadCSV = async (report: ReportCardData) => {
+    try {
+      let liveCsvText = '';
+      let filename = report.csvFilename;
+
+      if (report.id === 'shipments-by-route') {
+        const res: any = await api.get('/admin/loads', true).catch(() => null);
+        const items: any[] = res?.data?.items || res?.items || res?.deliveries || res?.loads || [];
+        
+        const headers = ['Load ID', 'Shipper Name', 'Driver Name', 'Origin', 'Destination', 'Status', 'Offered Price (ETB)', 'Cargo Type'];
+        const rows = items.map((item, idx) => [
+          `"LOAD-${item.id ? item.id.slice(0, 6) : idx + 1}"`,
+          `"${item.shipper_name || 'Shipper'}"`,
+          `"${item.driver_name || '—'}"`,
+          `"${item.origin || 'Addis Ababa'}"`,
+          `"${item.destination || 'Regional'}"`,
+          `"${item.status || 'POSTED'}"`,
+          `"${item.offered_price || item.budget || 5000}"`,
+          `"${item.cargo_type || 'General Freight'}"`,
+        ].join(','));
+
+        liveCsvText = [headers.join(','), ...rows].join('\n');
+        if (items.length === 0) liveCsvText = report.csvData;
+      } else if (report.id === 'escrow-turnover' || report.id === 'revenue-by-week') {
+        const res: any = await api.get('/escrow/ledger/all', true).catch(() => null);
+        const items: any[] = res?.data || res?.ledger || [];
+
+        const headers = ['Ledger ID', 'Shipment ID', 'Status', 'Gross Amount (ETB)', 'Commission (5%)', 'Net Driver Payout', 'Timestamp'];
+        const rows = items.map((item) => [
+          `"${item.id || ''}"`,
+          `"${item.shipment_id || ''}"`,
+          `"${item.status || 'LOCKED'}"`,
+          `"${item.gross_amount_etb || 0}"`,
+          `"${item.commission_amount_etb || 0}"`,
+          `"${item.net_payout_amount_etb || 0}"`,
+          `"${item.created_at || new Date().toISOString()}"`,
+        ].join(','));
+
+        liveCsvText = [headers.join(','), ...rows].join('\n');
+        if (items.length === 0) liveCsvText = report.csvData;
+      } else {
+        const res: any = await api.get('/admin/users', true).catch(() => null);
+        const items: any[] = res?.data?.users || res?.users || [];
+
+        const headers = ['User ID', 'Full Name', 'Phone Number', 'Email', 'Role', 'Status', 'KYC Status'];
+        const rows = items.map((item) => [
+          `"${item.id || ''}"`,
+          `"${item.full_name || ''}"`,
+          `"${item.phone_number || ''}"`,
+          `"${item.email || ''}"`,
+          `"${item.role || 'DRIVER'}"`,
+          `"${item.status || (item.is_verified ? 'ACTIVE' : 'INACTIVE')}"`,
+          `"${item.kyc_status || 'APPROVED'}"`,
+        ].join(','));
+
+        liveCsvText = [headers.join(','), ...rows].join('\n');
+        if (items.length === 0) liveCsvText = report.csvData;
+      }
+
+      const blob = new Blob([liveCsvText], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('CSV export error:', err);
+    }
   };
 
   const formattedDate = new Date().toLocaleDateString('en-US', {
@@ -152,11 +231,12 @@ export default function AdminReports() {
               }}
             >
               <span>⚠️</span>
-              <span>2 open disputes</span>
+              <span>{openDisputesCount} open disputes</span>
             </Link>
 
             {/* Dark Mode Toggle */}
             <button
+              onClick={() => toggleTheme()}
               style={{
                 width: '36px',
                 height: '36px',
