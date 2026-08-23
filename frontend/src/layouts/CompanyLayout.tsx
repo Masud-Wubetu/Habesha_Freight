@@ -33,7 +33,7 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
   const [isResizing, setIsResizing] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const { companyName, totalVehicles, pendingRequests } = useCompanySidebar();
+  const { companyName } = useCompanySidebar();
 
   const initials = (companyName || user?.full_name || 'ET')
     .split(' ')
@@ -188,21 +188,6 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
         {/* Nav */}
         <nav className="dl-nav no-scrollbar" aria-label="Company navigation" style={{ overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
           {NAV_ITEMS.map((item) => {
-            let badge = null;
-            if (item.label === 'Fleet Requests' && pendingRequests) {
-              badge = (
-                <span className="ml-2 text-xs font-medium text-amber-600 bg-amber-100 rounded-full px-2 py-0.5">
-                  {pendingRequests}
-                </span>
-              );
-            }
-            if (item.label === 'Vehicles / Fleet' && totalVehicles) {
-              badge = (
-                <span className="ml-2 text-xs font-medium text-slate-600 bg-slate-100 rounded-full px-2 py-0.5">
-                  {totalVehicles}
-                </span>
-              );
-            }
             return (
               <NavLink
                 key={item.path}
@@ -213,7 +198,7 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
                 style={{ justifyContent: isCollapsed ? 'center' : 'flex-start', whiteSpace: 'nowrap' }}
               >
                 <span className="dl-nav-icon">{item.icon}</span>
-                {!isCollapsed && <span className="dl-nav-label">{item.label}{badge}</span>}
+                {!isCollapsed && <span className="dl-nav-label">{item.label}</span>}
               </NavLink>
             );
           })}
