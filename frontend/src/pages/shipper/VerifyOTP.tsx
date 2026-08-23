@@ -14,21 +14,12 @@ export default function VerifyOTP() {
   const [canResend, setCanResend] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
   const [email, setEmail] = useState('');
-  const [demoCode, setDemoCode] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     const savedEmail = localStorage.getItem('registrationEmail');
     if (savedEmail) {
       setEmail(savedEmail);
-    }
-    const savedDemoOtp = localStorage.getItem('demoOtp');
-    if (savedDemoOtp) {
-      setDemoCode(savedDemoOtp);
-      const digits = String(savedDemoOtp).split('').slice(0, 6);
-      if (digits.length === 6) {
-        setOtp(digits);
-      }
     }
   }, []);
 
@@ -124,19 +115,12 @@ export default function VerifyOTP() {
     }
     try {
       setResendMessage('Sending new OTP code...');
-      const res: any = await api.post('/auth/resend-otp', { email: email.trim() });
+      await api.post('/auth/resend-otp', { email: email.trim() });
       setOtp(['', '', '', '', '', '']);
       setOtpError('');
       setResendTimer(60);
       setCanResend(false);
       setResendMessage('New OTP sent to your email!');
-      const newOtp = res?.data?.demo_otp || res?.demo_otp || res?.otp;
-      if (newOtp) {
-        setDemoCode(String(newOtp));
-        localStorage.setItem('demoOtp', String(newOtp));
-        const digits = String(newOtp).split('').slice(0, 6);
-        if (digits.length === 6) setOtp(digits);
-      }
     } catch (err: any) {
       setOtpError(err.message || 'Failed to resend OTP.');
       setResendMessage('');
@@ -185,22 +169,6 @@ export default function VerifyOTP() {
               className="form-input"
             />
           </div>
-
-          {demoCode && (
-            <div className="otp-demo-badge" style={{
-              backgroundColor: '#eff6ff',
-              border: '1px solid #bfdbfe',
-              borderRadius: '6px',
-              padding: '8px 12px',
-              color: '#1e40af',
-              fontSize: '13px',
-              fontWeight: 600,
-              textAlign: 'center',
-              marginBottom: '16px'
-            }}>
-              🔑 Dev Mode OTP Code: <strong>{demoCode}</strong>
-            </div>
-          )}
 
           <div className="otp-container">
             <div className="otp-inputs">

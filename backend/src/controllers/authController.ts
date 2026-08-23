@@ -54,8 +54,8 @@ export async function register(req: Request, res: Response) {
     }
 
     const isDriverOrFleet = targetRole === 'DRIVER' || targetRole === 'FLEET_OWNER';
-  const initialKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
-const initialStatus = 'ACTIVE';
+    const initialKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
+    const initialStatus = isDriverOrFleet ? 'PENDING_APPROVAL' : 'ACTIVE';
 
     const generatedPhone = `+2519${Math.floor(10000000 + Math.random() * 90000000)}`;
     const finalPhoneNumber = phone_number && phone_number.trim() ? phone_number.trim() : generatedPhone;
@@ -85,15 +85,31 @@ const initialStatus = 'ACTIVE';
       .insert(insertData)
       .returning(['id', 'full_name', 'email', 'phone_number', 'role', 'is_verified', 'kyc_status', 'status']);
 
-    // Send real Email OTP in background
-    emailService.sendOtpEmail(normalizedEmail, otp, full_name).catch((err) => {
-      console.error('❌ [BACKGROUND EMAIL ERROR]:', err);
-    });
+    const token = isDriverOrFleet
+      ? generateToken({
+          userId: newUser.id,
+          role: newUser.role,
+          phoneNumber: newUser.phone_number,
+          email: newUser.email,
+        })
+      : null;
+
+    if (!isDriverOrFleet) {
+      // Send real Email OTP via Nodemailer for SHIPPER only
+      emailService.sendOtpEmail(normalizedEmail, otp, full_name).catch((err) => {
+        console.error('❌ [BACKGROUND EMAIL ERROR]:', err);
+      });
+    }
 
     return res.status(201).json({
       success: true,
-      message: 'Registration successful. A 6-digit OTP has been sent to your email address.',
-      data: { user: newUser, demo_otp: otp },
+      message: isDriverOrFleet
+        ? 'Registration successful. Your account has been submitted for Admin approval.'
+        : 'Registration successful. A 6-digit OTP has been sent to your email address.',
+      data: {
+        user: newUser,
+        token: token || undefined,
+      },
     });
   } catch (error) {
     console.error('Registration Error:', error);
@@ -134,12 +150,14 @@ export async function verifyOtp(req: Request, res: Response) {
 
     const isDriverOrFleet = user.role === 'DRIVER' || user.role === 'FLEET_OWNER';
     const updatedKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
+    const updatedStatus = isDriverOrFleet ? 'PENDING_APPROVAL' : 'ACTIVE';
 
     await db('users')
       .where({ id: user.id })
       .update({
         is_verified: true,
         kyc_status: updatedKycStatus,
+        status: updatedStatus,
         otp_code: null,
         otp_expires_at: null,
       });
@@ -166,7 +184,7 @@ export async function verifyOtp(req: Request, res: Response) {
           role: user.role,
           is_verified: true,
           kyc_status: updatedKycStatus,
-          status: user.status,
+          status: updatedStatus,
         },
       },
     });
@@ -253,13 +271,12 @@ export async function login(req: Request, res: Response) {
       });
     }
 
-    if (!user.is_verified) {
+    if (!user.is_verified && user.role === 'SHIPPER') {
       return res.status(401).json({
         success: false,
         message: 'Your email address is not verified. Please verify your OTP code.',
         requires_otp_verification: true,
         email: user.email,
-        demo_otp: user.otp_code,
       });
     }
 

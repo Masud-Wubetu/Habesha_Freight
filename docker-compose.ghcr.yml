@@ -18,11 +18,9 @@ services:
       timeout: 5s
       retries: 5
 
-  # 2. Node.js Express Backend Service
+  # 2. Production Node.js Backend from GHCR
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/masud-wubetu/habesha_freight-backend:latest
     container_name: habesha_freight_backend
     restart: always
     environment:
@@ -40,11 +38,9 @@ services:
       postgres:
         condition: service_healthy
 
-  # 3. Nginx Static Frontend Service
+  # 3. Production Nginx Frontend from GHCR
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/masud-wubetu/habesha_freight-frontend:latest
     container_name: habesha_freight_frontend
     restart: always
     ports:

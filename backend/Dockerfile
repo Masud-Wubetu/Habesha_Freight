@@ -5,26 +5,29 @@ WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json ./
-
-# Install all dependencies required for building
 RUN npm ci
 
 # Copy source code and build
 COPY tsconfig.json ./
+COPY knexfile.ts ./
 COPY src ./src
 RUN npm run build
 
-# Stage 2: Production Lightweight Image
+# Stage 2: Production Image
 FROM node:20-alpine AS runner
 
 WORKDIR /app
-ENV NODE_ENV=production
 
-# Install production dependencies only
+# Copy package files and install dependencies
 COPY package*.json ./
+RUN npm ci
 
-# Copy compiled JS from builder
+# Copy compiled JS, source code, and knexfile for CLI migrations
+COPY knexfile.ts ./
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src ./src
+
+ENV NODE_ENV=production
 
 # Expose server port
 EXPOSE 5000
