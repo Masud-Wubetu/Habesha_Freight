@@ -1,7 +1,6 @@
 // src/pages/shipper/ShipperProfile.tsx
 import { useState, useEffect } from 'react';
 import { get } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser, fetchCurrentUser, updateUserProfile } from '../../services/authService';
 
 interface UserProfile {
@@ -25,7 +24,6 @@ const today = new Date().toLocaleDateString('en-US', {
 const formatCurrency = (n: number) => `ETB ${Number(n).toLocaleString()}`;
 
 export default function ShipperProfile() {
-  const { theme, toggleTheme } = useTheme();
   const storedUser = getStoredUser();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);

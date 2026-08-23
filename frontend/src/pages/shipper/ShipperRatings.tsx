@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { get } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
 
 interface Review {
@@ -47,7 +46,6 @@ const getDerivedTags = (rating: number, comment: string = ''): string[] => {
 
 export default function ShipperRatings() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const user = getStoredUser();
 
   const [reviews, setReviews] = useState<Review[]>([]);

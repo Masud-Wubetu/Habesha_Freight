@@ -366,10 +366,7 @@
 
 /* ── Mobile: full-width backdrop, no margin shift ────────── */
 @media (max-width: 768px) {
-  .dl-layout--sidebar-open .dl-backdrop,
-  .dl-layout--sidebar-closed .dl-backdrop {
-    /* controlled by React conditional render */
-  }
+
 
   .dl-backdrop {
     display: block;

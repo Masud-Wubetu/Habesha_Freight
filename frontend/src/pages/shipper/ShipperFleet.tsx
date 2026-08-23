@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { get, post } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
 
 interface FleetCompany {
@@ -71,7 +70,6 @@ const today = new Date().toLocaleDateString('en-US', {
 
 export default function ShipperFleet() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const user = getStoredUser();
 
   // Search Filters

@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { get, post } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
 
 interface Shipment {
@@ -41,7 +40,6 @@ const formatCurrency = (n: number) => `ETB ${Number(n).toLocaleString()}`;
 
 export default function ShipperHistory() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const user = getStoredUser();
 
   const [historyItems, setHistoryItems] = useState<Shipment[]>([]);

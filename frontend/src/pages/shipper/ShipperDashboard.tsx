@@ -1,7 +1,6 @@
 // src/pages/shipper/ShipperDashboard.tsx
 import { useNavigate } from 'react-router-dom';
 import { useShipperDashboard } from '../../hooks/useShipperDashboard';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
 
 const today = new Date().toLocaleDateString('en-US', {
@@ -16,7 +15,6 @@ const formatCurrency = (n: number) => `ETB ${Number(n).toLocaleString()}`;
 export default function ShipperDashboard() {
   const navigate = useNavigate();
   const { stats, loads, loading, error } = useShipperDashboard();
-  const { theme, toggleTheme } = useTheme();
   const user = getStoredUser();
 
   const initials = (user?.full_name ?? 'Sara Bekele')

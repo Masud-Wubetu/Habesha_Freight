@@ -1,5 +1,4 @@
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 
 interface DashboardHeaderProps {
   onMenuClick: () => void;
@@ -8,7 +7,6 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ onMenuClick, title }: DashboardHeaderProps) {
   const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   
   const today = new Date();
   const formattedDate = today.toLocaleDateString('en-US', {

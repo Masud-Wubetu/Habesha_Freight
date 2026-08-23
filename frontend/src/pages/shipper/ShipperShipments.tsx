@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { get, patch } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
 import ChatModal from '../../components/ChatModal';
 
@@ -41,7 +40,6 @@ const today = new Date().toLocaleDateString('en-US', {
 
 export default function ShipperShipments() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const user = getStoredUser();
   const [searchParams, setSearchParams] = useSearchParams();
 

@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { post } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
 
 interface FormData {
@@ -50,7 +49,6 @@ function getCityCoords(cityName: string) {
 
 export default function CreateShipment() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const user = getStoredUser();
 
   const [view, setView] = useState<'selection' | 'form'>('selection');

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
-import { toggleTheme } from '../../services/themeService';
+
 import AdminLayout from '../../layouts/AdminLayout';
 
 interface ReportCardData {
