@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { clearSession, getStoredUser } from '../services/authService';
+import { toggleTheme } from '../services/themeService';
 import '../styles/driver-layout.css'; // reuse identical sidebar styles
 import useCompanySidebar from '../hooks/useCompanySidebar';
 
@@ -278,10 +279,32 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
             <span className="dl-topbar-date">{today}</span>
           </div>
 
-          <Link to="/company/dashboard" className="dl-topbar-brand">
-            <span>Habesha</span>
-            <span className="dl-brand-freight">Freight</span>
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto' }}>
+            <button
+              onClick={() => toggleTheme()}
+              style={{
+                backgroundColor: '#1E293B',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '2rem',
+                padding: '0.4rem 0.9rem',
+                fontSize: '0.825rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+              }}
+              title="Toggle Light/Dark Theme"
+            >
+              <span>🌙 / ☀️</span>
+              <span>Theme</span>
+            </button>
+            <Link to="/company/dashboard" className="dl-topbar-brand">
+              <span>Habesha</span>
+              <span className="dl-brand-freight">Freight</span>
+            </Link>
+          </div>
         </header>
 
         <main className="dl-content">

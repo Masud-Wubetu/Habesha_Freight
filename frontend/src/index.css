@@ -3616,6 +3616,53 @@ body.dark-mode tr {
   border-bottom-color: rgba(255, 255, 255, 0.08) !important;
 }
 
+/* Universal Tailwind & Component Dark Mode Support Across All Dashboards */
+body.dark-mode .bg-slate-50,
+body.dark-mode .bg-slate-100,
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100,
+body.dark-mode .dl-layout,
+body.dark-mode .p2-layout {
+  background-color: #070F19 !important;
+}
+
+body.dark-mode .bg-white,
+body.dark-mode .dl-topbar,
+body.dark-mode .p2-topbar,
+body.dark-mode header {
+  background-color: #0D1E30 !important;
+  color: #F8FAFC !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+body.dark-mode .text-slate-900,
+body.dark-mode .text-slate-800,
+body.dark-mode .text-slate-700,
+body.dark-mode .text-gray-900,
+body.dark-mode .text-gray-800,
+body.dark-mode .text-gray-700,
+body.dark-mode .dl-topbar-title,
+body.dark-mode .p2-topbar-title {
+  color: #F8FAFC !important;
+}
+
+body.dark-mode .text-slate-600,
+body.dark-mode .text-slate-500,
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-500,
+body.dark-mode .dl-topbar-date {
+  color: #94A3B8 !important;
+}
+
+body.dark-mode .border-slate-100,
+body.dark-mode .border-slate-200,
+body.dark-mode .border-slate-300,
+body.dark-mode .border-gray-100,
+body.dark-mode .border-gray-200,
+body.dark-mode .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
 /* Hide Scrollbar Teller Across Sidebar and Dashboard Containers */
 .no-scrollbar::-webkit-scrollbar,
 aside::-webkit-scrollbar,

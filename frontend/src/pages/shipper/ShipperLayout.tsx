@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { clearSession, getStoredUser } from '../../services/authService';
+import { getTheme, toggleTheme } from '../../services/themeService';
 
 interface ShipperLayoutProps {
   children?: ReactNode;
@@ -254,6 +255,39 @@ export default function ShipperLayout({ children }: ShipperLayoutProps) {
           transition: isResizing ? 'none' : 'margin-left 0.2s ease',
         }}
       >
+        {/* Top Header Navigation Bar */}
+        <header
+          className="h-[60px] px-8 flex items-center justify-between sticky top-0 z-40 border-b transition-all duration-200"
+          style={{
+            backgroundColor: getTheme() === 'dark' ? '#0D1E30' : '#FFFFFF',
+            borderColor: getTheme() === 'dark' ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-slate-500">
+              Shipper Control Portal
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                toggleTheme();
+                window.dispatchEvent(new Event('storage'));
+              }}
+              className="bg-slate-900 text-white dark:bg-slate-800 border-none rounded-full px-4 py-1.5 text-xs font-bold cursor-pointer flex items-center gap-2 shadow-sm transition-all hover:opacity-90"
+              title="Toggle Light/Dark Theme"
+            >
+              <span>🌙 / ☀️</span>
+              <span>Toggle Dark Mode</span>
+            </button>
+
+            <div className="w-8 h-8 rounded-full bg-[#C8933A] text-white font-bold flex items-center justify-center text-xs">
+              {initials}
+            </div>
+          </div>
+        </header>
+
         <div className="flex-1">
           {children}
         </div>
