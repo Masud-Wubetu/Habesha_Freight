@@ -3,7 +3,6 @@ import { getStoredUser } from '../../services/authService';
 import { useAvailableLoads, AvailableLoad } from '../../hooks/useAvailableLoads';
 import { post } from '../../services/api';
 import ChatModal from '../../components/ChatModal';
-import '../../styles/driver-requests.css';
 
 /* ── Route / filter options ────────── */
 const ALL_ROUTES = 'All Routes';

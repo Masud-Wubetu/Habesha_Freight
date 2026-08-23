@@ -26,9 +26,15 @@ export default function AdminPayments() {
   const fetchEscrowDetails = async () => {
     try {
       setLoading(true);
-      const res = await api.get<any>('/admin/payments', true);
+      let res = await api.get<any>('/escrow/ledger/all', true);
 
-      const items: any[] = res?.data?.items || res?.data?.payments || res?.items || [];
+      let items: any[] = res?.data?.items || res?.data?.payments || res?.items || [];
+
+      if (!items || items.length === 0) {
+        // Fallback check to admin endpoint
+        res = await api.get<any>('/admin/payments', true);
+        items = res?.data?.items || res?.data?.payments || res?.items || [];
+      }
 
       if (Array.isArray(items) && items.length > 0) {
         let total = 0;
@@ -36,23 +42,23 @@ export default function AdminPayments() {
         let pending = 0;
 
         const fetched: EscrowTransaction[] = items.map((item, index) => {
-          const rawStatus = (item.status as string) || 'HELD';
+          const rawStatus = (item.status as string) || 'LOCKED';
           let formattedStatus: 'Held' | 'Released' | 'Pending' | 'Refunded' = 'Held';
           if (rawStatus.toUpperCase() === 'RELEASED') formattedStatus = 'Released';
           if (rawStatus.toUpperCase() === 'PENDING') formattedStatus = 'Pending';
           if (rawStatus.toUpperCase() === 'REFUNDED') formattedStatus = 'Refunded';
 
-          const amt = Number(item.amount ?? item.price ?? 5000);
+          const amt = Number(item.amount_etb ?? item.amount ?? item.price ?? 45000);
           if (formattedStatus === 'Held') total += amt;
           if (formattedStatus === 'Released') released += amt;
           if (formattedStatus === 'Pending') pending += amt;
 
           return {
-            id: item.id ? `ESC-${item.id.slice(0, 6)}` : `ESC-00${index + 1}`,
+            id: item.id ? `ESC-${String(item.id).slice(0, 6)}` : `ESC-00${index + 1}`,
             shipment_id: item.shipment_id || item.load_id || `SHP-00${index + 1}`,
             amount: amt,
             status: formattedStatus,
-            payee_name: item.payee_name || item.driver_name || 'Carrier',
+            payee_name: item.carrier_name || item.payee_name || item.driver_name || 'Carrier',
           };
         });
 
@@ -88,7 +94,7 @@ export default function AdminPayments() {
     setTotalInEscrow((prev) => Math.max(0, prev - tx.amount));
 
     try {
-      await api.patch(`/admin/payments/${tx.id}/release`, {}, true);
+      await api.post(`/escrow/${tx.shipment_id}/release`, {}, true);
     } catch (err) {
       console.warn(`Payment release error for ${tx.id}`, err);
     }

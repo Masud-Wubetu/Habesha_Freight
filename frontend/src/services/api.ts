@@ -62,6 +62,12 @@ export const patch = async <T>(endpoint: string, body?: unknown): Promise<T> => 
   return resBody?.data !== undefined ? resBody.data : resBody;
 };
 
+export const put = async <T>(endpoint: string, body?: unknown): Promise<T> => {
+  const res = await axiosInstance.put(endpoint, body);
+  const resBody = res.data as any;
+  return resBody?.data !== undefined ? resBody.data : resBody;
+};
+
 export const del = async <T>(endpoint: string): Promise<T> => {
   const res = await axiosInstance.delete(endpoint);
   const resBody = res.data as any;
@@ -78,6 +84,8 @@ export const api = {
     get<T>(endpoint, params),
   post: <T>(endpoint: string, body?: unknown, _options?: unknown): Promise<T> =>
     post<T>(endpoint, body),
+  put: <T>(endpoint: string, body?: unknown, _options?: unknown): Promise<T> =>
+    put<T>(endpoint, body),
   patch: <T>(endpoint: string, body?: unknown, _options?: unknown): Promise<T> =>
     patch<T>(endpoint, body),
   delete: <T>(endpoint: string): Promise<T> =>

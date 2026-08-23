@@ -1,43 +1,36 @@
-# Build stage
+# Stage 1: Build TypeScript Backend
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy dependency files first for better layer caching
+# Copy package files and install dependencies
 COPY package*.json ./
 
 # Install all dependencies required for building
 RUN npm ci
 
-# Copy application source
-COPY . .
-
-# Build application
+# Copy source code and build
+COPY tsconfig.json ./
+COPY src ./src
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+# Stage 2: Production Lightweight Image
+FROM node:20-alpine AS runner
 
 WORKDIR /app
-
-# Copy dependency files
-COPY package*.json ./
+ENV NODE_ENV=production
 
 # Install production dependencies only
-RUN npm ci --omit=dev
+COPY package*.json ./
 
-# Copy production files from builder
+# Copy compiled JS from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/database/migrations ./migrations
-COPY --from=builder /app/src/database/seeds ./seeds
 
-# Create non-root u     ser
-RUN addgroup -g 1001 -S nodejs && \
-        adduser -S nodejs -u 1001
+# Expose server port
+EXPOSE 5000
 
-# Run application as non-root user
-USER nodejs
-
-EXPOSE 3000
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:5000/api/health || exit 1
 
 CMD ["node", "dist/server.js"]

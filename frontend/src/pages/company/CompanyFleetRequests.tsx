@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useCompanyFleetRequests } from '../../hooks/useCompanyFleetRequests';
 
 export default function CompanyFleetRequests() {
-  const { requests, loading, refresh } = useCompanyFleetRequests();
+  const { requests, loading, refresh, updateRequestStatus } = useCompanyFleetRequests();
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -12,9 +12,9 @@ export default function CompanyFleetRequests() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleUpdateStatus = (id: string, newStatus: typeof requests[0]['status']) => {
-    // TODO: call backend API to update status; optimistic UI for now
-    showNotification(`Request ${id} status updated to ${newStatus}`);
+  const handleUpdateStatus = (id: string, newStatus: 'Accepted' | 'Declined') => {
+    updateRequestStatus(id, newStatus);
+    showNotification(`Request ${id} marked as ${newStatus}`);
   };
 
   const filteredRequests = requests.filter((r) => {
@@ -104,7 +104,7 @@ export default function CompanyFleetRequests() {
                         req.status === 'Completed' ? 'bg-green-100 text-green-800' :
                         req.status === 'Declined' ? 'bg-red-100 text-red-800' :
                         'bg-emerald-100 text-emerald-800'
-                      }`}>${req.status}</span>
+                      }`}>{req.status}</span>
                     </td>
                     <td className="p-3 text-right">
                       {req.status === 'Pending' ? (
