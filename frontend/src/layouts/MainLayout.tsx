@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { getStoredUser } from '../services/authService';
 
@@ -10,6 +10,7 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const isDashboard = location.pathname === '/dashboard';
   const { theme, toggleTheme } = useTheme();
 
@@ -23,12 +24,20 @@ export default function MainLayout({ children }: MainLayoutProps) {
     user?.role === 'DRIVER' ? '/driver/dashboard' : '/dashboard';
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
-    if (location.pathname === '/') {
-      e.preventDefault();
+    e.preventDefault();
+    if (location.pathname === '/' || location.pathname === '') {
       const el = document.getElementById(targetId);
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
       }
+    } else {
+      navigate('/');
+      setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150);
     }
   };
 

@@ -25,6 +25,7 @@ export interface ShipperStats {
   completed: number | string;
   pendingBids: number | string;
   totalSpend: number | string;
+  totalEscrow?: number | string;
 }
 
 /**
@@ -43,12 +44,13 @@ export function useShipperDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const [statsData, loadsData] = await Promise.all([
-        get<ShipperStats>('/loads/shipper/stats'),
+      const [statsRes, loadsData] = await Promise.all([
+        get<any>('/loads/shipper/stats'),
         get<ShipperLoad[]>('/loads/shipper'),
       ]);
 
-      setStats(statsData ?? null);
+      const unwrappedStats = statsRes?.data ?? statsRes ?? null;
+      setStats(unwrappedStats);
 
       const rawLoads = Array.isArray(loadsData) ? loadsData : (loadsData as any)?.data ?? [];
       const mapped: ShipperLoad[] = rawLoads.map((l: any) => ({

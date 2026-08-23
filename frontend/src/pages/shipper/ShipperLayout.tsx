@@ -11,6 +11,7 @@ const SHIPPER_NAV = [
   { path: '/shipments/create', label: 'Find Truck', icon: '🔍' },
   { path: '/shipments', label: 'Requests', icon: '📋' },
   { path: '/bids', label: 'Bids', icon: '🏷️' },
+  { path: '/payments', label: 'Escrow & Payments', icon: '💳' },
   { path: '/messages', label: 'Messages', icon: '💬' },
   { path: '/tracking', label: 'Deliveries', icon: '🚛' },
   { path: '/history', label: 'History', icon: '🗂️' },

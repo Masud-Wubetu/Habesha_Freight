@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { path: '/driver/requests',         icon: '🔍', label: 'Requests'        },
   { path: '/driver/bids',             icon: '💰', label: 'My Bids'         },
   { path: '/driver/active-delivery',  icon: '🚛', label: 'Active Delivery' },
+  { path: '/driver/wallet',           icon: '💳', label: 'Wallet & Payouts'},
   { path: '/driver/history',          icon: '🗂️', label: 'History'         },
   { path: '/driver/messages',         icon: '💬', label: 'Messages'        },
   { path: '/driver/ratings',          icon: '⭐', label: 'Ratings'         },
