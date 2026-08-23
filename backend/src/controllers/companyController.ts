@@ -687,6 +687,13 @@ export async function assignDriverToVehicle(req: AuthenticatedRequest, res: Resp
       return res.status(404).json({ success: false, message: 'Driver not found.' });
     }
 
+    if (!driver.is_verified || driver.kyc_status !== 'APPROVED') {
+      return res.status(400).json({
+        success: false,
+        message: 'Driver cannot be assigned until KYC status is APPROVED and verified by platform administrator.',
+      });
+    }
+
     // Check if driver is assigned to company
     const companyDriver = await db('company_drivers')
       .where('company_id', userId)
