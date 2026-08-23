@@ -1,6 +1,7 @@
+import { ReactNode, useState } from 'react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { clearSession, getStoredUser } from '../services/authService';
 import { getTheme, toggleTheme } from '../services/themeService';
-import { useState } from 'react';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -71,7 +72,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               key={item.path}
               to={item.path}
               end={item.path === '/admin'}
-              style={({ isActive }) => ({
+              style={({ isActive }: { isActive: boolean }) => ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.85rem',
