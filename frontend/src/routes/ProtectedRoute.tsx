@@ -22,19 +22,14 @@ export default function ProtectedRoute({
     return <Navigate to={redirectTo} replace />;
   }
 
-  // Determine if driver/fleet owner is approved
+  // Determine if driver/fleet owner is approved by Admin
+  const isDriverOrFleet = user.role === 'DRIVER' || user.role === 'FLEET_OWNER';
   const isApproved =
-    user.status === 'ACTIVE' ||
-    user.kyc_status === 'APPROVED' ||
-    user.is_verified === true ||
-    !user.kyc_status;
+    user.kyc_status === 'APPROVED' || user.status === 'ACTIVE';
 
-  const isPendingKyc =
-    (user.role === 'DRIVER' || user.role === 'FLEET_OWNER') &&
-    !isApproved &&
-    user.kyc_status === 'PENDING';
+  const isPendingAdminApproval = isDriverOrFleet && !isApproved;
 
-  if (isPendingKyc && location.pathname !== '/pending-approval') {
+  if (isPendingAdminApproval && location.pathname !== '/pending-approval') {
     return <Navigate to="/pending-approval" replace />;
   }
 

@@ -128,14 +128,10 @@ export default function Register() {
         payload.append('document', documentFile);
       }
 
-      const res: any = await register(payload);
+      await register(payload);
 
       localStorage.setItem('registrationEmail', formData.email.trim());
       localStorage.setItem('registrationRole', selectedRole);
-      const demoOtp = res?.data?.demo_otp || res?.demo_otp || res?.user?.otp_code;
-      if (demoOtp) {
-        localStorage.setItem('demoOtp', String(demoOtp));
-      }
       navigate('/verify-otp');
     } catch (err: any) {
       setErrorMessage(err.message || 'Registration failed. Please try again.');
