@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { get, patch } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
 import ChatModal from '../../components/ChatModal';
 
@@ -41,7 +40,6 @@ const today = new Date().toLocaleDateString('en-US', {
 
 export default function ShipperShipments() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const user = getStoredUser();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -165,12 +163,6 @@ export default function ShipperShipments() {
           >
             + Post Shipment
           </button>
-          <button 
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
           <div className="w-10 h-10 rounded-full bg-[#071426] text-white flex items-center justify-center text-sm font-bold cursor-pointer" onClick={() => navigate('/profile')}>
             {initials}
           </div>
@@ -233,12 +225,39 @@ export default function ShipperShipments() {
           <main className="lg:col-span-3 flex flex-col gap-4">
             {selectedLoad && (
               <>
-                {/* ── Alert Bar (Matching Screenshot) ── */}
-                <div className="bg-amber-50 border border-amber-200/60 rounded-xl px-5 py-4 flex items-center justify-between shadow-sm">
+                {/* ── Alert Bar & OTP Security Card ── */}
+                <div className="bg-amber-50 border border-amber-200/60 rounded-xl px-5 py-4 flex items-center justify-between shadow-sm mb-2">
                   <p className="text-sm text-amber-900 font-medium">
                     <span className="font-bold">{selectedLoad.bids?.filter(b => b.status === 'PENDING').length ?? 0} new bids</span> on SHP-{selectedLoad.id.slice(0, 3).toUpperCase()} ({selectedLoad.origin_city} → {selectedLoad.destination_city}, {selectedLoad.weight_tons} tons {selectedLoad.cargo_description})
                   </p>
                 </div>
+
+                {/* Permanent OTP Security Card for active shipments */}
+                {['MATCHED', 'DISPATCHED', 'IN_TRANSIT', 'ASSIGNED'].includes(selectedLoad.status) && (
+                  <div className="bg-gradient-to-r from-slate-900 to-blue-950 text-white rounded-xl p-5 shadow-md border border-amber-500/40">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">🔑</span>
+                          <h4 className="text-sm font-bold text-amber-400">Cargo Security Verification OTPs</h4>
+                        </div>
+                        <p className="text-xs text-slate-300 mt-1">
+                          Share the <strong className="text-amber-300">Delivery OTP</strong> with your receiver. The driver will enter it to verify delivery and release escrow payouts.
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <div className="bg-slate-800/90 px-3.5 py-2 rounded-xl border border-slate-700 text-center min-w-[100px]">
+                          <span className="text-[10px] text-slate-400 block font-bold uppercase">Pickup OTP</span>
+                          <span className="text-base font-mono font-extrabold text-white tracking-widest">849201</span>
+                        </div>
+                        <div className="bg-slate-800/90 px-3.5 py-2 rounded-xl border border-amber-500/60 text-center min-w-[100px]">
+                          <span className="text-[10px] text-amber-400 block font-bold uppercase">Delivery OTP</span>
+                          <span className="text-base font-mono font-extrabold text-amber-300 tracking-widest">982041</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* ── Bids List ── */}
                 <div className="flex flex-col gap-4">

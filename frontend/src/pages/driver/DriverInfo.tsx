@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { get } from '../../services/api';
 import ErrorState from '../../components/ErrorState';
-import '../../styles/driver-profile.css';
 
 interface DriverProfileResponse {
   id: string;

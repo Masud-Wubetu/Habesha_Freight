@@ -14,3 +14,4 @@ export { default as DriverMessages } from './DriverMessages';
 export { default as DriverInfo } from './DriverInfo';
 export { default as DriverLicense } from './DriverLicense';
 export { default as DriverSettings } from './DriverSettings';
+export { default as DriverWallet } from './DriverWallet';

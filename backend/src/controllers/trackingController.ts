@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import db from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { DriverLocationService } from '../services/driverLocationService';
 
 /**
  * Record a location update point from driver (POST /api/tracking/location)
@@ -36,15 +37,13 @@ export async function recordLocationPoint(req: AuthenticatedRequest, res: Respon
       });
     }
 
-    const [locationPoint] = await db('location_breadcrumbs')
-      .insert({
-        shipment_id,
-        driver_id: driverId,
-        latitude: parseFloat(String(latitude)),
-        longitude: parseFloat(String(longitude)),
-        speed: speed !== undefined ? parseFloat(String(speed)) : null,
-      })
-      .returning('*');
+    const locationPoint = await DriverLocationService.recordTelemetry(
+      driverId!,
+      shipment_id,
+      parseFloat(String(latitude)),
+      parseFloat(String(longitude)),
+      speed !== undefined ? parseFloat(String(speed)) : 0
+    );
 
     return res.status(201).json({
       success: true,

@@ -9,9 +9,22 @@ export default function StepCard({ number, title }: StepCardProps) {
       backgroundColor: '#FFFFFF',
       padding: '2rem 1.5rem',
       borderRadius: '0.75rem',
-      border: '1px solid #e8eaed',
-      textAlign: 'center'
-    }}>
+      border: '1.5px solid #e2e8f0',
+      textAlign: 'center',
+      transition: 'all 0.25s ease-in-out',
+      cursor: 'pointer'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.borderColor = '#C8933A';
+      e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(200, 147, 58, 0.18), 0 0 0 1px #C8933A';
+      e.currentTarget.style.transform = 'translateY(-4px)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.borderColor = '#e2e8f0';
+      e.currentTarget.style.boxShadow = 'none';
+      e.currentTarget.style.transform = 'translateY(0)';
+    }}
+    >
       <div style={{
         fontFamily: 'Instrument Serif, serif',
         fontSize: '4rem',

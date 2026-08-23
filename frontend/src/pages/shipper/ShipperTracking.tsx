@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { get, post } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
+import GoogleMapView, { resolveCityCoords } from '../../components/GoogleMapView';
 
 interface Shipment {
   id: string;
@@ -32,7 +32,6 @@ const formatCurrency = (n: number) => `ETB ${Number(n).toLocaleString()}`;
 
 export default function ShipperTracking() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const user = getStoredUser();
 
   const [shipments, setShipments] = useState<Shipment[]>([]);
@@ -165,12 +164,6 @@ export default function ShipperTracking() {
           <p className="text-sm text-slate-500">{today}</p>
         </div>
         <div className="flex items-center gap-4">
-          <button 
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
           <div className="w-10 h-10 rounded-full bg-[#071426] text-white flex items-center justify-center text-sm font-bold cursor-pointer" onClick={() => navigate('/profile')}>
             {initials}
           </div>
@@ -354,16 +347,25 @@ export default function ShipperTracking() {
               </button>
             </div>
 
-            {/* Mock Map / Tracking Info */}
-            <div className="bg-slate-100 rounded-xl h-48 mb-6 flex flex-col items-center justify-center text-slate-400 gap-2 border border-slate-200/60 relative overflow-hidden">
-              {/* Dynamic decorative map background grid */}
-              <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:16px_16px] opacity-40" />
-              <span className="text-3xl animate-bounce z-10">🚛</span>
-              <p className="text-xs font-semibold text-slate-600 z-10">
-                {trackingShipment.status === 'DELIVERED' 
-                  ? 'Delivery completed successfully.' 
-                  : `Driver is currently in route near ${trackingShipment.destination_city}.`}
-              </p>
+            {/* Google Maps Tracking View */}
+            <div className="mb-6">
+              <GoogleMapView
+                originPos={{
+                  ...resolveCityCoords(trackingShipment.origin_city, 9.0300, 38.7400),
+                  label: trackingShipment.origin_city,
+                }}
+                destinationPos={{
+                  ...resolveCityCoords(trackingShipment.destination_city, 9.6000, 41.8600),
+                  label: trackingShipment.destination_city,
+                }}
+                driverPos={{
+                  lat: resolveCityCoords(trackingShipment.origin_city, 9.0300, 38.7400).lat + 0.2,
+                  lng: resolveCityCoords(trackingShipment.origin_city, 9.0300, 38.7400).lng + 0.4,
+                  label: `Driver: ${trackingShipment.carrier_name}`,
+                }}
+                speed={65}
+                height="240px"
+              />
             </div>
 
             {/* Tracking timeline */}

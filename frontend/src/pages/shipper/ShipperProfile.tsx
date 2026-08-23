@@ -1,7 +1,6 @@
 // src/pages/shipper/ShipperProfile.tsx
 import { useState, useEffect } from 'react';
 import { get } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser, fetchCurrentUser, updateUserProfile } from '../../services/authService';
 
 interface UserProfile {
@@ -25,7 +24,6 @@ const today = new Date().toLocaleDateString('en-US', {
 const formatCurrency = (n: number) => `ETB ${Number(n).toLocaleString()}`;
 
 export default function ShipperProfile() {
-  const { theme, toggleTheme } = useTheme();
   const storedUser = getStoredUser();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -146,12 +144,6 @@ export default function ShipperProfile() {
           <p className="text-sm text-slate-500">{today}</p>
         </div>
         <div className="flex items-center gap-4">
-          <button
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
           <div
             className="w-10 h-10 rounded-full bg-[#071426] text-white flex items-center justify-center text-sm font-bold cursor-pointer"
           >

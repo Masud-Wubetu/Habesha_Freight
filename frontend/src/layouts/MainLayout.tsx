@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { getStoredUser } from '../services/authService';
 
@@ -10,6 +10,7 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const isDashboard = location.pathname === '/dashboard';
   const { theme, toggleTheme } = useTheme();
 
@@ -21,6 +22,24 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   const dashboardPath =
     user?.role === 'DRIVER' ? '/driver/dashboard' : '/dashboard';
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    if (location.pathname === '/' || location.pathname === '') {
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate('/');
+      setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 150);
+    }
+  };
 
   return (
     <div className={`main-layout ${theme}`}>
@@ -80,19 +99,19 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 alignItems: 'center',
               }}
             >
-              <a href="/#search" className="btn-nav">
+              <a href="/#search" className="btn-nav" onClick={(e) => handleNavClick(e, 'search')}>
                 Find Trucks
               </a>
 
-              <a href="/#how-it-works" className="btn-nav">
+              <a href="/#how-it-works" className="btn-nav" onClick={(e) => handleNavClick(e, 'how-it-works')}>
                 How It Works
               </a>
 
-              <a href="/#features" className="btn-nav">
+              <a href="/#features" className="btn-nav" onClick={(e) => handleNavClick(e, 'features')}>
                 Features
               </a>
 
-              <a href="/#routes" className="btn-nav">
+              <a href="/#routes" className="btn-nav" onClick={(e) => handleNavClick(e, 'routes')}>
                 Routes
               </a>
 
@@ -235,7 +254,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
               <a
                 href="/#search"
                 className="btn-nav"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => {
+                  handleNavClick(e, 'search');
+                  setIsMobileMenuOpen(false);
+                }}
                 style={{
                   color: '#FFFFFF',
                   textDecoration: 'none',
@@ -248,7 +270,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
               <a
                 href="/#how-it-works"
                 className="btn-nav"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => {
+                  handleNavClick(e, 'how-it-works');
+                  setIsMobileMenuOpen(false);
+                }}
                 style={{
                   color: '#FFFFFF',
                   textDecoration: 'none',
@@ -261,7 +286,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
               <a
                 href="/#features"
                 className="btn-nav"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => {
+                  handleNavClick(e, 'features');
+                  setIsMobileMenuOpen(false);
+                }}
                 style={{
                   color: '#FFFFFF',
                   textDecoration: 'none',
@@ -274,7 +302,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
               <a
                 href="/#routes"
                 className="btn-nav"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={(e) => {
+                  handleNavClick(e, 'routes');
+                  setIsMobileMenuOpen(false);
+                }}
                 style={{
                   color: '#FFFFFF',
                   textDecoration: 'none',

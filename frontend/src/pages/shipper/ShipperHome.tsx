@@ -4,6 +4,8 @@ import FeatureCard from '../../components/FeatureCard';
 import RouteCard from '../../components/RouteCard';
 import DemoCard from '../../components/DemoCard';
 import Footer from '../../components/Footer';
+import GoogleMapView from '../../components/GoogleMapView';
+import AnimatedTruckAsphalt from '../../components/AnimatedTruckAsphalt';
 
 export default function Home() {
   return (
@@ -11,11 +13,14 @@ export default function Home() {
       {/* 1. HERO SECTION */}
       <section style={{ 
         backgroundColor: '#0B1F33',
-        padding: '4rem 0 6rem 0',
+        padding: '2rem 0 6rem 0',
         position: 'relative'
       }}>
         <div className="container">
-          <div className="hero-grid" style={{
+          {/* Smooth Animated Large Truck on Asphalt Road Banner */}
+          <AnimatedTruckAsphalt />
+
+          <div className="hero-grid mt-8" style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
             gap: '4rem',
@@ -56,7 +61,15 @@ export default function Home() {
               </p>
               
               <div className="hero-buttons" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <a href="#search" className="btn-primary" style={{ fontSize: '1.125rem' }}>
+                <a
+                  href="#search"
+                  className="btn-primary"
+                  style={{ fontSize: '1.125rem' }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('search')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
                   Find a Truck
                 </a>
                 <a href="/driver/dashboard" className="btn-secondary" style={{ fontSize: '1.125rem', backgroundColor: '#C8933A', color: '#FFFFFF', borderColor: '#C8933A' }}>
@@ -65,24 +78,20 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right Column - Visual Placeholder */}
+            {/* Right Column - Real Google Map view */}
             <div className="hero-visual" style={{
-              backgroundColor: 'rgba(255,255,255,0.05)',
               borderRadius: '1rem',
-              padding: '3rem',
-              border: '2px dashed rgba(200, 147, 58, 0.3)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '300px',
-              textAlign: 'center'
+              overflow: 'hidden',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)',
+              border: '1px solid rgba(200, 147, 58, 0.3)'
             }}>
-              <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>🚛</div>
-              <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '1.125rem', fontWeight: 600 }}>
-                Ethiopian Logistics Network<br />
-                <span style={{ fontSize: '0.875rem', color: '#C8933A', fontWeight: 400 }}>Real-Time Load Matching &amp; Fleet Management</span>
-              </p>
+              <GoogleMapView
+                originPos={{ lat: 9.0300, lng: 38.7400, label: 'Addis Ababa (Hub)' }}
+                destinationPos={{ lat: 9.6000, lng: 41.8600, label: 'Dire Dawa' }}
+                driverPos={{ lat: 9.2500, lng: 39.8500, label: 'Habesha Freight 🚚' }}
+                speed={72}
+                height="340px"
+              />
             </div>
           </div>
         </div>
@@ -128,7 +137,7 @@ export default function Home() {
       </section>
 
       {/* 4. FEATURES */}
-      <section className="section-padding">
+      <section id="features" className="section-padding">
         <div className="container" style={{ textAlign: 'center' }}>
           <h2 className="features-title" style={{
             fontFamily: 'Instrument Serif, serif',
@@ -178,7 +187,7 @@ export default function Home() {
       </section>
 
       {/* 5. KEY ETHIOPIAN CORRIDORS */}
-      <section className="bg-navy section-padding">
+      <section id="routes" className="bg-navy section-padding">
         <div className="container" style={{ textAlign: 'center' }}>
           <h2 className="routes-title" style={{
             fontFamily: 'Instrument Serif, serif',
@@ -200,6 +209,17 @@ export default function Home() {
             <RouteCard from="Addis Ababa" to="Bahir Dar" />
             <RouteCard from="Addis Ababa" to="Mekelle" />
             <RouteCard from="Hawassa" to="Jimma" />
+          </div>
+
+          {/* Interactive Google Map of Key Corridors */}
+          <div style={{ marginTop: '2.5rem', borderRadius: '1rem', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <GoogleMapView
+              originPos={{ lat: 9.0300, lng: 38.7400, label: 'Addis Ababa' }}
+              destinationPos={{ lat: 11.5880, lng: 43.1450, label: 'Djibouti Corridor' }}
+              driverPos={{ lat: 9.6000, lng: 41.8600, label: 'Dire Dawa Transit 🚚' }}
+              speed={68}
+              height="360px"
+            />
           </div>
         </div>
       </section>
@@ -299,9 +319,9 @@ export default function Home() {
               route="/driver/dashboard"
             />
             <DemoCard 
-              title="Admin Dashboard"
-              description="Manage the platform"
-              route="/admin"
+              title="Company Dashboard"
+              description="Manage fleet &amp; dispatch drivers"
+              route="/company/dashboard"
             />
           </div>
         </div>

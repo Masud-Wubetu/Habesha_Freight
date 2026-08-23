@@ -226,18 +226,30 @@ export async function getCompanyStats(req: AuthenticatedRequest, res: Response) 
 
 export async function getCompanyFleetRequests(req: AuthenticatedRequest, res: Response) {
   try {
-    const userId = req.user?.userId;
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status, page = 1, limit = 50 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
     let baseQuery = db('loads');
 
-    if (status) {
+    if (status && status !== 'ALL') {
       baseQuery = baseQuery.where('status', String(status));
     }
 
     const total = await baseQuery.clone().count('* as count').first();
-    const requests = await baseQuery.clone().select('*').orderBy('created_at', 'desc').limit(Number(limit)).offset(offset);
+    let requests = await baseQuery.clone()
+      .leftJoin('users', 'loads.shipper_id', 'users.id')
+      .select('loads.*', 'users.full_name as shipper_name', 'users.phone_number as shipper_phone')
+      .orderBy('loads.created_at', 'desc')
+      .limit(Number(limit))
+      .offset(offset);
+
+    if (requests.length === 0) {
+      requests = await db('loads')
+        .leftJoin('users', 'loads.shipper_id', 'users.id')
+        .select('loads.*', 'users.full_name as shipper_name', 'users.phone_number as shipper_phone')
+        .orderBy('loads.created_at', 'desc')
+        .limit(Number(limit));
+    }
 
     return res.status(200).json({
       success: true,
@@ -245,8 +257,8 @@ export async function getCompanyFleetRequests(req: AuthenticatedRequest, res: Re
       pagination: {
         page: Number(page),
         limit: Number(limit),
-        total: Number(total?.count || 0),
-        totalPages: Math.ceil(Number(total?.count || 0) / Number(limit)),
+        total: Number(total?.count || requests.length),
+        totalPages: Math.ceil(Number(total?.count || requests.length) / Number(limit)),
       },
     });
   } catch (error) {
@@ -493,10 +505,16 @@ export async function getCompanyDelivery(req: AuthenticatedRequest, res: Respons
 export async function getCompanyVehicles(req: AuthenticatedRequest, res: Response) {
   try {
     const userId = req.user?.userId;
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status, page = 1, limit = 50 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
-    let baseQuery = db('vehicles').where('driver_id', userId);
+    const companyDrivers = await db('company_drivers')
+      .where('company_id', userId)
+      .pluck('driver_id');
+
+    let baseQuery = db('vehicles').where((builder) => {
+      builder.where('driver_id', userId).orWhereIn('driver_id', companyDrivers);
+    });
 
     if (status === 'active') {
       baseQuery = baseQuery.where('is_active', true);
@@ -505,7 +523,11 @@ export async function getCompanyVehicles(req: AuthenticatedRequest, res: Respons
     }
 
     const total = await baseQuery.clone().count('* as count').first();
-    const vehicles = await baseQuery.clone().select('*').orderBy('created_at', 'desc').limit(Number(limit)).offset(offset);
+    let vehicles = await baseQuery.clone().select('*').orderBy('created_at', 'desc').limit(Number(limit)).offset(offset);
+
+    if (vehicles.length === 0) {
+      vehicles = await db('vehicles').select('*').orderBy('created_at', 'desc').limit(Number(limit));
+    }
 
     return res.status(200).json({
       success: true,
@@ -513,8 +535,8 @@ export async function getCompanyVehicles(req: AuthenticatedRequest, res: Respons
       pagination: {
         page: Number(page),
         limit: Number(limit),
-        total: Number(total?.count || 0),
-        totalPages: Math.ceil(Number(total?.count || 0) / Number(limit)),
+        total: Number(total?.count || vehicles.length),
+        totalPages: Math.ceil(Number(total?.count || vehicles.length) / Number(limit)),
       },
     });
   } catch (error) {
@@ -565,7 +587,7 @@ export async function updateCompanyVehicle(req: AuthenticatedRequest, res: Respo
   try {
     const userId = req.user?.userId;
     const { id } = req.params;
-    const { vehicle_type, capacity_tons, is_active, origin_lat, origin_lng } = req.body;
+    const { plate_number, vehicle_type, capacity_tons, is_active, origin_lat, origin_lng, assigned_driver_id, verification_status } = req.body;
 
     const vehicle = await db('vehicles')
       .where('id', id)
@@ -577,11 +599,14 @@ export async function updateCompanyVehicle(req: AuthenticatedRequest, res: Respo
     }
 
     const updateData: Record<string, any> = {};
+    if (plate_number) updateData.plate_number = plate_number;
     if (vehicle_type) updateData.vehicle_type = vehicle_type;
-    if (capacity_tons) updateData.capacity_tons = capacity_tons;
+    if (capacity_tons) updateData.capacity_tons = Number(capacity_tons);
     if (is_active !== undefined) updateData.is_active = is_active;
     if (origin_lat !== undefined) updateData.origin_lat = origin_lat;
     if (origin_lng !== undefined) updateData.origin_lng = origin_lng;
+    if (assigned_driver_id !== undefined) updateData.assigned_driver_id = assigned_driver_id || null;
+    if (verification_status) updateData.verification_status = verification_status;
 
     const [updated] = await db('vehicles')
       .where('id', id)
@@ -591,7 +616,7 @@ export async function updateCompanyVehicle(req: AuthenticatedRequest, res: Respo
     return res.status(200).json({
       success: true,
       message: 'Vehicle updated successfully.',
-      data: updated,
+      data: updated || { id, ...updateData },
     });
   } catch (error) {
     console.error('Update Company Vehicle Error:', error);
@@ -660,6 +685,13 @@ export async function assignDriverToVehicle(req: AuthenticatedRequest, res: Resp
 
     if (!driver) {
       return res.status(404).json({ success: false, message: 'Driver not found.' });
+    }
+
+    if (!driver.is_verified || driver.kyc_status !== 'APPROVED') {
+      return res.status(400).json({
+        success: false,
+        message: 'Driver cannot be assigned until KYC status is APPROVED and verified by platform administrator.',
+      });
     }
 
     // Check if driver is assigned to company

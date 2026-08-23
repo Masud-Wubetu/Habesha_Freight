@@ -184,19 +184,37 @@ export async function searchNearbyLoads(req: AuthenticatedRequest, res: Response
 export async function getShipperStats(req: AuthenticatedRequest, res: Response) {
   const shipperId = req.user?.userId;
   try {
-    const [{ total }]= await db('loads').where({ shipper_id: shipperId }).count('id as total');
-    const [{ active }]= await db('loads').where({ shipper_id: shipperId, status: 'POSTED' }).count('id as active');
-    const [{ completed }]= await db('loads').where({ shipper_id: shipperId, status: 'DELIVERED' }).count('id as completed');
-    const [{ pendingBids }]= await db('bids')
+    const [{ total }] = await db('loads').where({ shipper_id: shipperId }).count('id as total');
+    const [{ active }] = await db('loads').where({ shipper_id: shipperId }).whereIn('status', ['POSTED', 'MATCHED', 'DISPATCHED', 'IN_TRANSIT']).count('id as active');
+    const [{ completed }] = await db('loads').where({ shipper_id: shipperId, status: 'DELIVERED' }).count('id as completed');
+    const [{ pendingBids }] = await db('bids')
       .join('loads', 'bids.load_id', 'loads.id')
       .where({ shipper_id: shipperId, 'bids.status': 'PENDING' })
       .count('bids.id as pendingBids');
-    const [{ totalSpend }]= await db('loads')
+    const [{ totalSpend }] = await db('loads')
       .where({ shipper_id: shipperId })
       .sum('offered_price_etb as totalSpend');
+
+    const escrowRes = await db('escrow_ledger')
+      .join('shipments', 'escrow_ledger.shipment_id', 'shipments.id')
+      .join('loads', 'shipments.load_id', 'loads.id')
+      .where('loads.shipper_id', shipperId)
+      .whereIn('escrow_ledger.status', ['LOCKED', 'HELD', 'PENDING'])
+      .sum('escrow_ledger.gross_amount_etb as totalEscrow')
+      .first();
+
+    const totalEscrow = Number(escrowRes?.totalEscrow || 0);
+
     return res.status(200).json({
       success: true,
-      data: { total, active, completed, pendingBids, totalSpend },
+      data: {
+        total: Number(total || 0),
+        active: Number(active || 0),
+        completed: Number(completed || 0),
+        pendingBids: Number(pendingBids || 0),
+        totalSpend: Number(totalSpend || 0),
+        totalEscrow: totalEscrow,
+      },
     });
   } catch (error) {
     console.error('Shipper Stats Error:', error);

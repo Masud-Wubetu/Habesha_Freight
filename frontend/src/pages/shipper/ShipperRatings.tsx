@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { get } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
 
 interface Review {
@@ -47,7 +46,6 @@ const getDerivedTags = (rating: number, comment: string = ''): string[] => {
 
 export default function ShipperRatings() {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
   const user = getStoredUser();
 
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -123,12 +121,6 @@ export default function ShipperRatings() {
           <p className="text-sm text-slate-500">{today}</p>
         </div>
         <div className="flex items-center gap-4">
-          <button
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
           <div
             className="w-10 h-10 rounded-full bg-[#071426] text-white flex items-center justify-center text-sm font-bold cursor-pointer"
             onClick={() => navigate('/profile')}

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../../styles/driver-dashboard.css';
 import { useDriverStats } from '../../hooks/useDriverStats';
 import { useAvailableLoads } from '../../hooks/useAvailableLoads';
 import { useDriverShipments } from '../../hooks/useDriverShipments';

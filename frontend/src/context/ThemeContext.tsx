@@ -17,6 +17,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.body.classList.add('dark-mode', 'dark');
+      document.documentElement.classList.add('dark-mode', 'dark');
+    } else {
+      document.body.classList.remove('dark-mode', 'dark');
+      document.documentElement.classList.remove('dark-mode', 'dark');
+    }
     localStorage.setItem('theme', theme);
   }, [theme]);
 

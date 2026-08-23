@@ -55,6 +55,7 @@ import {
   DriverInfo,
   DriverLicense,
   DriverSettings,
+  DriverWallet,
 } from './pages/driver';
 
 // Admin pages
@@ -219,6 +220,7 @@ function App() {
                       <Route path="history/tracking" element={<LiveTracking />} />
                       <Route path="ratings" element={<DriverRatings />} />
                       <Route path="messages" element={<DriverMessages />} />
+                      <Route path="wallet" element={<DriverWallet />} />
                       <Route path="profile" element={<DriverInfo />} />
                       <Route path="profile/info" element={<DriverInfo />} />
                       <Route path="profile/license" element={<DriverLicense />} />
