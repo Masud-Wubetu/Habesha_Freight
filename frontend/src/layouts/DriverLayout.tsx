@@ -245,23 +245,6 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
               >
                 ← Log Out
               </button>
-
-              <button
-                onClick={() => toggleTheme()}
-                style={{
-                  background: 'rgba(255,255,255,0.1)',
-                  border: 'none',
-                  borderRadius: '0.4rem',
-                  color: '#FFFFFF',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  padding: '0.3rem 0.6rem',
-                  cursor: 'pointer',
-                }}
-                title="Toggle Light/Dark Theme"
-              >
-                🌙 / ☀️
-              </button>
             </div>
           )}
         </div>

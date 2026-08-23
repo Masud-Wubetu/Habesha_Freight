@@ -165,12 +165,6 @@ export default function ShipperShipments() {
           >
             + Post Shipment
           </button>
-          <button 
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
           <div className="w-10 h-10 rounded-full bg-[#071426] text-white flex items-center justify-center text-sm font-bold cursor-pointer" onClick={() => navigate('/profile')}>
             {initials}
           </div>

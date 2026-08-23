@@ -234,25 +234,7 @@ export default function AdminReports() {
               <span>{openDisputesCount} open disputes</span>
             </Link>
 
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={() => toggleTheme()}
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                backgroundColor: '#F1F5F9',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1rem',
-              }}
-              title="Toggle Theme"
-            >
-              🌙
-            </button>
+
 
             {/* Profile Avatar */}
             <div

@@ -40,13 +40,6 @@ export default function DashboardHeader({ onMenuClick, title }: DashboardHeaderP
       </div>
 
       <div className="dashboard-header-right">
-        <button
-          onClick={toggleTheme}
-          className="dashboard-dark-toggle"
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
         <div className="dashboard-avatar">
           {user?.full_name ? getInitials(user.full_name) : 'SB'}
         </div>
