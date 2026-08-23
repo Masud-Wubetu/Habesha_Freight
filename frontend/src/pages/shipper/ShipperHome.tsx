@@ -5,6 +5,7 @@ import RouteCard from '../../components/RouteCard';
 import DemoCard from '../../components/DemoCard';
 import Footer from '../../components/Footer';
 import GoogleMapView from '../../components/GoogleMapView';
+import AnimatedTruckAsphalt from '../../components/AnimatedTruckAsphalt';
 
 export default function Home() {
   return (
@@ -12,11 +13,14 @@ export default function Home() {
       {/* 1. HERO SECTION */}
       <section style={{ 
         backgroundColor: '#0B1F33',
-        padding: '4rem 0 6rem 0',
+        padding: '2rem 0 6rem 0',
         position: 'relative'
       }}>
         <div className="container">
-          <div className="hero-grid" style={{
+          {/* Smooth Animated Large Truck on Asphalt Road Banner */}
+          <AnimatedTruckAsphalt />
+
+          <div className="hero-grid mt-8" style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
             gap: '4rem',

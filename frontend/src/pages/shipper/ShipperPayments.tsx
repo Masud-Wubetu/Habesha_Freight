@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { get, post } from '../../services/api';
-import { useTheme } from '../../context/ThemeContext';
 import { getStoredUser } from '../../services/authService';
 
 interface EscrowRecord {
@@ -17,7 +16,6 @@ interface EscrowRecord {
 }
 
 export default function ShipperPayments() {
-  const { theme } = useTheme();
   const user = getStoredUser();
 
   const [loading, setLoading] = useState(true);
@@ -163,6 +161,7 @@ export default function ShipperPayments() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto font-sans text-slate-900 min-h-screen">
+      {error && <div className="mb-4 p-3 bg-amber-50 text-amber-800 border border-amber-200 rounded-xl text-sm">{error}</div>}
       {/* Header */}
       <header className="flex justify-between items-center mb-8">
         <div>
