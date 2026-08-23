@@ -13,8 +13,6 @@
 
 /* ── Sidebar ─────────────────────────────────────────────── */
 .dl-sidebar {
-  width: 260px;
-  min-width: 260px;
   background: #0a1929;
   display: flex;
   flex-direction: column;
@@ -23,7 +21,7 @@
   left: 0;
   bottom: 0;
   z-index: 400;
-  /* Hidden by default — slides in from left */
+  /* Hidden by default on mobile — slides in from left */
   transform: translateX(-100%);
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
@@ -355,10 +353,6 @@
 
 /* ── Desktop: push main content when sidebar is open ─────── */
 @media (min-width: 769px) {
-  .dl-layout--sidebar-open .dl-main {
-    margin-left: 260px;
-  }
-
   /* No backdrop on desktop */
   .dl-backdrop {
     display: none !important;
