@@ -319,9 +319,9 @@ export default function Home() {
               route="/driver/dashboard"
             />
             <DemoCard 
-              title="Admin Dashboard"
-              description="Manage the platform"
-              route="/admin"
+              title="Company Dashboard"
+              description="Manage fleet &amp; dispatch drivers"
+              route="/company/dashboard"
             />
           </div>
         </div>

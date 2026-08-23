@@ -11,16 +11,16 @@ export default function DemoCard({ title, description, route }: DemoCardProps) {
     <Link to={route} style={{ textDecoration: 'none' }}>
       <div style={{
         backgroundColor: '#FFFFFF',
-        padding: '1.5rem',
+        padding: '1.75rem 1.5rem',
         borderRadius: '0.75rem',
-        border: '1px solid #e8eaed',
+        border: '1.5px solid #e8eaed',
         textAlign: 'center',
-        transition: 'all 0.2s',
+        transition: 'all 0.25s ease-in-out',
         cursor: 'pointer'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)';
-        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(200, 147, 58, 0.18), 0 0 0 1px #C8933A';
+        e.currentTarget.style.transform = 'translateY(-4px)';
         e.currentTarget.style.borderColor = '#C8933A';
       }}
       onMouseLeave={(e) => {
