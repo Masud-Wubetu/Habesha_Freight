@@ -565,7 +565,7 @@ export async function updateCompanyVehicle(req: AuthenticatedRequest, res: Respo
   try {
     const userId = req.user?.userId;
     const { id } = req.params;
-    const { vehicle_type, capacity_tons, is_active, origin_lat, origin_lng } = req.body;
+    const { plate_number, vehicle_type, capacity_tons, is_active, origin_lat, origin_lng, assigned_driver_id, verification_status } = req.body;
 
     const vehicle = await db('vehicles')
       .where('id', id)
@@ -577,11 +577,14 @@ export async function updateCompanyVehicle(req: AuthenticatedRequest, res: Respo
     }
 
     const updateData: Record<string, any> = {};
+    if (plate_number) updateData.plate_number = plate_number;
     if (vehicle_type) updateData.vehicle_type = vehicle_type;
-    if (capacity_tons) updateData.capacity_tons = capacity_tons;
+    if (capacity_tons) updateData.capacity_tons = Number(capacity_tons);
     if (is_active !== undefined) updateData.is_active = is_active;
     if (origin_lat !== undefined) updateData.origin_lat = origin_lat;
     if (origin_lng !== undefined) updateData.origin_lng = origin_lng;
+    if (assigned_driver_id !== undefined) updateData.assigned_driver_id = assigned_driver_id || null;
+    if (verification_status) updateData.verification_status = verification_status;
 
     const [updated] = await db('vehicles')
       .where('id', id)
@@ -591,7 +594,7 @@ export async function updateCompanyVehicle(req: AuthenticatedRequest, res: Respo
     return res.status(200).json({
       success: true,
       message: 'Vehicle updated successfully.',
-      data: updated,
+      data: updated || { id, ...updateData },
     });
   } catch (error) {
     console.error('Update Company Vehicle Error:', error);
