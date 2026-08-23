@@ -160,6 +160,74 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Main Content Area */}
       <div style={{ marginLeft: '260px', flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        {/* Top Header Navigation Bar */}
+        <header
+          style={{
+            height: '60px',
+            backgroundColor: themeMode === 'dark' ? '#0D1E30' : '#FFFFFF',
+            borderBottom: '1px solid',
+            borderColor: themeMode === 'dark' ? 'rgba(255,255,255,0.1)' : '#E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 2.5rem',
+            position: 'sticky',
+            top: 0,
+            zIndex: 90,
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: themeMode === 'dark' ? '#94A3B8' : '#64748B' }}>
+              Habesha Freight Control Console
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {/* Top Prominent Dark Mode Toggle Button */}
+            <button
+              onClick={handleToggleTheme}
+              style={{
+                backgroundColor: themeMode === 'dark' ? '#1E293B' : '#0F172A',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '2rem',
+                padding: '0.45rem 1rem',
+                fontSize: '0.825rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                transition: 'all 0.2s ease',
+              }}
+              title="Toggle Light/Dark Theme"
+            >
+              <span>{themeMode === 'dark' ? '☀️' : '🌙'}</span>
+              <span>{themeMode === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
+
+            {/* Profile Avatar */}
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: '#C8933A',
+                color: '#FFFFFF',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.85rem',
+              }}
+            >
+              {(user?.full_name ?? 'Admin').split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase() || 'AD'}
+            </div>
+          </div>
+        </header>
+
         {children}
       </div>
     </div>
