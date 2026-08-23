@@ -38,6 +38,8 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchDashboardData = async () => {
