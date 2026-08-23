@@ -85,15 +85,31 @@ export async function register(req: Request, res: Response) {
       .insert(insertData)
       .returning(['id', 'full_name', 'email', 'phone_number', 'role', 'is_verified', 'kyc_status', 'status']);
 
-    // Send real Email OTP via Nodemailer
-    emailService.sendOtpEmail(normalizedEmail, otp, full_name).catch((err) => {
-      console.error('❌ [BACKGROUND EMAIL ERROR]:', err);
-    });
+    const token = isDriverOrFleet
+      ? generateToken({
+          userId: newUser.id,
+          role: newUser.role,
+          phoneNumber: newUser.phone_number,
+          email: newUser.email,
+        })
+      : null;
+
+    if (!isDriverOrFleet) {
+      // Send real Email OTP via Nodemailer for SHIPPER only
+      emailService.sendOtpEmail(normalizedEmail, otp, full_name).catch((err) => {
+        console.error('❌ [BACKGROUND EMAIL ERROR]:', err);
+      });
+    }
 
     return res.status(201).json({
       success: true,
-      message: 'Registration successful. A 6-digit OTP has been sent to your email address.',
-      data: { user: newUser },
+      message: isDriverOrFleet
+        ? 'Registration successful. Your account has been submitted for Admin approval.'
+        : 'Registration successful. A 6-digit OTP has been sent to your email address.',
+      data: {
+        user: newUser,
+        token: token || undefined,
+      },
     });
   } catch (error) {
     console.error('Registration Error:', error);
@@ -255,7 +271,7 @@ export async function login(req: Request, res: Response) {
       });
     }
 
-    if (!user.is_verified) {
+    if (!user.is_verified && user.role === 'SHIPPER') {
       return res.status(401).json({
         success: false,
         message: 'Your email address is not verified. Please verify your OTP code.',

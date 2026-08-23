@@ -128,11 +128,19 @@ export default function Register() {
         payload.append('document', documentFile);
       }
 
-      await register(payload);
+      const res: any = await register(payload);
 
-      localStorage.setItem('registrationEmail', formData.email.trim());
-      localStorage.setItem('registrationRole', selectedRole);
-      navigate('/verify-otp');
+      if (selectedRole === 'driver' || selectedRole === 'transport') {
+        if (res?.token && res?.user) {
+          localStorage.setItem('hf_token', res.token);
+          localStorage.setItem('hf_user', JSON.stringify(res.user));
+        }
+        navigate('/pending-approval');
+      } else {
+        localStorage.setItem('registrationEmail', formData.email.trim());
+        localStorage.setItem('registrationRole', selectedRole);
+        navigate('/verify-otp');
+      }
     } catch (err: any) {
       setErrorMessage(err.message || 'Registration failed. Please try again.');
     } finally {
