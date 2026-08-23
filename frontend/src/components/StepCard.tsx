@@ -15,8 +15,7 @@ export default function StepCard({ number, title }: StepCardProps) {
       cursor: 'pointer'
     }}
     onMouseEnter={(e) => {
-      e.currentTarget.style.borderColor = '#C8933A';
-      e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(200, 147, 58, 0.18), 0 0 0 1px #C8933A';
+      e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(200, 147, 58, 0.18)';
       e.currentTarget.style.transform = 'translateY(-4px)';
     }}
     onMouseLeave={(e) => {
