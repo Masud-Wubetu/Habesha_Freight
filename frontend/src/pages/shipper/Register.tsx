@@ -130,13 +130,17 @@ export default function Register() {
 
       const res: any = await register(payload);
 
-      localStorage.setItem('registrationEmail', formData.email.trim());
-      localStorage.setItem('registrationRole', selectedRole);
-      const demoOtp = res?.data?.demo_otp || res?.demo_otp || res?.user?.otp_code;
-      if (demoOtp) {
-        localStorage.setItem('demoOtp', String(demoOtp));
+      if (selectedRole === 'driver' || selectedRole === 'transport') {
+        if (res?.token && res?.user) {
+          localStorage.setItem('hf_token', res.token);
+          localStorage.setItem('hf_user', JSON.stringify(res.user));
+        }
+        navigate('/pending-approval');
+      } else {
+        localStorage.setItem('registrationEmail', formData.email.trim());
+        localStorage.setItem('registrationRole', selectedRole);
+        navigate('/verify-otp');
       }
-      navigate('/verify-otp');
     } catch (err: any) {
       setErrorMessage(err.message || 'Registration failed. Please try again.');
     } finally {

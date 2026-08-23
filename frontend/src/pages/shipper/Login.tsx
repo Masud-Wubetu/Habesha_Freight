@@ -47,9 +47,6 @@ export default function Login() {
     } catch (err: any) {
       if (err.requires_otp_verification) {
         localStorage.setItem('registrationEmail', err.email || identifier.trim());
-        if (err.demo_otp) {
-          localStorage.setItem('demoOtp', String(err.demo_otp));
-        }
         navigate('/verify-otp');
         return;
       }

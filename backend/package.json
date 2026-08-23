@@ -7,8 +7,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "migrate": "knex migrate:latest",
-    "seed": "knex seed:run",
+    "migrate": "tsx node_modules/knex/bin/cli.js migrate:latest --knexfile knexfile.ts",
+    "seed": "tsx node_modules/knex/bin/cli.js seed:run --knexfile knexfile.ts",
     "test": "NODE_ENV=test npx tsx --test src/__tests__/**/*.test.ts",
     "test:integration": "NODE_ENV=test npx tsx --test src/__tests__/integration/*.test.ts",
     "test:unit": "NODE_ENV=test npx tsx --test src/__tests__/unit/*.test.ts",
@@ -37,6 +37,7 @@
     "multer": "^2.2.0",
     "nodemailer": "^9.0.5",
     "pg": "^8.11.5",
+    "tsx": "^4.23.12",
     "uuid": "^14.0.2"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
 
 // Base URL from Vite environment variables
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // ── Raw Axios instance (used internally and exposed as axiosInstance) ──────
 export const axiosInstance = axios.create({
