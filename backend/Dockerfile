@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copy dependency files first for better layer caching
 COPY package*.json ./
-
+COPY knexfile.js ./
 # Install all dependencies required for building
 RUN npm ci
 
