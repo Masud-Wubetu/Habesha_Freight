@@ -751,7 +751,9 @@ export async function searchFleetCompanies(req: AuthenticatedRequest, res: Respo
         const availableTrucks = vehicles.filter((v) => v.is_active).length || Math.max(fleetSize - 4, 8);
 
         const typesSet = new Set(vehicles.map((v) => v.vehicle_type).filter(Boolean));
-        const vehicleTypes = typesSet.size > 0 ? Array.from(typesSet) : ['Flatbed', 'Refrigerated', 'Tanker'];
+        const vehicleTypes = typesSet.size > 0 ? Array.from(typesSet) : ['SINO_TRUCK'
+,'TRAILER'
+,'VAN'];
 
         const reviews = await db('reviews').where('reviewee_id', company.id);
         const reviewCount = reviews.length > 0 ? reviews.length : 127;
@@ -849,9 +851,9 @@ export async function getCompanyDetails(req: AuthenticatedRequest, res: Response
         rating: avgRating,
         reviews_count: reviews.length || 127,
         vehicles: vehicles.length > 0 ? vehicles : [
-          { id: 'v1', plate_number: 'ET-3-88491', vehicle_type: 'Flatbed', capacity_tons: 30, is_active: true, verification_status: 'VERIFIED' },
-          { id: 'v2', plate_number: 'ET-3-12904', vehicle_type: 'Refrigerated', capacity_tons: 25, is_active: true, verification_status: 'VERIFIED' },
-          { id: 'v3', plate_number: 'ET-3-77412', vehicle_type: 'Tanker', capacity_tons: 40, is_active: true, verification_status: 'VERIFIED' },
+          { id: 'v1', plate_number: 'ET-3-88491', vehicle_type: 'TRAILER', capacity_tons: 30, is_active: true, verification_status: 'VERIFIED' },
+          { id: 'v2', plate_number: 'ET-3-12904', vehicle_type: 'VAN', capacity_tons: 25, is_active: true, verification_status: 'VERIFIED' },
+          { id: 'v3', plate_number: 'ET-3-77412', vehicle_type: 'SINO_TRUCK', capacity_tons: 40, is_active: true, verification_status: 'VERIFIED' },
         ],
         drivers: drivers.length > 0 ? drivers : [
           { id: 'd1', full_name: 'Alemayehu Tadesse', phone_number: '+251911223344', status: 'ACTIVE' },

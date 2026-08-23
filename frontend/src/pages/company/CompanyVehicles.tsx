@@ -22,7 +22,7 @@ export default function CompanyVehicles() {
   const [newVehicle, setNewVehicle] = useState({
     plate: '',
     model: '',
-    type: 'Flatbed',
+    type: 'TRAILER',
     capacity: '10t',
     driver: '',
   });
@@ -128,7 +128,7 @@ export default function CompanyVehicles() {
     ]);
 
     setIsModalOpen(false);
-    setNewVehicle({ plate: '', model: '', type: 'Flatbed', capacity: '10t', driver: '' });
+    setNewVehicle({ plate: '', model: '', type: 'TRAILER', capacity: '10t', driver: '' });
   };
 
   const handleOpenEdit = (v: Vehicle) => {
@@ -316,7 +316,7 @@ export default function CompanyVehicles() {
                     onChange={(e) => setNewVehicle({ ...newVehicle, type: e.target.value })}
                     className="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-amber-500"
                   >
-                    <option value="Flatbed">Flatbed</option>
+                    <option value="TRAILER">TRAILER</option>
                     <option value="Box Truck">Box Truck</option>
                     <option value="Refrigerated">Refrigerated</option>
                     <option value="Tanker">Tanker</option>

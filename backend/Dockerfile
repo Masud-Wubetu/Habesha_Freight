@@ -5,6 +5,8 @@ WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json ./
+
+# Install all dependencies required for building
 RUN npm ci
 
 # Copy source code and build
@@ -20,7 +22,6 @@ ENV NODE_ENV=production
 
 # Install production dependencies only
 COPY package*.json ./
-RUN npm ci --only=production
 
 # Copy compiled JS from builder
 COPY --from=builder /app/dist ./dist
