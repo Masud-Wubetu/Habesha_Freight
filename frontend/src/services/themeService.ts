@@ -6,10 +6,13 @@ export const getTheme = (): 'light' | 'dark' => {
 
 export const applyTheme = (theme: 'light' | 'dark') => {
   localStorage.setItem('theme', theme);
+  document.documentElement.setAttribute('data-theme', theme);
   if (theme === 'dark') {
-    document.body.classList.add('dark-mode');
+    document.body.classList.add('dark-mode', 'dark');
+    document.documentElement.classList.add('dark-mode', 'dark');
   } else {
-    document.body.classList.remove('dark-mode');
+    document.body.classList.remove('dark-mode', 'dark');
+    document.documentElement.classList.remove('dark-mode', 'dark');
   }
 };
 

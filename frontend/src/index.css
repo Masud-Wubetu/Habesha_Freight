@@ -3560,8 +3560,11 @@ a {
   }
 }
 
-/* Comprehensive Dark Mode Theme Support Across All Dashboards */
+/* Comprehensive Dark Mode Theme Support Across All Dashboards & Pages */
 body.dark-mode,
+body.dark,
+html.dark,
+.dark,
 [data-theme="dark"] {
   background-color: #070F19 !important;
   color: #F8FAFC !important;
@@ -3571,7 +3574,11 @@ body.dark-mode div[style*="background-color: #F4F6F9"],
 body.dark-mode div[style*="backgroundColor: '#F4F6F9'"],
 body.dark-mode div[style*="background-color: #f5f7fa"],
 body.dark-mode div[style*="backgroundColor: '#f5f7fa'"],
-body.dark-mode div[style*="background-color: #F8FAFC"] {
+body.dark-mode div[style*="background-color: #F8FAFC"],
+html.dark div[style*="background-color: #F4F6F9"],
+html.dark div[style*="background-color: #ffffff"],
+.dark div[style*="background-color: #F8FAFC"],
+[data-theme="dark"] div[style*="background-color: #F8FAFC"] {
   background-color: #070F19 !important;
 }
 
@@ -3579,88 +3586,98 @@ body.dark-mode div[style*="background-color: #FFFFFF"],
 body.dark-mode div[style*="backgroundColor: '#FFFFFF'"],
 body.dark-mode div[style*="background-color: #ffffff"],
 body.dark-mode div[style*="backgroundColor: '#ffffff'"],
+html.dark div[style*="background-color: #FFFFFF"],
+.dark div[style*="background-color: #FFFFFF"],
+[data-theme="dark"] div[style*="background-color: #FFFFFF"],
 body.dark-mode card,
-body.dark-mode table {
+body.dark-mode table,
+html.dark table,
+.dark table,
+[data-theme="dark"] table {
   background-color: #0D1E30 !important;
   color: #F8FAFC !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-body.dark-mode h1,
-body.dark-mode h2,
-body.dark-mode h3,
-body.dark-mode h4,
-body.dark-mode h5,
-body.dark-mode h6,
-body.dark-mode strong,
-body.dark-mode td,
-body.dark-mode th {
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6,
+body.dark-mode strong, body.dark-mode b, body.dark-mode td, body.dark-mode th, body.dark-mode label,
+html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark h5, html.dark h6,
+html.dark strong, html.dark b, html.dark td, html.dark th, html.dark label,
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6,
+.dark strong, .dark b, .dark td, .dark th, .dark label,
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3, [data-theme="dark"] h4, [data-theme="dark"] h5, [data-theme="dark"] h6,
+[data-theme="dark"] strong, [data-theme="dark"] b, [data-theme="dark"] td, [data-theme="dark"] th, [data-theme="dark"] label {
   color: #F8FAFC !important;
 }
 
-body.dark-mode p,
-body.dark-mode span:not([class*="badge"]),
-body.dark-mode div {
-  color: inherit;
-}
-
-body.dark-mode input,
-body.dark-mode select,
-body.dark-mode textarea {
+body.dark-mode input, body.dark-mode select, body.dark-mode textarea,
+html.dark input, html.dark select, html.dark textarea,
+.dark input, .dark select, .dark textarea,
+[data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
   background-color: #13273D !important;
   color: #F8FAFC !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
 }
 
-body.dark-mode tr {
+body.dark-mode select option,
+html.dark select option,
+.dark select option,
+[data-theme="dark"] select option {
+  background-color: #13273D !important;
+  color: #F8FAFC !important;
+}
+
+body.dark-mode tr, html.dark tr, .dark tr, [data-theme="dark"] tr {
   border-bottom-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Universal Tailwind & Component Dark Mode Support Across All Dashboards */
-body.dark-mode .bg-slate-50,
-body.dark-mode .bg-slate-100,
-body.dark-mode .bg-gray-50,
-body.dark-mode .bg-gray-100,
-body.dark-mode .dl-layout,
-body.dark-mode .p2-layout {
-  background-color: #070F19 !important;
-}
-
-body.dark-mode .bg-white,
-body.dark-mode .dl-topbar,
-body.dark-mode .p2-topbar,
-body.dark-mode header {
+/* Background class overrides in dark mode */
+body.dark-mode .bg-white, html.dark .bg-white, .dark .bg-white, [data-theme="dark"] .bg-white,
+body.dark-mode .dl-topbar, body.dark-mode .p2-topbar, body.dark-mode header,
+html.dark header, .dark header, [data-theme="dark"] header {
   background-color: #0D1E30 !important;
   color: #F8FAFC !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.dark-mode .bg-slate-50, html.dark .bg-slate-50, .dark .bg-slate-50, [data-theme="dark"] .bg-slate-50,
+body.dark-mode .bg-slate-100, html.dark .bg-slate-100, .dark .bg-slate-100, [data-theme="dark"] .bg-slate-100,
+body.dark-mode .bg-gray-50, html.dark .bg-gray-50, .dark .bg-gray-50, [data-theme="dark"] .bg-gray-50,
+body.dark-mode .bg-gray-100, html.dark .bg-gray-100, .dark .bg-gray-100, [data-theme="dark"] .bg-gray-100,
+body.dark-mode .dl-layout, body.dark-mode .p2-layout {
+  background-color: #070F19 !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-body.dark-mode .text-slate-900,
-body.dark-mode .text-slate-800,
-body.dark-mode .text-slate-700,
-body.dark-mode .text-gray-900,
-body.dark-mode .text-gray-800,
-body.dark-mode .text-gray-700,
-body.dark-mode .dl-topbar-title,
-body.dark-mode .p2-topbar-title {
+/* Text color contrast overrides for dark mode */
+body.dark-mode .text-slate-950, html.dark .text-slate-950, .dark .text-slate-950, [data-theme="dark"] .text-slate-950,
+body.dark-mode .text-slate-900, html.dark .text-slate-900, .dark .text-slate-900, [data-theme="dark"] .text-slate-900,
+body.dark-mode .text-slate-800, html.dark .text-slate-800, .dark .text-slate-800, [data-theme="dark"] .text-slate-800,
+body.dark-mode .text-slate-700, html.dark .text-slate-700, .dark .text-slate-700, [data-theme="dark"] .text-slate-700,
+body.dark-mode .text-black, html.dark .text-black, .dark .text-black, [data-theme="dark"] .text-black,
+body.dark-mode .text-gray-900, html.dark .text-gray-900, .dark .text-gray-900, [data-theme="dark"] .text-gray-900,
+body.dark-mode .text-gray-800, html.dark .text-gray-800, .dark .text-gray-800, [data-theme="dark"] .text-gray-800,
+body.dark-mode .text-gray-700, html.dark .text-gray-700, .dark .text-gray-700, [data-theme="dark"] .text-gray-700,
+body.dark-mode .dl-topbar-title, body.dark-mode .p2-topbar-title {
   color: #F8FAFC !important;
 }
 
-body.dark-mode .text-slate-600,
-body.dark-mode .text-slate-500,
-body.dark-mode .text-gray-600,
-body.dark-mode .text-gray-500,
+body.dark-mode .text-slate-600, html.dark .text-slate-600, .dark .text-slate-600, [data-theme="dark"] .text-slate-600,
+body.dark-mode .text-slate-500, html.dark .text-slate-500, .dark .text-slate-500, [data-theme="dark"] .text-slate-500,
+body.dark-mode .text-slate-400, html.dark .text-slate-400, .dark .text-slate-400, [data-theme="dark"] .text-slate-400,
+body.dark-mode .text-gray-600, html.dark .text-gray-600, .dark .text-gray-600, [data-theme="dark"] .text-gray-600,
+body.dark-mode .text-gray-500, html.dark .text-gray-500, .dark .text-gray-500, [data-theme="dark"] .text-gray-500,
 body.dark-mode .dl-topbar-date {
-  color: #94A3B8 !important;
+  color: #CBD5E1 !important;
 }
 
-body.dark-mode .border-slate-100,
-body.dark-mode .border-slate-200,
-body.dark-mode .border-slate-300,
-body.dark-mode .border-gray-100,
-body.dark-mode .border-gray-200,
-body.dark-mode .border-gray-300 {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+body.dark-mode .border-slate-100, html.dark .border-slate-100, .dark .border-slate-100, [data-theme="dark"] .border-slate-100,
+body.dark-mode .border-slate-200, html.dark .border-slate-200, .dark .border-slate-200, [data-theme="dark"] .border-slate-200,
+body.dark-mode .border-slate-300, html.dark .border-slate-300, .dark .border-slate-300, [data-theme="dark"] .border-slate-300,
+body.dark-mode .border-gray-100, html.dark .border-gray-100, .dark .border-gray-100, [data-theme="dark"] .border-gray-100,
+body.dark-mode .border-gray-200, html.dark .border-gray-200, .dark .border-gray-200, [data-theme="dark"] .border-gray-200,
+body.dark-mode .border-gray-300, html.dark .border-gray-300, .dark .border-gray-300, [data-theme="dark"] .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 /* Hide Scrollbar Teller Across Sidebar and Dashboard Containers */
