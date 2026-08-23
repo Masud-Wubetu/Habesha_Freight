@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. PostgreSQL with PostGIS Spatial Extension
   postgres:
@@ -11,7 +9,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgrespassword
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -35,7 +33,7 @@ services:
       DB_PASSWORD: postgrespassword
       JWT_SECRET: supersecret_habesha_freight_jwt_key_2026
     ports:
-      - "5000:5000"
+      - "5001:5000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -46,8 +44,7 @@ services:
     container_name: habesha_freight_frontend
     restart: always
     ports:
-      - "80:80"
-      - "3000:80"
+      - "3001:80"
     depends_on:
       - backend
 
