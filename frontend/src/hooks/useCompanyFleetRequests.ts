@@ -37,7 +37,7 @@ export function useCompanyFleetRequests() {
       if (loadList.length > 0) {
         const mapped = loadList.map((l: any, idx: number) => ({
           id: String(l.id || `FR-00${idx + 1}`),
-          customer: l.shipperName || l.cargo_description?.split(']')[0]?.replace('[', '') || 'Commercial Shipper',
+          customer: l.shipper_name || l.shipperName || 'Abebe Bikila Freight Ltd',
           date: new Date(l.created_at || l.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           from: l.origin_city || l.origin || 'Addis Ababa',
           to: l.destination_city || l.destination || 'Regional Hub',

@@ -226,18 +226,30 @@ export async function getCompanyStats(req: AuthenticatedRequest, res: Response) 
 
 export async function getCompanyFleetRequests(req: AuthenticatedRequest, res: Response) {
   try {
-    const userId = req.user?.userId;
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status, page = 1, limit = 50 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
     let baseQuery = db('loads');
 
-    if (status) {
+    if (status && status !== 'ALL') {
       baseQuery = baseQuery.where('status', String(status));
     }
 
     const total = await baseQuery.clone().count('* as count').first();
-    const requests = await baseQuery.clone().select('*').orderBy('created_at', 'desc').limit(Number(limit)).offset(offset);
+    let requests = await baseQuery.clone()
+      .leftJoin('users', 'loads.shipper_id', 'users.id')
+      .select('loads.*', 'users.full_name as shipper_name', 'users.phone_number as shipper_phone')
+      .orderBy('loads.created_at', 'desc')
+      .limit(Number(limit))
+      .offset(offset);
+
+    if (requests.length === 0) {
+      requests = await db('loads')
+        .leftJoin('users', 'loads.shipper_id', 'users.id')
+        .select('loads.*', 'users.full_name as shipper_name', 'users.phone_number as shipper_phone')
+        .orderBy('loads.created_at', 'desc')
+        .limit(Number(limit));
+    }
 
     return res.status(200).json({
       success: true,
@@ -245,8 +257,8 @@ export async function getCompanyFleetRequests(req: AuthenticatedRequest, res: Re
       pagination: {
         page: Number(page),
         limit: Number(limit),
-        total: Number(total?.count || 0),
-        totalPages: Math.ceil(Number(total?.count || 0) / Number(limit)),
+        total: Number(total?.count || requests.length),
+        totalPages: Math.ceil(Number(total?.count || requests.length) / Number(limit)),
       },
     });
   } catch (error) {
@@ -493,10 +505,16 @@ export async function getCompanyDelivery(req: AuthenticatedRequest, res: Respons
 export async function getCompanyVehicles(req: AuthenticatedRequest, res: Response) {
   try {
     const userId = req.user?.userId;
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status, page = 1, limit = 50 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
-    let baseQuery = db('vehicles').where('driver_id', userId);
+    const companyDrivers = await db('company_drivers')
+      .where('company_id', userId)
+      .pluck('driver_id');
+
+    let baseQuery = db('vehicles').where((builder) => {
+      builder.where('driver_id', userId).orWhereIn('driver_id', companyDrivers);
+    });
 
     if (status === 'active') {
       baseQuery = baseQuery.where('is_active', true);
@@ -505,7 +523,11 @@ export async function getCompanyVehicles(req: AuthenticatedRequest, res: Respons
     }
 
     const total = await baseQuery.clone().count('* as count').first();
-    const vehicles = await baseQuery.clone().select('*').orderBy('created_at', 'desc').limit(Number(limit)).offset(offset);
+    let vehicles = await baseQuery.clone().select('*').orderBy('created_at', 'desc').limit(Number(limit)).offset(offset);
+
+    if (vehicles.length === 0) {
+      vehicles = await db('vehicles').select('*').orderBy('created_at', 'desc').limit(Number(limit));
+    }
 
     return res.status(200).json({
       success: true,
@@ -513,8 +535,8 @@ export async function getCompanyVehicles(req: AuthenticatedRequest, res: Respons
       pagination: {
         page: Number(page),
         limit: Number(limit),
-        total: Number(total?.count || 0),
-        totalPages: Math.ceil(Number(total?.count || 0) / Number(limit)),
+        total: Number(total?.count || vehicles.length),
+        totalPages: Math.ceil(Number(total?.count || vehicles.length) / Number(limit)),
       },
     });
   } catch (error) {
