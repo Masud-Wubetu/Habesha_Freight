@@ -23,7 +23,11 @@ jobs:
 
       - name: Set Lowercase Repository Owner
         id: repo_owner
-        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
+        env:
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          LOWER_OWNER=$(echo "${OWNER}" | tr '[:upper:]' '[:lower:]')
+          echo "owner=${LOWER_OWNER}" >> $GITHUB_OUTPUT
 
       - name: Log in to GitHub Container Registry (GHCR)
         uses: docker/login-action@v3
