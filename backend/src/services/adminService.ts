@@ -466,23 +466,32 @@ export async function getAdminDashboard(dbClient: Knex = db): Promise<AdminRespo
 
   if (loadsTable) {
     const loadStats = (await dbClient('loads')
-      .select(dbClient.raw('COUNT(*)::int as "totalLoads"'))
+      .select(
+        dbClient.raw('COUNT(*)::int as "totalLoads"'),
+        dbClient.raw('COUNT(*) FILTER (WHERE status IN (?, ?, ?))::int as "activeShipments"', ['ASSIGNED', 'DISPATCHED', 'IN_TRANSIT']),
+        dbClient.raw('COUNT(*) FILTER (WHERE status IN (?, ?))::int as "completedShipments"', ['DELIVERED', 'COMPLETED']),
+        dbClient.raw('COUNT(*) FILTER (WHERE status = ?)::int as "cancelledShipments"', ['CANCELLED'])
+      )
       .first()) as Record<string, unknown> | undefined;
+
     dashboard.totalLoads = Number(loadStats?.totalLoads ?? 0);
+    dashboard.activeShipments = Number(loadStats?.activeShipments ?? 0);
+    dashboard.completedShipments = Number(loadStats?.completedShipments ?? 0);
+    dashboard.cancelledShipments = Number(loadStats?.cancelledShipments ?? 0);
   }
 
   if (shipmentsTable) {
     const shipmentStats = (await dbClient('shipments')
       .select(
         dbClient.raw('COUNT(*) FILTER (WHERE status IN (?, ?, ?))::int as "activeShipments"', ['ASSIGNED', 'DISPATCHED', 'IN_TRANSIT']),
-        dbClient.raw('COUNT(*) FILTER (WHERE status = ?)::int as "completedShipments"', ['DELIVERED']),
+        dbClient.raw('COUNT(*) FILTER (WHERE status IN (?, ?))::int as "completedShipments"', ['DELIVERED', 'COMPLETED']),
         dbClient.raw('COUNT(*) FILTER (WHERE status = ?)::int as "cancelledShipments"', ['CANCELLED'])
       )
       .first()) as Record<string, unknown> | undefined;
 
-    dashboard.activeShipments = Number(shipmentStats?.activeShipments ?? 0);
-    dashboard.completedShipments = Number(shipmentStats?.completedShipments ?? 0);
-    dashboard.cancelledShipments = Number(shipmentStats?.cancelledShipments ?? 0);
+    dashboard.activeShipments = Math.max(Number(dashboard.activeShipments ?? 0), Number(shipmentStats?.activeShipments ?? 0));
+    dashboard.completedShipments = Math.max(Number(dashboard.completedShipments ?? 0), Number(shipmentStats?.completedShipments ?? 0));
+    dashboard.cancelledShipments = Math.max(Number(dashboard.cancelledShipments ?? 0), Number(shipmentStats?.cancelledShipments ?? 0));
   }
 
   if (disputesTable) {
@@ -2668,8 +2677,15 @@ export async function listLoads(
   const total = Number((await queryBuilder.clone().count<{ count: string }[]>('* as count').first())?.count ?? 0);
   const loads = await queryBuilder
     .clone()
-    .select('*')
-    .orderBy(sortBy, sortOrder)
+    .leftJoin('users as shipper_user', 'loads.shipper_id', 'shipper_user.id')
+    .leftJoin('shipments', 'loads.id', 'shipments.load_id')
+    .leftJoin('users as driver_user', 'shipments.carrier_id', 'driver_user.id')
+    .select(
+      'loads.*',
+      'shipper_user.full_name as shipper_name',
+      'driver_user.full_name as driver_name'
+    )
+    .orderBy(`loads.${sortBy}`, sortOrder)
     .offset((page - 1) * limit)
     .limit(limit);
 

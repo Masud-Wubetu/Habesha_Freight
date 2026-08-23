@@ -60,23 +60,24 @@ export default function AdminDeliveries() {
       const queryParam = filter !== 'ALL' ? `?status=${encodeURIComponent(filter)}` : '';
       const res = await api.get<any>(`/admin/loads${queryParam}`, true);
 
-      const items: any[] = res?.data?.items || res?.data?.deliveries || res?.data?.loads || res?.items || [];
+      const items: any[] = res?.data?.loads || res?.data?.items || res?.data?.deliveries || res?.items || res?.loads || [];
 
       if (Array.isArray(items) && items.length > 0) {
         const fetched: DeliveryRecord[] = items.map((d, index) => {
           const rawStatus = (d.status as string) || 'POSTED';
-          let formattedStatus = rawStatus.replace('_', ' ');
+          let formattedStatus = rawStatus.replace(/_/g, ' ');
 
           return {
             id: d.id ? `LOAD-${d.id.slice(0, 6)}` : `SHP-00${index + 1}`,
-            shipper_name: (d.shipper_name as string) || 'Shipper',
-            driver_name: (d.driver_name as string) || '—',
-            origin: (d.origin as string) || 'Addis Ababa',
-            destination: (d.destination as string) || 'Regional Destination',
+            raw_id: d.id,
+            shipper_name: (d.shipper_name as string) || (d.shipper?.full_name as string) || 'Shipper',
+            driver_name: (d.driver_name as string) || (d.driver?.full_name as string) || '—',
+            origin: (d.origin_city as string) || (d.origin as string) || 'Addis Ababa',
+            destination: (d.destination_city as string) || (d.destination as string) || 'Regional',
             status: formattedStatus,
-            amount: Number(d.offered_price ?? d.budget ?? d.price ?? 5000),
-            cargo_type: (d.cargo_type as string) || 'General Freight',
-            weight: d.weight ? `${d.weight} Tons` : '15 Tons',
+            amount: Number(d.offered_price_etb ?? d.offered_price ?? d.budget ?? d.price ?? 0),
+            cargo_type: (d.cargo_description as string) || (d.cargo_type as string) || 'General Freight',
+            weight: d.weight_tons ? `${d.weight_tons} Tons` : (d.weight ? `${d.weight} Tons` : '—'),
           };
         });
         setDeliveries(fetched);

@@ -76,9 +76,9 @@ export default function AdminDashboard() {
         if (Array.isArray(loadList) && loadList.length > 0) {
           const formatted: ShipmentItem[] = loadList.slice(0, 5).map((l, i) => ({
             id: l.id ? `LOAD-${l.id.slice(0, 6)}` : `SHP-00${i + 1}`,
-            origin: l.origin || 'Addis Ababa',
-            destination: l.destination || 'Regional Corridor',
-            status: l.status ? String(l.status).replace('_', ' ') : 'POSTED',
+            origin: l.origin_city || l.origin || 'Addis Ababa',
+            destination: l.destination_city || l.destination || 'Regional Corridor',
+            status: l.status ? String(l.status).replace(/_/g, ' ') : 'POSTED',
           }));
           setRecentShipments(formatted);
         }
