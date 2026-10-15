@@ -14,10 +14,12 @@ const config: Record<string, Knex.Config> = {
       password: process.env.DB_PASSWORD || 'postgres',
     },
     migrations: {
-      directory: './migrations',
+      directory: './src/database/migrations',
+      extension: 'ts',
     },
     seeds: {
-      directory: './seeds',
+      directory: './src/database/seeds',
+      extension: 'ts',
     },
   },
 
@@ -31,10 +33,12 @@ const config: Record<string, Knex.Config> = {
       password: process.env.TEST_DB_PASSWORD || 'postgres',
     },
     migrations: {
-      directory: './migrations',
+      directory: './src/database/migrations',
+      extension: 'ts',
     },
     seeds: {
-      directory: './seeds',
+      directory: './src/database/seeds',
+      extension: 'ts',
     },
   },
 
@@ -48,10 +52,12 @@ const config: Record<string, Knex.Config> = {
       password: process.env.DB_PASSWORD || 'postgres',
     },
     migrations: {
-      directory: './migrations',
+      directory: './src/database/migrations',
+      extension: 'ts',
     },
     seeds: {
-      directory: './seeds',
+      directory: './src/database/seeds',
+      extension: 'ts',
     },
   },
 };

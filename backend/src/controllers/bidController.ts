@@ -1,13 +1,7 @@
 import { Response } from 'express';
-import crypto from 'crypto';
 import db from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
-
-function generateOtpAndHash(): { otp: string; hash: string } {
-  const otp = crypto.randomInt(100000, 999999).toString();
-  const hash = crypto.createHash('sha256').update(otp).digest('hex');
-  return { otp, hash };
-}
+import { generateOtpAndHash } from '../utils/crypto';
 
 export async function placeBid(req: AuthenticatedRequest, res: Response) {
   try {

@@ -146,10 +146,10 @@ export default function VerifyOTP() {
         <div className="register-card">
           <div className="register-switch">
             <Link to="/login" className="register-tab">Log In</Link>
-            <button className="register-tab active">Register</button>
+            <Link to="/register" className="register-tab">Register</Link>
           </div>
 
-          <h1 className="register-welcome">✉️ Verify Email Address</h1>
+          <h1 className="register-welcome">Verify Email Address</h1>
           <p className="register-subtitle">
             Enter the 6-digit verification code for your account:
           </p>

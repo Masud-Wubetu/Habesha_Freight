@@ -28,12 +28,12 @@ export default function RequestDetails() {
   }, [id]);
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-500">Loading shipment details...</div>;
+    return <div className="p-4 sm:p-5 text-center text-slate-500">Loading shipment details...</div>;
   }
 
   if (error || !load) {
     return (
-      <div className="p-8 text-center">
+      <div className="p-4 sm:p-5 text-center">
         <p className="text-red-500 font-medium mb-4">{error || 'Shipment load not found.'}</p>
         <Link to="/driver/requests/loads" className="btn-outline">
           Back to Available Loads

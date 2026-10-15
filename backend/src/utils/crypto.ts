@@ -30,3 +30,18 @@ export function generateOTP(): { otp: string; expiresAt: Date } {
 
   return { otp, expiresAt };
 }
+
+/**
+ * SHA-256 hash for shipment pickup/delivery OTPs (must match shipmentController verify).
+ */
+export function hashOtpSha256(otp: string): string {
+  return crypto.createHash('sha256').update(String(otp)).digest('hex');
+}
+
+/**
+ * Generates a 6-digit OTP and its SHA-256 hash for shipment handover.
+ */
+export function generateOtpAndHash(): { otp: string; hash: string } {
+  const otp = crypto.randomInt(100000, 999999).toString();
+  return { otp, hash: hashOtpSha256(otp) };
+}

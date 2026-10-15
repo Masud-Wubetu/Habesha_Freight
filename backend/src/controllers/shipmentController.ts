@@ -21,6 +21,10 @@ export async function listShipments(req: AuthenticatedRequest, res: Response) {
         'loads.weight_tons',
         'loads.origin_city',
         'loads.destination_city',
+        'loads.origin_lat',
+        'loads.origin_lng',
+        'loads.destination_lat',
+        'loads.destination_lng',
         'loads.offered_price_etb',
         'shipper.full_name as shipper_name',
         'carrier.full_name as carrier_name'
@@ -65,6 +69,10 @@ export async function getShipmentDetails(req: AuthenticatedRequest, res: Respons
         'loads.weight_tons',
         'loads.origin_city',
         'loads.destination_city',
+        'loads.origin_lat',
+        'loads.origin_lng',
+        'loads.destination_lat',
+        'loads.destination_lng',
         'loads.offered_price_etb',
         'shipper.full_name as shipper_name',
         'shipper.phone_number as shipper_phone',
@@ -198,6 +206,22 @@ export async function verifyDeliveryOtp(req: AuthenticatedRequest, res: Response
       return res.status(403).json({
         success: false,
         message: 'Forbidden. You are not the assigned driver for this shipment.',
+      });
+    }
+
+    if (shipment.status !== 'IN_TRANSIT') {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot verify delivery. Current shipment status is ${shipment.status}.`,
+      });
+    }
+
+    const inputHash = crypto.createHash('sha256').update(String(delivery_otp)).digest('hex');
+    if (inputHash !== shipment.delivery_otp_hash) {
+      return res.status(400).json({
+        success: false,
+        error: 'INVALID_OTP',
+        message: 'Invalid delivery OTP code.',
       });
     }
 

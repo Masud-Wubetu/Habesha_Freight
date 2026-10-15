@@ -2,6 +2,7 @@ import { Response } from 'express';
 import db from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { FileService } from '../services/fileService';
+import { generateOtpAndHash } from '../utils/crypto';
 
 export async function getDriverProfile(req: AuthenticatedRequest, res: Response) {
   try {
@@ -88,6 +89,10 @@ export async function getDriverShipments(req: AuthenticatedRequest, res: Respons
         'loads.weight_tons',
         'loads.origin_city',
         'loads.destination_city',
+        'loads.origin_lat',
+        'loads.origin_lng',
+        'loads.destination_lat',
+        'loads.destination_lng',
         'loads.offered_price_etb',
         'users.full_name as shipper_name',
         'users.phone_number as shipper_phone'
@@ -335,11 +340,8 @@ export async function acceptLoadPrice(req: AuthenticatedRequest, res: Response) 
     await db('bids').where('load_id', id).whereNot('id', bid.id).update({ status: 'REJECTED' });
     await db('loads').where('id', id).update({ status: 'MATCHED' });
 
-    const bcrypt = await import('bcryptjs');
-    const pickupOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const pickupHash = await bcrypt.default.hash(pickupOtp, 10);
-    const deliveryHash = await bcrypt.default.hash(deliveryOtp, 10);
+    const pickupData = generateOtpAndHash();
+    const deliveryData = generateOtpAndHash();
 
     const [shipment] = await db('shipments')
       .insert({
@@ -347,8 +349,8 @@ export async function acceptLoadPrice(req: AuthenticatedRequest, res: Response) 
         carrier_id: driverId,
         vehicle_id: vehicle.id,
         status: 'ASSIGNED',
-        pickup_otp_hash: pickupHash,
-        delivery_otp_hash: deliveryHash,
+        pickup_otp_hash: pickupData.hash,
+        delivery_otp_hash: deliveryData.hash,
       })
       .returning('*');
 

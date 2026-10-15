@@ -119,7 +119,7 @@ export default function AdminCompanies() {
 
   return (
     <AdminLayout>
-      <div style={{ padding: '2rem 2.5rem' }}>
+      <div style={{ padding: '1rem 1.25rem' }}>
         {/* Top Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>

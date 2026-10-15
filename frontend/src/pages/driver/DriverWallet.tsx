@@ -161,7 +161,7 @@ export default function DriverWallet() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto font-sans text-slate-900 min-h-screen">
+    <div className="p-4 sm:p-5 w-full font-sans text-slate-900 min-h-screen">
       {/* ── Top Header ── */}
       <header className="flex justify-between items-center mb-8">
         <div>
@@ -292,7 +292,7 @@ export default function DriverWallet() {
 
       {/* ── Withdrawal Drawer Modal ── */}
       {showWithdrawModal && (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[1100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-slate-200 animate-fade-in">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">

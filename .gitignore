@@ -6,3 +6,4 @@ frontend/dist/
 knexfile.js
 scripts
 srs.html
+.pgdata/.pgdata/

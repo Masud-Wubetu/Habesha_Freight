@@ -136,7 +136,7 @@ export default function ShipperProfile() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto font-sans text-slate-900 min-h-screen">
+    <div className="p-4 sm:p-5 w-full font-sans text-slate-900 min-h-screen">
       {/* ── Top Header ── */}
       <header className="flex justify-between items-center mb-8">
         <div>
@@ -248,7 +248,7 @@ export default function ShipperProfile() {
 
       {/* ── Edit Profile Modal ── */}
       {isEditing && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[1100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 max-w-md w-full animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Edit Profile</h3>
 

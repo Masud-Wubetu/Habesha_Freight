@@ -154,7 +154,7 @@ export default function CreateShipment() {
 
   if (submitSuccess) {
     return (
-      <div className="p-8 max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[60vh] text-center font-sans">
+      <div className="p-4 sm:p-5 w-full flex flex-col items-center justify-center min-h-[60vh] text-center font-sans">
         <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 max-w-md">
           <span className="text-5xl block mb-4">✅</span>
           <h2 className="text-xl font-bold text-slate-900 mb-2">Shipment Posted!</h2>
@@ -175,7 +175,7 @@ export default function CreateShipment() {
 
   if (view === 'form') {
     return (
-      <div className="p-8 max-w-2xl mx-auto font-sans">
+      <div className="p-4 sm:p-5 max-w-2xl mx-auto font-sans">
         {renderHeader('Post a Shipment')}
 
         <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
@@ -309,7 +309,7 @@ export default function CreateShipment() {
 
   // ── Render Selection Screen (Matching Screenshot) ──
   return (
-    <div className="p-8 max-w-7xl mx-auto font-sans">
+    <div className="p-4 sm:p-5 w-full font-sans">
       {renderHeader('Find Truck')}
 
       <div className="flex flex-col items-center justify-center min-h-[60vh] py-8">
