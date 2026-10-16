@@ -34,6 +34,6 @@ EXPOSE 5000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:5000/api/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1
 
-CMD ["node", "dist/server.js"]
+CMD ["sh", "-c", "npx tsx node_modules/knex/bin/cli.js migrate:latest --knexfile knexfile.ts && node dist/server.js"]

@@ -28,7 +28,7 @@ export default function CompanyFleetRequests() {
   });
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-5 w-full space-y-6">
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl border-l-4 border-amber-500 text-sm font-medium">
           🔔 {toastMessage}

@@ -19,14 +19,14 @@ export default function CompanyRatings() {
   const deliveredCount = stats?.shipments?.delivered || 0;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-5 w-full space-y-6">
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <h1 className="text-2xl font-bold text-slate-900">Company Ratings &amp; Reviews</h1>
         <p className="text-xs text-slate-500 mt-1">Track shipper evaluations and delivery service performance</p>
       </div>
 
       {loading ? (
-        <div className="p-8 text-center bg-white rounded-2xl border border-slate-200">
+        <div className="p-4 sm:p-5 text-center bg-white rounded-2xl border border-slate-200">
           <div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
           <p className="text-xs text-slate-500">Loading live ratings...</p>
         </div>

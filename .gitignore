@@ -5,3 +5,5 @@ frontend/dist/
 *.log
 knexfile.js
 scripts
+srs.html
+.pgdata/.pgdata/

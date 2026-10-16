@@ -1,5 +1,6 @@
 import { Knex } from 'knex';
 import bcrypt from 'bcryptjs';
+import { hashOtpSha256 } from '../../utils/crypto';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clear existing entries in correct order (reverse dependency)
@@ -205,8 +206,8 @@ export async function seed(knex: Knex): Promise<void> {
     carrier_id: driver.id,
     vehicle_id: vehicle1.id,
     status: 'ASSIGNED',
-    pickup_otp_hash: await bcrypt.hash('123456', 10),
-    delivery_otp_hash: await bcrypt.hash('654321', 10),
+    pickup_otp_hash: hashOtpSha256('123456'),
+    delivery_otp_hash: hashOtpSha256('654321'),
   });
 
   console.log('✅ Demo seed data successfully populated.');

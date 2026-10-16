@@ -6,7 +6,7 @@ export default function CompanyProfile() {
 
   if (loading) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-4 sm:p-5 w-full max-w-4xl">
         <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
           <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-slate-600 font-medium text-sm">Loading company profile...</p>
@@ -16,7 +16,7 @@ export default function CompanyProfile() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-4 sm:p-5 w-full max-w-4xl space-y-6">
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
         <h1 className="text-2xl font-bold text-slate-900">Company Profile</h1>
         <p className="text-xs text-slate-500 mt-1">Overview of the company details fetched from the backend.</p>

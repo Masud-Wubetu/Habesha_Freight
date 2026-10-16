@@ -214,7 +214,7 @@ export default function ShipperFleet() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto font-sans text-slate-900">
+    <div className="p-4 sm:p-5 w-full font-sans text-slate-900">
       {/* ── Top Header ── */}
       <header className="flex justify-between items-center mb-6">
         <div>
@@ -404,7 +404,7 @@ export default function ShipperFleet() {
 
       {/* ── View Company Details Overlay Modal ── */}
       {selectedCompany && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[1100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl relative border border-slate-200">
             <button
               onClick={() => setSelectedCompany(null)}
@@ -512,7 +512,7 @@ export default function ShipperFleet() {
 
       {/* ── Request Fleet Modal ── */}
       {requestModalCompany && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[1100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl relative border border-slate-200">
             <button
               onClick={() => setRequestModalCompany(null)}

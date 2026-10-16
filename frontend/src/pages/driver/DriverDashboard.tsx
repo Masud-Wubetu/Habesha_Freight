@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Wallet,
+  Truck,
+  CheckCircle2,
+  Award,
+  Star,
+  MapPin,
+  Package,
+} from 'lucide-react';
 import { useDriverStats } from '../../hooks/useDriverStats';
 import { useAvailableLoads } from '../../hooks/useAvailableLoads';
 import { useDriverShipments } from '../../hooks/useDriverShipments';
 import { getStoredUser } from '../../services/authService';
 
 const formatCurrency = (n: number) => `ETB ${Number(n).toLocaleString()}`;
-
-const today = new Date().toLocaleDateString('en-US', {
-  weekday: 'long',
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-});
 
 const DriverDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -30,22 +32,14 @@ const DriverDashboard: React.FC = () => {
 
   const [isOnline, setIsOnline] = useState(true);
 
-  // Active shipment is first one that is not DELIVERED/CANCELLED
   const activeShipment = shipments.find(
     (s) => !['DELIVERED', 'CANCELLED'].includes(s.status)
   );
 
   return (
     <div className="dd-root">
-
-      {/* ── Top header ─────────────────────────────────────────────────── */}
       <header className="dd-header">
-        <div>
-          <h1 className="dd-header-title">Dashboard</h1>
-          <p className="dd-header-date">{today}</p>
-        </div>
-
-        <div className="dd-header-actions">
+        <div className="dd-header-actions" style={{ marginLeft: 'auto' }}>
           <button
             id="dd-availability-toggle"
             className={`dd-availability-badge ${isOnline ? 'dd-availability-badge--online' : 'dd-availability-badge--offline'}`}
@@ -68,10 +62,11 @@ const DriverDashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* ── Stat cards ─────────────────────────────────────────────────── */}
       <section className="dd-stats-grid" aria-label="Statistics">
         <article className="dd-stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/driver/bids')}>
-          <div className="dd-stat-icon dd-stat-icon--amber">💰</div>
+          <div className="dd-stat-icon dd-stat-icon--amber">
+            <Wallet size={18} strokeWidth={2} />
+          </div>
           <p className="dd-stat-value">
             {statsLoading ? '…' : formatCurrency(stats?.totalEarningsEtb ?? 0)}
           </p>
@@ -79,28 +74,35 @@ const DriverDashboard: React.FC = () => {
         </article>
 
         <article className="dd-stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/driver/active-delivery')}>
-          <div className="dd-stat-icon dd-stat-icon--blue">🚛</div>
+          <div className="dd-stat-icon dd-stat-icon--blue">
+            <Truck size={18} strokeWidth={2} />
+          </div>
           <p className="dd-stat-value">{statsLoading ? '…' : stats?.activeJobs ?? 0}</p>
           <p className="dd-stat-label">Active Jobs</p>
         </article>
 
         <article className="dd-stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/driver/history')}>
-          <div className="dd-stat-icon dd-stat-icon--green">✅</div>
+          <div className="dd-stat-icon dd-stat-icon--green">
+            <CheckCircle2 size={18} strokeWidth={2} />
+          </div>
           <p className="dd-stat-value">{statsLoading ? '…' : stats?.totalTrips ?? 0}</p>
           <p className="dd-stat-label">Total Trips</p>
         </article>
 
         <article className="dd-stat-card" style={{ cursor: 'pointer' }} onClick={() => navigate('/driver/ratings')}>
-          <div className="dd-stat-icon dd-stat-icon--gold">🏅</div>
+          <div className="dd-stat-icon dd-stat-icon--gold">
+            <Award size={18} strokeWidth={2} />
+          </div>
           <p className="dd-stat-value">
             {statsLoading ? '…' : (stats?.avgRating ?? 'N/A')}{' '}
-            {stats?.avgRating ? <span className="dd-star">⭐</span> : null}
+            {stats?.avgRating ? (
+              <Star size={14} className="dd-star" fill="currentColor" />
+            ) : null}
           </p>
           <p className="dd-stat-label">Rating</p>
         </article>
       </section>
 
-      {/* ── Active Job dark card ─────────────────────────────────────── */}
       {activeShipment ? (
         <section className="dd-active-job-card" aria-label="Active job">
           <div className="dd-active-job-top">
@@ -125,7 +127,8 @@ const DriverDashboard: React.FC = () => {
               type="button"
               onClick={() => navigate('/driver/history/tracking')}
             >
-              📍 Navigation
+              <MapPin size={16} />
+              Navigation
             </button>
             <button
               id="dd-manage-delivery-btn"
@@ -133,7 +136,8 @@ const DriverDashboard: React.FC = () => {
               type="button"
               onClick={() => navigate('/driver/active-delivery')}
             >
-              🚚 Manage Delivery
+              <Truck size={16} />
+              Manage Delivery
             </button>
           </div>
         </section>
@@ -145,7 +149,6 @@ const DriverDashboard: React.FC = () => {
         </section>
       )}
 
-      {/* ── Available Loads ──────────────────────────────────────────── */}
       <section className="dd-card" aria-label="Available loads nearby">
         <div className="dd-section-header">
           <h3 className="dd-section-title">Available Loads Nearby</h3>
@@ -160,9 +163,9 @@ const DriverDashboard: React.FC = () => {
         </div>
 
         {loadsLoading ? (
-          <p style={{ color: 'rgba(255,255,255,0.5)', padding: '1rem 0' }}>Loading loads…</p>
+          <p className="dd-muted">Loading loads…</p>
         ) : loads.length === 0 ? (
-          <p style={{ color: 'rgba(255,255,255,0.5)', padding: '1rem 0' }}>No available loads at the moment.</p>
+          <p className="dd-muted">No available loads at the moment.</p>
         ) : (
           <ul className="dd-load-list">
             {loads.slice(0, 5).map((load) => (
@@ -172,7 +175,9 @@ const DriverDashboard: React.FC = () => {
                 style={{ cursor: 'pointer' }}
                 onClick={() => navigate(`/driver/requests/${load.id}`)}
               >
-                <div className="dd-load-icon">📦</div>
+                <div className="dd-load-icon">
+                  <Package size={18} strokeWidth={1.85} />
+                </div>
                 <div className="dd-load-info">
                   <p className="dd-load-route">
                     {load.origin_city} → {load.destination_city}
@@ -190,7 +195,6 @@ const DriverDashboard: React.FC = () => {
         )}
       </section>
 
-      {/* ── Pending Bids ─────────────────────────────────────────────── */}
       <section className="dd-card" aria-label="Pending bids">
         <div className="dd-section-header">
           <h3 className="dd-section-title">Pending Bids</h3>
@@ -204,14 +208,13 @@ const DriverDashboard: React.FC = () => {
           </button>
         </div>
         {statsLoading ? (
-          <p style={{ color: 'rgba(255,255,255,0.5)', padding: '1rem 0' }}>Loading…</p>
+          <p className="dd-muted">Loading…</p>
         ) : (
-          <p style={{ color: 'rgba(255,255,255,0.7)', padding: '0.5rem 0' }}>
+          <p className="dd-muted">
             You have <strong>{stats?.pendingBids ?? 0}</strong> pending bid(s) awaiting shipper response.
           </p>
         )}
       </section>
-
     </div>
   );
 };

@@ -48,14 +48,14 @@ export default function ShipperDashboard() {
     .reduce((sum, l) => sum + (Number(l.offered_price_etb) || 45000), 0);
 
   return (
-    <div className="p-8 font-sans text-slate-900 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-5 font-sans text-slate-900 w-full">
       {/* ── Top header ── */}
-      <header className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-[1.75rem] font-bold text-slate-900 mb-1 leading-tight">Shipper Dashboard</h1>
+      <header className="flex justify-between items-center gap-3 mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-[1.75rem] font-bold text-slate-900 mb-1 leading-tight">Shipper Dashboard</h1>
           <p className="text-sm text-slate-500">{today}</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 shrink-0">
           <div className="w-10 h-10 rounded-full bg-[#071426] text-white flex items-center justify-center text-sm font-bold cursor-pointer" onClick={() => navigate('/profile')}>
             {initials}
           </div>
@@ -100,19 +100,19 @@ export default function ShipperDashboard() {
       </section>
 
       {/* Escrow Milestone Guarantee Banner */}
-      <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-4 mb-8 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">🛡️</span>
-          <div>
+      <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-4 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3 min-w-0">
+          <span className="text-2xl shrink-0">🛡️</span>
+          <div className="min-w-0">
             <h4 className="text-sm font-bold text-slate-900">Escrow Milestone Protection Active</h4>
             <p className="text-xs text-slate-600">Your funds are safely locked in Telebirr / Chapa escrow and only released to drivers after 6-digit OTP delivery verification.</p>
           </div>
         </div>
         <button
           onClick={() => navigate('/payments')}
-          className="px-4 py-2 bg-[#C8933A] hover:bg-[#b07e2e] text-white text-xs font-bold rounded-lg whitespace-nowrap transition-colors cursor-pointer"
+          className="px-4 py-2 bg-[#C8933A] hover:bg-[#b07e2e] text-white text-xs font-bold rounded-lg whitespace-nowrap transition-colors cursor-pointer self-start sm:self-auto"
         >
-          Manage Escrow & Payments 🔒
+          Manage Escrow
         </button>
       </div>
 
@@ -131,19 +131,21 @@ export default function ShipperDashboard() {
           ) : (
             <div className="flex flex-col gap-3">
               {activeDeliveries.map((load) => (
-                <div key={load.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => navigate(`/loads/${load.id}`)}>
-                  <div className="text-xl">📦</div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-sm text-slate-800 mb-1">
-                      SHP-{load.id.slice(0, 3).toUpperCase()} · {load.origin_city} → {load.destination_city}
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      {load.cargo_description} · {load.weight_tons} tons
-                    </p>
+                <div key={load.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-slate-50 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer" onClick={() => navigate('/tracking')}>
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <div className="text-xl shrink-0">📦</div>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-sm text-slate-800 mb-1 truncate">
+                        {load.origin_city} → {load.destination_city}
+                      </h3>
+                      <p className="text-xs text-slate-500 truncate">
+                        {load.cargo_description} · {load.weight_tons} tons
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                     <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
-                      🔒 Escrow Protected
+                      Escrow Protected
                     </span>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(load.status)}`}>
                       {getStatusDisplay(load.status)}

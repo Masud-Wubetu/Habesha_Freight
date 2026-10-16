@@ -149,7 +149,7 @@ export default function ShipperShipments() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto font-sans text-slate-900 min-h-screen">
+    <div className="p-4 sm:p-5 w-full font-sans text-slate-900 min-h-screen">
       {/* ── Top Header ── */}
       <header className="flex justify-between items-center mb-6">
         <div>
@@ -352,7 +352,7 @@ export default function ShipperShipments() {
 
       {/* ── Modal: Accepted OTP (Premium Feature) ── */}
       {showOtpModal && acceptedBidInfo && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[1100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-8 max-w-md w-full text-center animate-in fade-in zoom-in-95 duration-200">
             <span className="text-5xl block mb-4">🎉</span>
             <h3 className="text-xl font-bold text-slate-900 mb-2">Bid Accepted!</h3>
@@ -383,7 +383,7 @@ export default function ShipperShipments() {
 
       {/* ── Modal: Counter Offer ── */}
       {showCounterModal && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[1100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 max-w-sm w-full">
             <h3 className="text-lg font-bold text-slate-900 mb-4">Submit Counter Offer</h3>
             <div className="flex flex-col gap-2 mb-6">
@@ -415,7 +415,7 @@ export default function ShipperShipments() {
 
       {/* ── Modal: View Driver Profile ── */}
       {showProfileModal && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[1100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 max-w-sm w-full">
             <div className="flex flex-col items-center text-center gap-4 mb-6">
               <div className="w-16 h-16 rounded-full bg-[#071426] text-white font-bold flex items-center justify-center text-lg">

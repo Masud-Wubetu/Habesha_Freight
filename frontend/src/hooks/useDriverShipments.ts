@@ -18,6 +18,10 @@ export interface DriverShipment {
   // Joined fields from loads/users
   origin_city?: string;
   destination_city?: string;
+  origin_lat?: number | string;
+  origin_lng?: number | string;
+  destination_lat?: number | string;
+  destination_lng?: number | string;
   cargo_description?: string;
   weight_tons?: number;
   offered_price_etb?: number | string;

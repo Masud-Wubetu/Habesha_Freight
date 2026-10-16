@@ -27,11 +27,18 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
+    const data = (error.response?.data as Record<string, unknown>) || {};
     const msg =
-      (error.response?.data as any)?.message ||
+      (data.message as string) ||
       error.message ||
       'API Request failed';
-    return Promise.reject(new Error(msg));
+    const enriched = new Error(msg) as Error & Record<string, unknown>;
+    // Preserve backend flags (e.g. requires_otp_verification) for login redirect
+    for (const key of Object.keys(data)) {
+      if (key !== 'message') enriched[key] = data[key];
+    }
+    enriched.status = error.response?.status;
+    return Promise.reject(enriched);
   }
 );
 

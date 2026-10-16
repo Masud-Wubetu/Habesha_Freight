@@ -60,7 +60,7 @@ export default function AvailableLoads() {
   ];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-5 w-full space-y-6">
       <PageHeader
         title="Available Shipments"
         subtitle="Browse open loads and submit your bid"

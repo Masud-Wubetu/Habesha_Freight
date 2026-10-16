@@ -19,7 +19,7 @@ export default function CompanySettings() {
 
   if (loading) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-4 sm:p-5 w-full max-w-4xl">
         <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
           <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-slate-600 font-medium text-sm">Loading company settings...</p>
@@ -29,7 +29,7 @@ export default function CompanySettings() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-4 sm:p-5 w-full max-w-4xl space-y-6">
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl border-l-4 border-amber-500 text-sm font-medium">
           🔔 {toastMessage}

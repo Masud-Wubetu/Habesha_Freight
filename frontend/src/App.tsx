@@ -215,6 +215,7 @@ function App() {
                       <Route path="active-delivery/:id" element={<DeliveryDetails />} />
                       <Route path="deliveries/active" element={<ActiveDelivery />} />
                       <Route path="deliveries/tracking" element={<LiveTracking />} />
+                      <Route path="gps" element={<LiveTracking />} />
                       <Route path="deliveries/history" element={<DeliveryHistory />} />
                       <Route path="history" element={<DeliveryHistory />} />
                       <Route path="history/tracking" element={<LiveTracking />} />
@@ -256,7 +257,13 @@ function App() {
               }
             />
 
-            {/* ── Public routes (use MainLayout) ── */}
+            {/* ── Auth routes (standalone — no marketing navbar) ── */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/verify-otp" element={<VerifyOTP />} />
+            <Route path="/pending-approval" element={<PendingApproval />} />
+
+            {/* ── Public marketing routes ── */}
             <Route
               element={
                 <Layout>
@@ -265,10 +272,6 @@ function App() {
               }
             >
               <Route path="/" element={<ShipperHome />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/verify-otp" element={<VerifyOTP />} />
-              <Route path="/pending-approval" element={<PendingApproval />} />
             </Route>
 
             {/* ── Authenticated Shipper routes ── */}

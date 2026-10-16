@@ -182,7 +182,7 @@ export default function CompanyVehicles() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 font-sans">
+    <div className="p-4 sm:p-5 w-full space-y-6 font-sans">
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl border-l-4 border-amber-500 text-sm font-medium animate-bounce">
           🔔 {toastMessage}
@@ -276,7 +276,7 @@ export default function CompanyVehicles() {
 
       {/* Modal: Register Vehicle */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[1100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-lg font-bold text-slate-900">Register Fleet Truck</h3>
@@ -362,7 +362,7 @@ export default function CompanyVehicles() {
 
       {/* Modal: Edit Vehicle */}
       {isEditModalOpen && editingVehicle && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[1100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-lg font-bold text-slate-900">✏️ Edit Vehicle Details</h3>
