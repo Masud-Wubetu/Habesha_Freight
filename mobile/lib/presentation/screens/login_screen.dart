@@ -15,6 +15,12 @@ class _LoginScreenState extends State<LoginScreen> {
   AuthTab _activeTab = AuthTab.phone;
 
   @override
+  void initState() {
+    super.initState();
+    _activeTab = AuthTab.phone;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,

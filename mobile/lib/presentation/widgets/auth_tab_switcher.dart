@@ -10,7 +10,7 @@ class AuthTabSwitcher extends StatelessWidget {
 
   const AuthTabSwitcher({
     super.key,
-    required this.activeTab,
+    this.activeTab = AuthTab.phone,
     required this.onTabChanged,
   });
 
