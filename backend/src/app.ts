@@ -36,7 +36,7 @@ export function createApp(database: Knex = db): Express {
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // Health check endpoint
-  app.get('/health', (_req: Request, res: Response) => {
+  const healthHandler = (_req: Request, res: Response) => {
     res.status(200).json({ 
       success: true, 
       message: 'API is healthy.', 
@@ -45,7 +45,9 @@ export function createApp(database: Knex = db): Express {
         timestamp: new Date().toISOString()
       } 
     });
-  });
+  };
+  app.get('/health', healthHandler);
+  app.get('/api/health', healthHandler);
 
   // API Routes
   app.use('/api/auth', authRoutes);

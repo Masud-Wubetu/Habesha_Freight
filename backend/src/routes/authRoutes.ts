@@ -8,6 +8,7 @@ import {
   updateProfile,
   logout,
   sendOtp,
+  telebirrLogin,
   faydaVerify,
   faydaLogin,
   refreshToken,
@@ -29,6 +30,7 @@ router.post('/logout', logout);
 
 // New Auth Routes
 router.post('/otp/send', sendOtp);
+router.post('/telebirr', telebirrLogin);
 router.post('/fayda/verify', faydaVerify);
 router.post('/login/fayda', faydaLogin);
 router.post('/refresh', refreshToken);
