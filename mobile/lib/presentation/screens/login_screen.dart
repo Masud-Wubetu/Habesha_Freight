@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/models/user_model.dart';
 import '../widgets/auth_tab_switcher.dart';
 import '../widgets/login_header.dart';
+import '../widgets/phone_auth_view.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,12 +15,57 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final AuthService _authService = AuthService();
   AuthTab _activeTab = AuthTab.phone;
 
   @override
   void initState() {
     super.initState();
     _activeTab = AuthTab.phone;
+  }
+
+  void _onAuthenticated(UserModel user, String token) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.cardBorder),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: AppColors.success),
+            const SizedBox(width: 8),
+            Text(
+              'Authenticated!',
+              style: GoogleFonts.outfit(color: Colors.white, fontSize: 18),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Welcome, ${user.fullName}',
+                style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 6),
+            Text('Role: ${user.role}',
+                style: GoogleFonts.inter(color: AppColors.gold, fontWeight: FontWeight.w600)),
+            Text('Phone: ${user.phoneNumber}',
+                style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13)),
+            Text('Status: ${user.status} (KYC: ${user.kycStatus})',
+                style: GoogleFonts.inter(color: AppColors.badgeGreenText, fontSize: 13)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK', style: TextStyle(color: AppColors.gold)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -90,18 +138,25 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 22),
 
-                        // Active Tab Placeholder
-                        Center(
-                          child: Text(
-                            _activeTab == AuthTab.phone
-                                ? 'Phone Number login view ready for next step'
-                                : 'Password login view ready for next step',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: AppColors.textMuted,
+                        // Active Tab Content
+                        if (_activeTab == AuthTab.phone)
+                          PhoneAuthView(
+                            authService: _authService,
+                            onAuthenticated: _onAuthenticated,
+                          )
+                        else
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: Text(
+                                'Password login view ready for next step',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                   ),
@@ -114,3 +169,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
