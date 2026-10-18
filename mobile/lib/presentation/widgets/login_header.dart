@@ -11,43 +11,7 @@ class LoginHeader extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Top Pill Badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0C1424),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: const Color(0xFF1E2D48),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: const BoxDecoration(
-                  color: AppColors.gold,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'PAGE 02: MOBILE LOGIN • AUTHENTICATION & ACCESS',
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                  color: const Color(0xFF94A3B8),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-
+        const SizedBox(height: 12),
         // Brand Logo Row (Squircle Truck + "Habesha Freight")
         Row(
           mainAxisSize: MainAxisSize.min,
