@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../data/models/user_model.dart';
 import '../widgets/auth_tab_switcher.dart';
 import '../widgets/login_header.dart';
+import '../widgets/password_auth_view.dart';
 import '../widgets/phone_auth_view.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -145,17 +146,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             onAuthenticated: _onAuthenticated,
                           )
                         else
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              child: Text(
-                                'Password login view ready for next step',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
-                            ),
+                          PasswordAuthView(
+                            authService: _authService,
+                            onAuthenticated: _onAuthenticated,
                           ),
                       ],
                     ),
