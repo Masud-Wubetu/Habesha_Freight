@@ -6,6 +6,7 @@ import '../widgets/home/corridors_section.dart';
 import '../widgets/home/hero_section.dart';
 import '../widgets/home/home_header.dart';
 import '../widgets/home/live_transit_card.dart';
+import '../widgets/home/rate_estimator_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loadingLoads = false;
   List<Map<String, dynamic>> _loads = [];
   late EthiopianCorridor _selectedCorridor;
+  double _weight = 14.0;
   late ActiveTransit _transit;
   late RegionalTelemetry _telemetry;
 
@@ -64,6 +66,14 @@ class _HomeScreenState extends State<HomeScreen> {
               corridors: _corridorService.getCorridors(),
               selectedCorridor: _selectedCorridor,
               onSelect: (c) => setState(() => _selectedCorridor = c),
+            ),
+            const SizedBox(height: 20),
+            RateEstimatorSection(
+              corridor: _selectedCorridor,
+              weightTons: _weight,
+              onWeightChanged: (w) => setState(() => _weight = w),
+              corridorService: _corridorService,
+              onRequestTrucks: () => _snack('Broadcasting ${_selectedCorridor.originCity} ➔ ${_selectedCorridor.destinationCity} load to carriers...'),
             ),
             const SizedBox(height: 20),
           ]),
