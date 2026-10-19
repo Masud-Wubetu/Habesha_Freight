@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import 'storage_service.dart';
-import '../../data/models/auth_response.dart';
 import '../../data/models/user_model.dart';
 
 class AuthService {
