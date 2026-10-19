@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/services/corridor_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/corridor_model.dart';
+import '../widgets/home/corridors_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,7 +20,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _backendLoads = [];
 
   // Active Corridor Selection for Rate Estimator (Microstep 4 & 5)
-  // ignore: unused_field
   late EthiopianCorridor _selectedCorridor;
   // ignore: unused_field
   double _cargoWeightTons = 14.0;
@@ -67,6 +67,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
               // 3. Live GPS Telemetry & Active Transit Card
               _buildLiveTransitCard(),
+              const SizedBox(height: 24),
+
+              // 4. Key Ethiopian Corridors
+              CorridorsSection(
+                corridors: _corridorService.getCorridors(),
+                selectedCorridor: _selectedCorridor,
+                onSelect: (c) => setState(() => _selectedCorridor = c),
+              ),
               const SizedBox(height: 24),
             ],
           ),
