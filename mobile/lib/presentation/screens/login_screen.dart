@@ -63,8 +63,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK', style: TextStyle(color: AppColors.gold)),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.of(context).pushReplacementNamed('/fleet');
+            },
+            child: const Text('Open Fleet Hub', style: TextStyle(color: AppColors.gold)),
           ),
         ],
       ),
