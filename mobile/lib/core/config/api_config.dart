@@ -2,18 +2,28 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConfig {
+  /// Backend default port is 5000 (`backend/src/server.ts`).
+  /// On web (including phone browser over LAN), use the page host so the
+  /// device can reach the API — not `localhost` on the phone itself.
   static String _defaultBaseUrl() {
-    if (kIsWeb) return 'http://localhost:5001/api';
+    if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host.isNotEmpty && host != 'localhost' && host != '127.0.0.1') {
+        return 'http://$host:5000/api';
+      }
+      return 'http://localhost:5000/api';
+    }
     try {
-      if (Platform.isAndroid) return 'http://10.0.2.2:5001/api';
+      // Android emulator → host machine. Physical Android: set StorageService base URL
+      // or use your LAN IP (e.g. http://10.240.71.57:5000/api).
+      if (Platform.isAndroid) return 'http://10.0.2.2:5000/api';
     } catch (_) {}
-    return 'http://localhost:5001/api';
+    return 'http://localhost:5000/api';
   }
 
-  // Active Base URL
   static String baseUrl = _defaultBaseUrl();
 
-  // Authentication Endpoints
+  // Auth
   static const String login = '/auth/login';
   static const String register = '/auth/register';
   static const String sendOtp = '/auth/otp/send';
@@ -21,11 +31,23 @@ class ApiConfig {
   static const String resendOtp = '/auth/resend-otp';
   static const String telebirr = '/auth/telebirr';
   static const String me = '/auth/me';
+  static const String logout = '/auth/logout';
 
-  // Freight & Bidding Endpoints
-  static const String bids = '/bids';
+  // Company (FLEET_OWNER) — pages 27–34
+  static const String companyProfile = '/company/profile';
+  static const String companyStats = '/company/stats';
+  static const String companyVehicles = '/company/vehicles';
+  static const String companyDrivers = '/company/drivers';
+  static const String companyDeliveries = '/company/deliveries';
+  static const String companyFleetRequests = '/company/fleet-requests';
+
+  // Escrow / driver
+  static const String escrowLedger = '/escrow/ledger/all';
+  static const String driverStats = '/driver/stats';
+  static const String driverShipments = '/driver/shipments';
   static const String driverBids = '/driver/bids';
+  static const String availableLoads = '/driver/loads/available';
 
-  // System & Health Endpoints
+  // System
   static const String health = '/health';
 }
