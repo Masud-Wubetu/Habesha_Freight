@@ -28,7 +28,11 @@ class _OtpSheetState extends State<OtpSheet> {
   void initState() {
     super.initState();
     _t = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (_timer > 0) setState(() => _timer--); else t.cancel();
+      if (_timer > 0) {
+        setState(() => _timer--);
+      } else {
+        t.cancel();
+      }
     });
   }
 
