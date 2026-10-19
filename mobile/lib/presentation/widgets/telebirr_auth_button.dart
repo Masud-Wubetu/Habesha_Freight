@@ -186,14 +186,14 @@ class _TelebirrAuthButtonState extends State<TelebirrAuthButton> {
             splashColor: AppColors.telebirrBlue.withValues(alpha: 0.1),
             highlightColor: AppColors.telebirrBlue.withValues(alpha: 0.05),
             child: Ink(
-              height: 52,
               decoration: BoxDecoration(
                 color: AppColors.telebirrButton,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.telebirrBorder),
               ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 52),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     // Telebirr Logo Icon Badge
@@ -217,6 +217,7 @@ class _TelebirrAuthButtonState extends State<TelebirrAuthButton> {
                     // Label & Subtext
                     Expanded(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -228,6 +229,7 @@ class _TelebirrAuthButtonState extends State<TelebirrAuthButton> {
                               color: Colors.white,
                             ),
                           ),
+                          const SizedBox(height: 2),
                           Text(
                             'Instant SuperApp verification',
                             style: GoogleFonts.inter(

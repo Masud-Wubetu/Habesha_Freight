@@ -4,6 +4,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/user_model.dart';
 import '../widgets/auth_tab_switcher.dart';
+import '../widgets/login_footer.dart';
 import '../widgets/login_header.dart';
 import '../widgets/password_auth_view.dart';
 import '../widgets/phone_auth_view.dart';
@@ -159,6 +160,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  const LoginFooter(),
                 ],
               ),
             ),
