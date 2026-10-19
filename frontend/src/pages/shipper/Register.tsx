@@ -213,7 +213,13 @@ export default function Register() {
 
               {errorMessage && <div className="auth-error-banner">{errorMessage}</div>}
 
-              <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="register-details-form">
+              <form
+                method="post"
+                action="/register"
+                autoComplete="on"
+                onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
+                className="register-details-form"
+              >
                 <div className="form-row">
                   <div className="form-group">
                     <label>First Name</label>
@@ -243,23 +249,28 @@ export default function Register() {
                 </div>
 
                 <div className="form-group">
-                  <label>Email Address</label>
+                  <label htmlFor="register-email">Email Address</label>
                   <input
+                    id="register-email"
                     type="email"
                     name="email"
+                    autoComplete="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="dawit@example.com"
                     className={`form-input ${errors.email ? 'input-error' : ''}`}
+                    required
                   />
                   {errors.email && <span className="input-error-text">{errors.email}</span>}
                 </div>
 
                 <div className="form-group">
-                  <label>Phone Number <span className="field-optional">(optional)</span></label>
+                  <label htmlFor="register-phone">Phone Number <span className="field-optional">(optional)</span></label>
                   <input
+                    id="register-phone"
                     type="tel"
                     name="phoneNumber"
+                    autoComplete="tel"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
                     placeholder="+251 912 345 678"
@@ -270,6 +281,7 @@ export default function Register() {
                 <div className="form-group">
                   <label>Password</label>
                   <input
+                    id="register-password"
                     type="password"
                     name="password"
                     autoComplete="new-password"
@@ -277,6 +289,7 @@ export default function Register() {
                     onChange={handleInputChange}
                     placeholder="Create a strong password"
                     className={`form-input ${errors.password ? 'input-error' : ''}`}
+                    required
                   />
                   {errors.password && <span className="input-error-text">{errors.password}</span>}
                 </div>

@@ -3,9 +3,19 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConfig {
   /// Backend default port is 5000 (`backend/src/server.ts`).
+  /// On web (including phone browser over LAN), use the page host so the
+  /// device can reach the API — not `localhost` on the phone itself.
   static String _defaultBaseUrl() {
-    if (kIsWeb) return 'http://localhost:5000/api';
+    if (kIsWeb) {
+      final host = Uri.base.host;
+      if (host.isNotEmpty && host != 'localhost' && host != '127.0.0.1') {
+        return 'http://$host:5000/api';
+      }
+      return 'http://localhost:5000/api';
+    }
     try {
+      // Android emulator → host machine. Physical Android: set StorageService base URL
+      // or use your LAN IP (e.g. http://10.240.71.57:5000/api).
       if (Platform.isAndroid) return 'http://10.0.2.2:5000/api';
     } catch (_) {}
     return 'http://localhost:5000/api';
