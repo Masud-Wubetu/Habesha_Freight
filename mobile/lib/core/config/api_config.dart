@@ -22,6 +22,11 @@ class ApiConfig {
   static const String telebirr = '/auth/telebirr';
   static const String me = '/auth/me';
 
+  // Freight & Logistics Endpoints
+  static const String loads = '/loads';
+  static const String shipments = '/shipments';
+  static const String vehicles = '/vehicles';
+
   // System & Health Endpoints
   static const String health = '/health';
 }
