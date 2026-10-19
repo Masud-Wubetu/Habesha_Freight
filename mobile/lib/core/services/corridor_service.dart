@@ -3,19 +3,6 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../services/storage_service.dart';
 import '../../data/models/corridor_model.dart';
-import '../../data/models/telemetry_model.dart';
-
-class CorridorEstimate {
-  final double estimatedPriceEtb;
-  final double distanceKm;
-  final int transitHoursEstimate;
-
-  const CorridorEstimate({
-    required this.estimatedPriceEtb,
-    required this.distanceKm,
-    required this.transitHoursEstimate,
-  });
-}
 
 class CorridorService {
   final http.Client _client;

@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/services/corridor_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/corridor_model.dart';
-import '../../data/models/telemetry_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
