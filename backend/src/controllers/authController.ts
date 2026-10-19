@@ -55,7 +55,7 @@ export async function register(req: Request, res: Response) {
 
     const isDriverOrFleet = targetRole === 'DRIVER' || targetRole === 'FLEET_OWNER';
     const initialKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
-    const initialStatus = isDriverOrFleet ? 'PENDING_APPROVAL' : 'ACTIVE';
+    const initialStatus = isDriverOrFleet ? 'INACTIVE' : 'ACTIVE';
 
     const generatedPhone = `+2519${Math.floor(10000000 + Math.random() * 90000000)}`;
     const finalPhoneNumber = phone_number && phone_number.trim() ? phone_number.trim() : generatedPhone;
@@ -176,8 +176,8 @@ export async function verifyOtp(req: Request, res: Response) {
     }
 
     const isDriverOrFleet = user.role === 'DRIVER' || user.role === 'FLEET_OWNER';
-    const updatedKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
-    const updatedStatus = isDriverOrFleet ? 'PENDING_APPROVAL' : 'ACTIVE';
+    const updatedKycStatus = user.kyc_status === 'APPROVED' ? 'APPROVED' : (isDriverOrFleet ? 'PENDING' : 'APPROVED');
+    const updatedStatus = user.status === 'ACTIVE' ? 'ACTIVE' : (isDriverOrFleet ? 'INACTIVE' : 'ACTIVE');
 
     await db('users')
       .where({ id: user.id })
@@ -676,6 +676,60 @@ export async function uploadDriverLicense(req: Request, res: Response) {
     return res.status(500).json({
       success: false,
       message: 'Internal server error uploading license.',
+    });
+  }
+}
+
+export async function telebirrLogin(req: Request, res: Response) {
+  try {
+    const { phone_number } = req.body;
+
+    if (!phone_number) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required for Telebirr authentication.',
+      });
+    }
+
+    const normalizedPhone = phone_number.trim();
+    const user = await db('users').where({ phone_number: normalizedPhone }).first();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'No account registered with this Telebirr phone number. Please register first.',
+      });
+    }
+
+    const token = generateToken({
+      userId: user.id,
+      role: user.role,
+      phoneNumber: user.phone_number,
+      email: user.email,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Telebirr Quick Auth authenticated successfully.',
+      data: {
+        token,
+        user: {
+          id: user.id,
+          full_name: user.full_name,
+          email: user.email,
+          phone_number: user.phone_number,
+          role: user.role,
+          is_verified: user.is_verified,
+          kyc_status: user.kyc_status,
+          status: user.status,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Telebirr Login Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error during Telebirr login.',
     });
   }
 }
