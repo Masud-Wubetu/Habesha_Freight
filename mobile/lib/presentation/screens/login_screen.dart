@@ -7,6 +7,7 @@ import '../widgets/auth_tab_switcher.dart';
 import '../widgets/login_header.dart';
 import '../widgets/password_auth_view.dart';
 import '../widgets/phone_auth_view.dart';
+import '../widgets/telebirr_auth_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -150,6 +151,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             authService: _authService,
                             onAuthenticated: _onAuthenticated,
                           ),
+                        const SizedBox(height: 22),
+                        TelebirrAuthButton(
+                          authService: _authService,
+                          onAuthenticated: _onAuthenticated,
+                        ),
                       ],
                     ),
                   ),
