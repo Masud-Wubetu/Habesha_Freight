@@ -23,7 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
   late EthiopianCorridor _selectedCorridor;
   // ignore: unused_field
   double _cargoWeightTons = 14.0;
-  // ignore: unused_field
   late ActiveTransit _activeTransit;
   late RegionalTelemetry _telemetry;
 
@@ -66,8 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildHeroSection(),
               const SizedBox(height: 20),
 
-              // Subsequent microsteps (Live GPS Telemetry, Corridors list, Rate estimator, Telemetry cards)
-              // will be added directly into this screen file.
+              // 3. Live GPS Telemetry & Active Transit Card
+              _buildLiveTransitCard(),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -367,6 +367,262 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  // ==========================================================================
+  // 3. LIVE GPS TELEMETRY & ACTIVE TRANSIT CARD
+  // ==========================================================================
+  Widget _buildLiveTransitCard() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Live GPS Status Header
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.badgeGreenText,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.badgeGreenText,
+                        blurRadius: 6,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Live GPS Active',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.badgeGreenText,
+                  ),
+                ),
+              ],
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: Text(
+                '${_activeTransit.speedKmH.toInt()} km/h / ${_activeTransit.etaMinutes} min',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Transit Card Container
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.cardBorder),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              // Vehicle Header Row
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.inputBackground,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.local_shipping_rounded,
+                        color: AppColors.gold,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Current Transit: ${_activeTransit.transitNumber}',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _activeTransit.carrierName,
+                          style: GoogleFonts.outfit(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.badgeGreenBg,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppColors.badgeGreenBorder),
+                        ),
+                        child: Text(
+                          _activeTransit.status,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.badgeGreenText,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'In-Transit',
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // Visual Route Progress Track
+              Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  // Track background line
+                  Container(
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.inputBackground,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  // Progress line
+                  FractionallySizedBox(
+                    widthFactor: _activeTransit.progressPercent,
+                    child: Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.gold, AppColors.badgeGreenText],
+                        ),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  // Moving indicator on track
+                  FractionalTranslation(
+                    translation: const Offset(-0.5, 0),
+                    child: Align(
+                      alignment: Alignment(_activeTransit.progressPercent * 2 - 1, 0),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.gold,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.gold,
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: AppColors.textDark,
+                          size: 10,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Route Origin & Destination Labels
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.trip_origin_rounded,
+                        size: 12,
+                        color: AppColors.gold,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${_activeTransit.originCity}, ${_activeTransit.originTime}',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        _activeTransit.destinationCity,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.location_on_rounded,
+                        size: 14,
+                        color: AppColors.badgeGreenText,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
