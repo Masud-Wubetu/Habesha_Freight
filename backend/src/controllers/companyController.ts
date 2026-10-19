@@ -151,8 +151,14 @@ export async function getCompanyStats(req: AuthenticatedRequest, res: Response) 
   try {
     const userId = req.user?.userId;
 
+    const companyDriverIds = await db('company_drivers')
+      .where('company_id', userId)
+      .pluck('driver_id');
+
     const vehicleStats = await db('vehicles')
-      .where('driver_id', userId)
+      .where((builder) => {
+        builder.where('driver_id', userId).orWhereIn('driver_id', companyDriverIds);
+      })
       .select(
         db.raw('COUNT(*) as total'),
         db.raw('COUNT(*) FILTER (WHERE is_active = true) as active'),
@@ -169,8 +175,9 @@ export async function getCompanyStats(req: AuthenticatedRequest, res: Response) 
       )
       .first();
 
+    const shipmentCarrierIds = [userId, ...companyDriverIds];
     const shipmentStats = await db('shipments')
-      .where('carrier_id', userId)
+      .whereIn('carrier_id', shipmentCarrierIds)
       .select(
         db.raw('COUNT(*) as total'),
         db.raw('COUNT(*) FILTER (WHERE status = ?) as in_transit', ['IN_TRANSIT']),
@@ -179,14 +186,13 @@ export async function getCompanyStats(req: AuthenticatedRequest, res: Response) 
       .first();
 
     const earnings = await db('escrow_ledger')
-      .where('beneficiary_id', userId)
+      .whereIn('beneficiary_id', shipmentCarrierIds)
       .where('status', 'RELEASED')
       .sum('net_payout_amount_etb as total_earnings')
       .first();
 
     const rating = await db('reviews')
       .where('reviewee_id', userId)
-      .where('target_type', 'COMPANY')
       .select(
         db.raw('AVG(rating) as average_rating'),
         db.raw('COUNT(*) as total_ratings')
@@ -434,8 +440,13 @@ export async function getCompanyDeliveries(req: AuthenticatedRequest, res: Respo
     const { status, page = 1, limit = 20 } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
+    const companyDriverIds = await db('company_drivers')
+      .where('company_id', userId)
+      .pluck('driver_id');
+    const carrierIds = [userId, ...companyDriverIds];
+
     let baseQuery = db('shipments')
-      .where('carrier_id', userId)
+      .whereIn('carrier_id', carrierIds)
       .join('loads', 'shipments.load_id', 'loads.id');
 
     if (status) {
@@ -872,7 +883,6 @@ export async function getCompanyDriverDetails(req: AuthenticatedRequest, res: Re
 
     const ratings = await db('reviews')
       .where('reviewee_id', id)
-      .where('target_type', 'DRIVER')
       .select(
         db.raw('AVG(rating) as average_rating'),
         db.raw('COUNT(*) as total_ratings')
