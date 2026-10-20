@@ -20,6 +20,9 @@ class TelebirrButton extends StatelessWidget {
       InkWell(
         onTap: loading ? null : onTap,
         borderRadius: BorderRadius.circular(10),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: AppColors.telebirrBorder.withValues(alpha: 0.3),
         child: Container(
           constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),

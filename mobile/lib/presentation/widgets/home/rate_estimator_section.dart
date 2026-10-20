@@ -81,6 +81,9 @@ class RateEstimatorSection extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.remove, size: 16, color: Colors.white),
           onPressed: weightTons > 1 ? () => onWeightChanged(weightTons - 1) : null,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          hoverColor: Colors.white10,
           padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
         ),
         Padding(
@@ -90,6 +93,9 @@ class RateEstimatorSection extends StatelessWidget {
         IconButton(
           icon: const Icon(Icons.add, size: 16, color: Colors.white),
           onPressed: weightTons < 45 ? () => onWeightChanged(weightTons + 1) : null,
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          hoverColor: Colors.white10,
           padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
         ),
       ]),

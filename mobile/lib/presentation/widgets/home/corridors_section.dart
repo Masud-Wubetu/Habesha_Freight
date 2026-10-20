@@ -34,6 +34,9 @@ class CorridorsSection extends StatelessWidget {
       child: InkWell(
         onTap: () => onSelect(c),
         borderRadius: BorderRadius.circular(12),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        hoverColor: AppColors.cardBorder.withValues(alpha: 0.3),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(

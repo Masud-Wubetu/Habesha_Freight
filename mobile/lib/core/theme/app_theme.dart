@@ -10,6 +10,10 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.background,
+      splashFactory: NoSplash.splashFactory,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      hoverColor: Colors.transparent,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.gold,
         onPrimary: AppColors.textDark,
@@ -64,6 +68,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
+          splashFactory: NoSplash.splashFactory,
           backgroundColor: AppColors.gold,
           foregroundColor: AppColors.textDark,
           elevation: 0,
@@ -75,6 +80,23 @@ class AppTheme {
             fontSize: 16,
             fontWeight: FontWeight.w700,
           ),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          splashFactory: NoSplash.splashFactory,
+          highlightColor: Colors.transparent,
+          hoverColor: Colors.white10,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          splashFactory: NoSplash.splashFactory,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          splashFactory: NoSplash.splashFactory,
         ),
       ),
     );
