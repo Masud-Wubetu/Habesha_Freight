@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
@@ -618,6 +619,44 @@ class CustomsHubScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 13),
               ),
             ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'CROSS-CORRIDOR MODULES',
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.page36BorderPass),
+                  icon: const Icon(Icons.qr_code_2, size: 16),
+                  label: const Text('Border Pass QR'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryContainer,
+                    side: const BorderSide(color: AppColors.surfaceBright),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.page38Compliance),
+                  icon: const Icon(Icons.policy_outlined, size: 16),
+                  label: const Text('Compliance Audit'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryContainer,
+                    side: const BorderSide(color: AppColors.surfaceBright),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

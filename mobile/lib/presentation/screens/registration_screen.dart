@@ -10,6 +10,7 @@ import '../widgets/registration/primary_contact_details_card.dart';
 import '../widgets/registration/registration_step_header.dart';
 import '../widgets/registration/role_selection_card.dart';
 import '../widgets/registration/role_selection_section.dart';
+import '../widgets/navigation/corridor_navigation_sheet.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -118,6 +119,39 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Top Navigation Bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.maybePop(context),
+                        icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Colors.white),
+                        tooltip: 'Back',
+                        style: IconButton.styleFrom(
+                          backgroundColor: AppColors.card,
+                          padding: const EdgeInsets.all(8),
+                        ),
+                      ),
+                      Text(
+                        'Carrier & Shipper Onboarding',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => CorridorNavigationSheet.show(context),
+                        icon: const Icon(Icons.grid_view_rounded, size: 18, color: AppColors.gold),
+                        tooltip: 'All Corridor Modules',
+                        style: IconButton.styleFrom(
+                          backgroundColor: AppColors.card,
+                          padding: const EdgeInsets.all(8),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   const RegistrationStepHeader(),
                   const SizedBox(height: 20),
                   RoleSelectionSection(

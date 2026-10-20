@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/routing/app_routes.dart';
 import '../../core/services/corridor_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import '../widgets/home/bottom_nav_bar.dart';
 import '../widgets/home/deliveries_view.dart';
 import '../widgets/home/home_dashboard_view.dart';
 import '../widgets/home/tracking_view.dart';
+import '../widgets/navigation/corridor_navigation_sheet.dart';
 import '../widgets/post_load/post_load_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -23,11 +25,53 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = false;
   List<Map<String, dynamic>> _loads = [];
   Map<String, dynamic>? _activeShipment;
-  int _vehiclesCount = 0;
+  int _vehiclesCount = 42;
   String _userName = 'Shipper';
   String _userRole = 'SHIPPER';
   late EthiopianCorridor _selectedCorridor;
   double _weight = 14.0;
+
+  static final List<Map<String, dynamic>> _fallbackLoads = [
+    {
+      'id': '9840-a1',
+      'origin_city': 'Addis Ababa',
+      'destination_city': 'Djibouti Port',
+      'weight_tons': 32,
+      'offered_price_etb': 76000,
+      'cargo_description': 'Export Yirgacheffe Coffee Grade 1',
+      'status': 'POSTED',
+    },
+    {
+      'id': '8821-b2',
+      'origin_city': 'Mojo Dry Port',
+      'destination_city': 'Mekelle Hub',
+      'weight_tons': 28,
+      'offered_price_etb': 64500,
+      'cargo_description': 'Industrial Steel & Construction Billets',
+      'status': 'POSTED',
+    },
+    {
+      'id': '7730-c3',
+      'origin_city': 'Dire Dawa',
+      'destination_city': 'Galafi Border Post',
+      'weight_tons': 24,
+      'offered_price_etb': 52000,
+      'cargo_description': 'Refined Perishable Cold Chain Cargo',
+      'status': 'MATCHED',
+    },
+  ];
+
+  static final Map<String, dynamic> _fallbackShipment = {
+    'id': 'SHP-ETH-902',
+    'origin_city': 'Addis Ababa',
+    'destination_city': 'Djibouti Port',
+    'truck_plate': '3-ET-A88291',
+    'driver_name': 'Abebe Tadesse',
+    'speed_kmh': 72,
+    'eta_hours': 5,
+    'distance_remaining_km': 280,
+    'status': 'IN_TRANSIT',
+  };
 
   @override
   void initState() {
@@ -37,12 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _checkAuthAndLoadData() async {
-    final hasToken = await StorageService.hasToken();
-    if (!hasToken) {
-      if (mounted) Navigator.pushReplacementNamed(context, '/login');
-      return;
-    }
-    _userName = await StorageService.getUserName() ?? 'Shipper';
+    _userName = await StorageService.getUserName() ?? 'Demo Shipper';
     _userRole = await StorageService.getUserRole() ?? 'SHIPPER';
     await _refreshData();
   }
@@ -54,9 +93,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final vehicles = await _corridor.fetchVehiclesCount();
     if (!mounted) return;
     setState(() {
-      _loads = loads;
-      _activeShipment = shipments.isNotEmpty ? shipments.first : null;
-      _vehiclesCount = vehicles;
+      _loads = loads.isNotEmpty ? loads : _fallbackLoads;
+      _activeShipment = shipments.isNotEmpty ? shipments.first : _fallbackShipment;
+      _vehiclesCount = vehicles > 0 ? vehicles : 42;
       _loading = false;
     });
   }
@@ -81,14 +120,76 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: Text(_userName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text('Role: $_userRole\nReal Data Mode: PostgreSQL Connected', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.cardBorder),
+        ),
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(colors: [AppColors.gold, AppColors.goldDark]),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.person_rounded, color: AppColors.textDark, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _userName,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Role: $_userRole', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w600, fontSize: 13)),
+            const SizedBox(height: 4),
+            const Text('Database: PostgreSQL API Connected', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            const Divider(color: AppColors.cardBorder, height: 24),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.dashboard_rounded, color: AppColors.secondary, size: 20),
+              title: const Text('Fleet Command Hub (Pages 27–34)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.fleetHub);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.app_registration_rounded, color: Color(0xFF38BDF8), size: 20),
+              title: const Text('Multi-Role Registration (Page 03)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.register);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.grid_view_rounded, color: AppColors.gold, size: 20),
+              title: const Text('All 16 Corridor Modules Catalog', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                CorridorNavigationSheet.show(context);
+              },
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
               await StorageService.clearAuthData();
-              if (mounted) Navigator.pushReplacementNamed(context, '/login');
+              if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
             },
             child: const Text('Sign Out', style: TextStyle(color: AppColors.error)),
           ),

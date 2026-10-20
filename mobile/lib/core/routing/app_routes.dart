@@ -3,6 +3,7 @@ class AppRoutes {
   static const register = '/register';
   static const home = '/home';
   static const fleetHub = '/fleet';
+  static const page20SubmitBid = '/shipper/bid';
 
   // Phase 5 — Fleet Enterprise (27–34)
   static const page27FleetCommand = '/fleet/command';

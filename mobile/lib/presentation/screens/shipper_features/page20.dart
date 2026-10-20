@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/services/bid_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../widgets/navigation/corridor_navigation_sheet.dart';
 class SubmitFreightBidScreen extends StatefulWidget {
   final String requestId;
   final String originCity;
@@ -477,33 +478,48 @@ class _SubmitFreightBidScreenState extends State<SubmitFreightBidScreen> {
             ),
           ),
 
-          // Request ID Pill Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F1A2D),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFF223554)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.local_shipping_outlined,
-                  color: AppColors.gold,
-                  size: 13,
+          // Right side actions & Request ID Pill Badge
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: () => CorridorNavigationSheet.show(context),
+                icon: const Icon(Icons.grid_view_rounded, size: 18, color: AppColors.gold),
+                tooltip: 'All Corridor Modules',
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF131D31),
+                  padding: const EdgeInsets.all(8),
                 ),
-                const SizedBox(width: 5),
-                Text(
-                  widget.requestId,
-                  style: GoogleFonts.inter(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFFCBD5E1),
-                  ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F1A2D),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF223554)),
                 ),
-              ],
-            ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.local_shipping_outlined,
+                      color: AppColors.gold,
+                      size: 13,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      widget.requestId,
+                      style: GoogleFonts.inter(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

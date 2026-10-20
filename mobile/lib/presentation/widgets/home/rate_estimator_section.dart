@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/services/corridor_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/corridor_model.dart';
+import '../../screens/shipper_features/submit_bid_screen.dart';
 
 class RateEstimatorSection extends StatelessWidget {
   final EthiopianCorridor corridor;
@@ -53,7 +54,7 @@ class RateEstimatorSection extends StatelessWidget {
           const SizedBox(height: 16),
           _tariffResult(estimate),
           const SizedBox(height: 14),
-          _requestBtn(),
+          _requestBtn(context, estimate),
         ]),
       ),
     ]);
@@ -122,16 +123,58 @@ class RateEstimatorSection extends StatelessWidget {
     ]),
   );
 
-  Widget _requestBtn() => SizedBox(
-    width: double.infinity, height: 46,
-    child: ElevatedButton(
-      onPressed: onRequestTrucks,
-      style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: AppColors.textDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text('Request Available Trucks on this Route', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700)),
-        const SizedBox(width: 6),
-        const Icon(Icons.arrow_forward_rounded, size: 16),
-      ]),
-    ),
+  Widget _requestBtn(BuildContext context, CorridorEstimate est) => Row(
+    children: [
+      Expanded(
+        child: SizedBox(
+          height: 44,
+          child: ElevatedButton(
+            onPressed: onRequestTrucks,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: AppColors.textDark,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Text('Request Trucks', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700)),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_forward_rounded, size: 14),
+            ]),
+          ),
+        ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: SizedBox(
+          height: 44,
+          child: OutlinedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SubmitFreightBidScreen(
+                    originCity: corridor.originCity,
+                    destinationCity: corridor.destinationCity,
+                    tonnage: '${weightTons.toInt()}T',
+                    initialBidAmount: est.estimatedPriceEtb,
+                    corridorAverage: est.estimatedPriceEtb * 1.05,
+                  ),
+                ),
+              );
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.gold,
+              side: const BorderSide(color: AppColors.gold),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.gavel_rounded, size: 14),
+              const SizedBox(width: 4),
+              Text('Submit Bid', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700)),
+            ]),
+          ),
+        ),
+      ),
+    ],
   );
 }
