@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/routing/app_routes.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/models/user_model.dart';
+import '../widgets/login/otp_sheet.dart';
+import '../widgets/registration/active_lane_banner.dart';
 import '../widgets/registration/primary_contact_details_card.dart';
 import '../widgets/registration/registration_step_header.dart';
 import '../widgets/registration/role_selection_card.dart';
@@ -13,9 +19,13 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  final AuthService _auth = AuthService();
   UserRegistrationRole _selectedRole = UserRegistrationRole.shipper;
-  final TextEditingController _nameCtrl = TextEditingController();
-  final TextEditingController _phoneCtrl = TextEditingController();
+  final TextEditingController _nameCtrl =
+      TextEditingController(text: 'Dawit Bekele');
+  final TextEditingController _phoneCtrl =
+      TextEditingController(text: '91 123 4567');
+  bool _loading = false;
   String? _error;
 
   @override
@@ -25,32 +35,188 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     super.dispose();
   }
 
+  void _onVerificationSuccess(UserModel user, String token) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Account registered & verified as ${user.role}!'),
+        backgroundColor: AppColors.card,
+      ),
+    );
+
+    if (_selectedRole == UserRegistrationRole.fleetEnterprise) {
+      Navigator.pushReplacementNamed(context, AppRoutes.fleetHub);
+    } else {
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    }
+  }
+
+  Future<void> _handleContinue() async {
+    final name = _nameCtrl.text.trim();
+    final rawPhone = _phoneCtrl.text.replaceAll(RegExp(r'\s+'), '');
+    if (name.isEmpty) {
+      setState(() => _error = 'Please enter your full name or representative title.');
+      return;
+    }
+    if (rawPhone.length < 8) {
+      setState(() => _error = 'Please enter a valid Ethiopian phone number.');
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    final fullPhone = rawPhone.startsWith('+251')
+        ? rawPhone
+        : '+251${rawPhone.replaceFirst(RegExp(r'^0'), '')}';
+
+    // Attempt to register or request OTP for verification
+    final regRes = await _auth.register(
+      fullName: name,
+      phoneNumber: fullPhone,
+      role: _selectedRole.backendRole,
+    );
+
+    String? demoOtp = regRes.demoOtp;
+
+    // If already registered or need OTP, request OTP directly
+    if (!regRes.success) {
+      final otpRes = await _auth.sendOtp(phoneNumber: fullPhone);
+      if (otpRes.success) {
+        demoOtp = otpRes.demoOtp;
+      }
+    }
+
+    if (!mounted) return;
+    setState(() => _loading = false);
+
+    // Show verification sheet
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => OtpSheet(
+        phone: fullPhone,
+        demoOtp: demoOtp ?? '123456',
+        auth: _auth,
+        onDone: _onVerificationSuccess,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const RegistrationStepHeader(),
-                const SizedBox(height: 20),
-                RoleSelectionSection(
-                  selectedRole: _selectedRole,
-                  onRoleChanged: (role) => setState(() => _selectedRole = role),
-                ),
-                const SizedBox(height: 16),
-                PrimaryContactDetailsCard(
-                  fullNameController: _nameCtrl,
-                  phoneController: _phoneCtrl,
-                  errorText: _error,
-                ),
-                const SizedBox(height: 16),
-              ],
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const RegistrationStepHeader(),
+                  const SizedBox(height: 20),
+                  RoleSelectionSection(
+                    selectedRole: _selectedRole,
+                    onRoleChanged: (role) => setState(() => _selectedRole = role),
+                  ),
+                  const SizedBox(height: 16),
+                  PrimaryContactDetailsCard(
+                    fullNameController: _nameCtrl,
+                    phoneController: _phoneCtrl,
+                    errorText: _error,
+                  ),
+                  const SizedBox(height: 14),
+                  const ActiveLaneBanner(),
+                  const SizedBox(height: 20),
+
+                  // Continue to Verification Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: _loading ? null : _handleContinue,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.gold,
+                        foregroundColor: AppColors.textDark,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: _loading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.textDark,
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Continue to Verification',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.arrow_forward_rounded,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+
+                  // Footer: Already have a carrier profile? Log In
+                  Center(
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          'Already have a carrier profile? ',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            if (Navigator.canPop(context)) {
+                              Navigator.pop(context);
+                            } else {
+                              Navigator.pushReplacementNamed(
+                                context,
+                                AppRoutes.login,
+                              );
+                            }
+                          },
+                          child: Text(
+                            'Log In',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.gold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
         ),
