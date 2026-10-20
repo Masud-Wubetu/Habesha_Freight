@@ -4,6 +4,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/user_model.dart';
 import '../widgets/otp/otp_step_header.dart';
+import '../widgets/otp/recipient_number_card.dart';
 
 /// PAGE 04: VERIFY OTP — Secure 6-Digit Verification
 class VerifyOtpScreen extends StatefulWidget {
@@ -114,7 +115,14 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                         height: 1.45,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
+
+                    // Recipient Number Card (Micro-task 2)
+                    RecipientNumberCard(
+                      phone: widget.phone,
+                      onEdit: () => Navigator.maybePop(context),
+                    ),
+                    const SizedBox(height: 22),
 
                     if (_error != null)
                       Padding(
