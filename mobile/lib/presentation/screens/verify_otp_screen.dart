@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/user_model.dart';
+import '../widgets/otp/otp_code_boxes.dart';
+import '../widgets/otp/otp_resend_row.dart';
+import '../widgets/otp/otp_security_badge.dart';
 import '../widgets/otp/otp_step_header.dart';
 import '../widgets/otp/recipient_number_card.dart';
 
@@ -123,6 +126,25 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       onEdit: () => Navigator.maybePop(context),
                     ),
                     const SizedBox(height: 22),
+
+                    // 6-Digit Code Input Boxes (Micro-task 3)
+                    OtpCodeBoxes(code: _enteredCode),
+                    const SizedBox(height: 18),
+
+                    // Resend Ribbon Row (Micro-task 3)
+                    OtpResendRow(
+                      onResend: () async {
+                        final res = await _auth.sendOtp(phoneNumber: widget.phone);
+                        if (res.success && res.demoOtp != null) {
+                          setState(() => _demoOtp = res.demoOtp);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Security Badge (Micro-task 3)
+                    const OtpSecurityBadge(),
+                    const SizedBox(height: 18),
 
                     if (_error != null)
                       Padding(
