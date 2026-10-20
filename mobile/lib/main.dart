@@ -3,6 +3,7 @@ import 'core/theme/app_theme.dart';
 
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/login_screen.dart';
+import 'presentation/screens/registration_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ class HabeshaFreightApp extends StatelessWidget {
       home: const HomeScreen(),
       routes: {
         '/login': (_) => const LoginScreen(),
+        '/register': (_) => const RegistrationScreen(),
         '/home': (_) => const HomeScreen(),
       },
     );
