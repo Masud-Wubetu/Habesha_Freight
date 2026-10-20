@@ -5,7 +5,14 @@ import '../../../core/theme/app_colors.dart';
 class HomeHeader extends StatelessWidget {
   final String language;
   final ValueChanged<String> onLanguageChanged;
-  const HomeHeader({super.key, required this.language, required this.onLanguageChanged});
+  final VoidCallback onProfileTap;
+
+  const HomeHeader({
+    super.key,
+    required this.language,
+    required this.onLanguageChanged,
+    required this.onProfileTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +46,13 @@ class HomeHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Container(
-          width: 32, height: 32,
-          decoration: const BoxDecoration(gradient: LinearGradient(colors: [AppColors.gold, AppColors.goldDark]), shape: BoxShape.circle),
-          child: const Icon(Icons.person_rounded, color: AppColors.textDark, size: 18),
+        GestureDetector(
+          onTap: onProfileTap,
+          child: Container(
+            width: 32, height: 32,
+            decoration: const BoxDecoration(gradient: LinearGradient(colors: [AppColors.gold, AppColors.goldDark]), shape: BoxShape.circle),
+            child: const Icon(Icons.person_rounded, color: AppColors.textDark, size: 18),
+          ),
         ),
       ]),
     ]);

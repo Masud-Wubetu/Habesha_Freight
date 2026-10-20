@@ -45,8 +45,16 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(width: 8),
           Text('Welcome, ${user.fullName}', style: GoogleFonts.outfit(color: Colors.white, fontSize: 16)),
         ]),
-        content: Text('Authenticated as ${user.role} (${user.phoneNumber})', style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 13)),
-        actions: [ElevatedButton(onPressed: () => Navigator.pop(ctx), style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: AppColors.textDark), child: const Text('Proceed'))],
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushReplacementNamed(context, '/home');
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: AppColors.textDark),
+            child: const Text('Proceed to Fleet'),
+          ),
+        ],
       ),
     );
   }

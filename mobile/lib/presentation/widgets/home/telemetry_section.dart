@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../data/models/corridor_model.dart';
 
 class TelemetrySection extends StatelessWidget {
-  final RegionalTelemetry telemetry;
-  const TelemetrySection({super.key, required this.telemetry});
+  final int verifiedVehicles;
+  final int activeLoadsCount;
+
+  const TelemetrySection({
+    super.key,
+    required this.verifiedVehicles,
+    required this.activeLoadsCount,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Regional Logistics Telemetry', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+      Text('Real-Time Logistics Telemetry', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
       const SizedBox(height: 10),
       Row(children: [
-        Expanded(child: _statCard('ACTIVE TRUCKS', Icons.local_shipping_outlined, AppColors.badgeGreenText, '${telemetry.activeTrucks}', '+${telemetry.trucksOnHighway} on highway', AppColors.badgeGreenText)),
+        Expanded(child: _statCard('VERIFIED TRUCKS', Icons.local_shipping_outlined, AppColors.badgeGreenText, '$verifiedVehicles', 'Active registered fleet', AppColors.badgeGreenText)),
         const SizedBox(width: 10),
-        Expanded(child: _statCard('DISPATCH LATENCY', Icons.timer_outlined, AppColors.telebirrBlue, '${telemetry.dispatchLatencyMinutes} min', telemetry.corridorGate, AppColors.textSecondary)),
+        Expanded(child: _statCard('LIVE FREIGHT LOADS', Icons.inventory_2_outlined, AppColors.telebirrBlue, '$activeLoadsCount', 'Open database loads', AppColors.textSecondary)),
       ]),
       const SizedBox(height: 12),
       _trustBanner(),

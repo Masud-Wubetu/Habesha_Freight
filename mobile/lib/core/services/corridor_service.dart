@@ -9,67 +9,105 @@ class CorridorService {
 
   CorridorService({http.Client? client}) : _client = client ?? http.Client();
 
-  /// Returns list of key national corridors
-  List<EthiopianCorridor> getCorridors() {
-    return EthiopianCorridor.standardCorridors;
-  }
+  List<EthiopianCorridor> getCorridors() => EthiopianCorridor.standardCorridors;
 
-  /// Calculates official corridor freight tariff based on corridor distance and weight in metric tons
-  CorridorEstimate calculateTariff({
-    required EthiopianCorridor corridor,
-    required double weightTons,
-  }) {
-    final double rawTariff = (corridor.distanceKm * corridor.baseRatePerTonKm * weightTons) +
-        corridor.fixedHandlingFeeEtb;
-
-    // Round to nearest 500 ETB for clean tariff quotation matching standard logistics practice
-    final double roundedPrice = (rawTariff / 500).round() * 500.0;
-    
-    // Average freight truck speed on Ethiopian highways ~ 50 km/h
-    final int hours = (corridor.distanceKm / 50).ceil();
-
+  CorridorEstimate calculateTariff({required EthiopianCorridor corridor, required double weightTons}) {
+    final double rawTariff = (corridor.distanceKm * corridor.baseRatePerTonKm * weightTons) + corridor.fixedHandlingFeeEtb;
+    final double rounded = (rawTariff / 500).round() * 500.0;
     return CorridorEstimate(
-      estimatedPriceEtb: roundedPrice,
+      estimatedPriceEtb: rounded,
       distanceKm: corridor.distanceKm,
-      transitHoursEstimate: hours,
+      transitHoursEstimate: (corridor.distanceKm / 50).ceil(),
     );
   }
 
-  /// Live telemetry snapshot
-  RegionalTelemetry getRegionalTelemetry() {
-    return RegionalTelemetry.defaultTelemetry;
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await StorageService.getToken();
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
   }
 
-  /// Live active transit snapshot
-  ActiveTransit getActiveTransit() {
-    return ActiveTransit.defaultTransit;
+  Future<String> _getBaseUrl() async {
+    final customUrl = await StorageService.getBaseUrl();
+    return customUrl ?? ApiConfig.baseUrl;
   }
 
-  /// Fetch live available loads from real PostgreSQL backend database
+  /// Real database loads from GET /api/loads
   Future<List<Map<String, dynamic>>> fetchRealLoads() async {
     try {
-      final token = await StorageService.getToken();
-      final customUrl = await StorageService.getBaseUrl();
-      final base = customUrl ?? ApiConfig.baseUrl;
-      final uri = Uri.parse('$base${ApiConfig.loads}');
-
-      final headers = <String, String>{'Content-Type': 'application/json'};
-      if (token != null) {
-        headers['Authorization'] = 'Bearer $token';
-      }
-
-      final response = await _client.get(uri, headers: headers);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is List) {
-          return List<Map<String, dynamic>>.from(data);
-        } else if (data is Map && data['loads'] is List) {
-          return List<Map<String, dynamic>>.from(data['loads']);
-        }
+      final base = await _getBaseUrl();
+      final res = await _client.get(Uri.parse('$base${ApiConfig.loads}'), headers: await _authHeaders());
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data is List) return List<Map<String, dynamic>>.from(data);
+        if (data is Map && data['loads'] is List) return List<Map<String, dynamic>>.from(data['loads']);
       }
       return [];
     } catch (_) {
       return [];
+    }
+  }
+
+  /// Real database shipments from GET /api/shipments
+  Future<List<Map<String, dynamic>>> fetchRealShipments() async {
+    try {
+      final base = await _getBaseUrl();
+      final res = await _client.get(Uri.parse('$base${ApiConfig.shipments}'), headers: await _authHeaders());
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data is Map && data['data'] is List) return List<Map<String, dynamic>>.from(data['data']);
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Real database vehicle count from GET /api/vehicles
+  Future<int> fetchVehiclesCount() async {
+    try {
+      final base = await _getBaseUrl();
+      final res = await _client.get(Uri.parse('$base${ApiConfig.vehicles}'), headers: await _authHeaders());
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data is List) return data.length;
+        if (data is Map && data['data'] is List) return (data['data'] as List).length;
+      }
+      return 0;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  /// Post real load to PostgreSQL database via POST /api/loads
+  Future<bool> postRealLoad({
+    required String originCity,
+    required String destinationCity,
+    required double weightTons,
+    required double offeredPriceEtb,
+  }) async {
+    try {
+      final base = await _getBaseUrl();
+      final res = await _client.post(
+        Uri.parse('$base${ApiConfig.loads}'),
+        headers: await _authHeaders(),
+        body: jsonEncode({
+          'cargo_description': 'Corridor Container Freight ($originCity to $destinationCity)',
+          'weight_tons': weightTons,
+          'origin_city': originCity,
+          'destination_city': destinationCity,
+          'origin_lat': 8.9806,
+          'origin_lng': 38.7578,
+          'destination_lat': 9.6008,
+          'destination_lng': 41.8501,
+          'offered_price_etb': offeredPriceEtb,
+        }),
+      );
+      return res.statusCode == 201 || res.statusCode == 200;
+    } catch (_) {
+      return false;
     }
   }
 }
