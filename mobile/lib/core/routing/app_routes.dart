@@ -1,6 +1,10 @@
 class AppRoutes {
   static const login = '/login';
   static const fleetHub = '/fleet';
+//Phase 2: Shipper Operations Suite( 06–15)
+
+
+//Phase 3: Driver & Carrier Operations Suite (pages 16–22)
 
   // Phase 5 — Fleet Enterprise (27–34)
   static const page27FleetCommand = '/fleet/command';
