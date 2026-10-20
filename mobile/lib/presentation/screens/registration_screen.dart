@@ -4,13 +4,13 @@ import '../../core/routing/app_routes.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/user_model.dart';
-import '../widgets/login/otp_sheet.dart';
 import '../widgets/registration/active_lane_banner.dart';
 import '../widgets/registration/primary_contact_details_card.dart';
 import '../widgets/registration/registration_step_header.dart';
 import '../widgets/registration/role_selection_card.dart';
 import '../widgets/registration/role_selection_section.dart';
 import '../widgets/navigation/corridor_navigation_sheet.dart';
+import 'verify_otp_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -92,16 +92,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     if (!mounted) return;
     setState(() => _loading = false);
 
-    // Show verification sheet
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => OtpSheet(
-        phone: fullPhone,
-        demoOtp: demoOtp ?? '123456',
-        auth: _auth,
-        onDone: _onVerificationSuccess,
+    // Navigate to dedicated Page 04: Verify OTP Screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VerifyOtpScreen(
+          phone: fullPhone,
+          demoOtp: demoOtp ?? '123456',
+          role: _selectedRole.backendRole,
+          fullName: name,
+          onVerified: _onVerificationSuccess,
+        ),
       ),
     );
   }
