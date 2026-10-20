@@ -9,6 +9,7 @@ import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/kpi_tile.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
+import 'package:mobile/presentation/screens/shipper/freight_history_screen.dart';
 
 /// PAGE 27 — Fleet Operations Command Hub (tab shell).
 class FleetCommandHubScreen extends StatefulWidget {
@@ -93,6 +94,17 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const FreightHistoryScreen()),
+          );
+        },
+        child: const Icon(Icons.history),
+      ),
+
       body: SafeArea(
         child: Column(
           children: [
@@ -123,7 +135,10 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                           decoration: BoxDecoration(
                             color: AppColors.primaryContainer,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.surface, width: 2),
+                            border: Border.all(
+                              color: AppColors.surface,
+                              width: 2,
+                            ),
                           ),
                         ),
                       ),
@@ -132,7 +147,11 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                   const CircleAvatar(
                     radius: 16,
                     backgroundColor: AppColors.primary,
-                    child: Icon(Icons.person, size: 18, color: AppColors.onPrimary),
+                    child: Icon(
+                      Icons.person,
+                      size: 18,
+                      color: AppColors.onPrimary,
+                    ),
                   ),
                   const SizedBox(width: 12),
                 ],
@@ -172,7 +191,9 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                     ),
                     const SizedBox(height: 12),
                     if (_deliveries.isNotEmpty) ...[
-                      _LiveDeliveriesCard(deliveries: _deliveries.take(4).toList()),
+                      _LiveDeliveriesCard(
+                        deliveries: _deliveries.take(4).toList(),
+                      ),
                       const SizedBox(height: 12),
                     ],
                     const _CorridorTelemetryCard(),
@@ -214,11 +235,16 @@ class _ApiStatusBanner extends StatelessWidget {
             SizedBox(
               width: 16,
               height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryContainer),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: AppColors.primaryContainer,
+              ),
             ),
             SizedBox(width: 10),
-            Text('Syncing company stats from backend…',
-                style: TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant)),
+            Text(
+              'Syncing company stats from backend…',
+              style: TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+            ),
           ],
         ),
       );
@@ -238,7 +264,8 @@ class _ApiStatusBanner extends StatelessWidget {
             child: Text(
               live
                   ? 'Connected to HabeshaFreight API (/company/* + /escrow)'
-                  : (error ?? 'Using stitch demo data — sign in as fleet owner to sync'),
+                  : (error ??
+                        'Using stitch demo data — sign in as fleet owner to sync'),
               style: TextStyle(
                 fontSize: 12,
                 color: live ? AppColors.secondary : AppColors.onSurfaceVariant,
@@ -275,17 +302,27 @@ class _LiveDeliveriesCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 children: [
-                  const Icon(Icons.local_shipping, size: 18, color: AppColors.primary),
+                  const Icon(
+                    Icons.local_shipping,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       '${d.origin} → ${d.destination}',
-                      style: const TextStyle(color: AppColors.onSurface, fontSize: 13),
+                      style: const TextStyle(
+                        color: AppColors.onSurface,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                   Text(
                     d.status,
-                    style: const TextStyle(fontSize: 11, color: AppColors.secondary),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.secondary,
+                    ),
                   ),
                 ],
               ),
@@ -327,7 +364,11 @@ class _BrandHeader extends StatelessWidget {
               color: AppColors.surfaceHigh,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.local_shipping, color: AppColors.primary, size: 22),
+            child: const Icon(
+              Icons.local_shipping,
+              color: AppColors.primary,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -406,7 +447,10 @@ class _EnterpriseHeader extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'TIN: $tin  ·  Fleet Tier: 1 Platinum',
-                      style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -441,7 +485,10 @@ class _EnterpriseHeader extends StatelessWidget {
                   const SizedBox(width: 6),
                   const Text(
                     'Telematics Synced (2.4s ago)',
-                    style: TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: AppColors.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -558,7 +605,10 @@ class _CorridorTelemetryCard extends StatelessWidget {
                     ),
                     const Text(
                       'Real-time transits across trade gates',
-                      style: TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -568,7 +618,10 @@ class _CorridorTelemetryCard extends StatelessWidget {
                 style: TextButton.styleFrom(
                   backgroundColor: AppColors.surfaceHigh,
                   foregroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -590,9 +643,14 @@ class _CorridorTelemetryCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainer.withValues(alpha: 0.9),
+                        color: AppColors.surfaceContainer.withValues(
+                          alpha: 0.9,
+                        ),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Row(
@@ -604,9 +662,14 @@ class _CorridorTelemetryCard extends StatelessWidget {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceContainer.withValues(alpha: 0.9),
+                        color: AppColors.surfaceContainer.withValues(
+                          alpha: 0.9,
+                        ),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -627,7 +690,10 @@ class _CorridorTelemetryCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.surfaceLow.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(4),
@@ -637,7 +703,10 @@ class _CorridorTelemetryCard extends StatelessWidget {
                     children: [
                       Text.rich(
                         TextSpan(
-                          style: const TextStyle(fontSize: 10, color: AppColors.onSurface),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: AppColors.onSurface,
+                          ),
                           children: [
                             const TextSpan(text: 'Djibouti Port ETA: '),
                             TextSpan(
@@ -750,7 +819,10 @@ class _CorridorRow extends StatelessWidget {
                 ),
                 Text(
                   subtitle,
-                  style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -767,7 +839,10 @@ class _CorridorRow extends StatelessWidget {
                 Container(
                   width: 6,
                   height: 6,
-                  decoration: BoxDecoration(color: badgeColor, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                    color: badgeColor,
+                    shape: BoxShape.circle,
+                  ),
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -814,8 +889,9 @@ class _QuickDispatchesCard extends StatelessWidget {
             width: double.infinity,
             height: 48,
             child: ElevatedButton.icon(
-              onPressed: () =>
-                  Navigator.of(context).pushNamed(AppRoutes.page30DispatchMatrix),
+              onPressed: () => Navigator.of(
+                context,
+              ).pushNamed(AppRoutes.page30DispatchMatrix),
               icon: const Icon(Icons.rv_hookup, size: 20),
               label: const Text('Assign Available Rig'),
               style: ElevatedButton.styleFrom(
@@ -872,7 +948,10 @@ class _GhostAction extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         icon: Icon(icon, size: 20, color: iconColor),
-        label: Text(label, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+        label: Text(
+          label,
+          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }
@@ -901,7 +980,10 @@ class _TelemetryLogCard extends StatelessWidget {
                 onPressed: () {},
                 child: Text(
                   'View All Logs',
-                  style: GoogleFonts.inter(fontSize: 10, color: AppColors.primary),
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ],
@@ -1006,14 +1088,20 @@ class _LogEvent extends StatelessWidget {
                     ),
                     Text(
                       time,
-                      style: const TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text(
                   body,
-                  style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -1064,14 +1152,19 @@ class _DispatchFooter extends StatelessWidget {
                 ),
                 Text(
                   'Night-Shift Controller: Dawit K.',
-                  style: TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
           ),
           IconButton(
             onPressed: () {},
-            style: IconButton.styleFrom(backgroundColor: AppColors.surfaceContainer),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.surfaceContainer,
+            ),
             icon: const Icon(Icons.support_agent, color: AppColors.primary),
           ),
         ],
@@ -1101,8 +1194,18 @@ class _CorridorRadarPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final path = Path()
       ..moveTo(20, size.height * 0.75)
-      ..quadraticBezierTo(size.width * 0.4, size.height * 0.1, size.width * 0.62, size.height * 0.55)
-      ..quadraticBezierTo(size.width * 0.8, size.height * 0.85, size.width - 20, size.height * 0.35);
+      ..quadraticBezierTo(
+        size.width * 0.4,
+        size.height * 0.1,
+        size.width * 0.62,
+        size.height * 0.55,
+      )
+      ..quadraticBezierTo(
+        size.width * 0.8,
+        size.height * 0.85,
+        size.width - 20,
+        size.height * 0.35,
+      );
 
     final dashPaint = Paint()
       ..color = AppColors.primaryContainer
@@ -1122,7 +1225,11 @@ class _CorridorRadarPainter extends CustomPainter {
     }
 
     drawDot(Offset(20, size.height * 0.75), AppColors.secondary, 4);
-    drawDot(Offset(size.width * 0.5, size.height * 0.35), AppColors.primaryContainer, 5);
+    drawDot(
+      Offset(size.width * 0.5, size.height * 0.35),
+      AppColors.primaryContainer,
+      5,
+    );
     drawDot(Offset(size.width - 20, size.height * 0.35), AppColors.tertiary, 4);
   }
 

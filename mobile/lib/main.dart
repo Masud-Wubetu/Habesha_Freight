@@ -64,16 +64,15 @@ class HabeshaFreightApp extends StatelessWidget {
         AppRoutes.page39ColdChain: (_) => const ColdChainScreen(),
         AppRoutes.page40Intermodal: (_) => const IntermodalHubScreen(),
 
-         
         AppRoutes.page11FreightHistory: (_) => const FreightHistoryScreen(),
-        AppRoutes.page12PreferredFleet: (_) => const PreferredFleetScreen(),
-        AppRoutes.page13EscrowInvoices: (_) => const EscrowInvoicesScreen(),
-        AppRoutes.page14CompanyProfile: (_) => const CompanyProfileScreen(),
-        AppRoutes.page15RateDriver: (_) => const RateDriverScreen(),
-        AppRoutes.page16DriverHome: (_) => const DriverHomeScreen(),
-        AppRoutes.page17AvailableLoads: (_) => const AvailableLoadsScreen(),
-        AppRoutes.page18DirectOffers: (_) => const DirectOffersScreen(),
-        AppRoutes.page19RequestDetails: (_) => const RequestDetailsScreen(),
+       // AppRoutes.page12PreferredFleet: (_) => const PreferredFleetScreen(),
+       // AppRoutes.page13EscrowInvoices: (_) => const EscrowInvoicesScreen(),
+       // AppRoutes.page14CompanyProfile: (_) => const CompanyProfileScreen(),
+       // AppRoutes.page15RateDriver: (_) => const RateDriverScreen(),
+       // AppRoutes.page16DriverHome: (_) => const DriverHomeScreen(),
+       // AppRoutes.page17AvailableLoads: (_) => const AvailableLoadsScreen(),
+       // AppRoutes.page18DirectOffers: (_) => const DirectOffersScreen(),
+       // AppRoutes.page19RequestDetails: (_) => const RequestDetailsScreen(),
       },
     );
   }
