@@ -4,6 +4,7 @@ import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/user_model.dart';
 import '../widgets/otp/otp_code_boxes.dart';
+import '../widgets/otp/otp_numeric_keypad.dart';
 import '../widgets/otp/otp_resend_row.dart';
 import '../widgets/otp/otp_security_badge.dart';
 import '../widgets/otp/otp_step_header.dart';
@@ -187,6 +188,14 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           ),
                         ),
                       ),
+                    const SizedBox(height: 10),
+
+                    // Custom In-App Numeric Keypad (Micro-task 4)
+                    OtpNumericKeypad(
+                      onDigit: onDigitPressed,
+                      onBackspace: onBackspacePressed,
+                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
