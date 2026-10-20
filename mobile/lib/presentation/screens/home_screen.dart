@@ -7,6 +7,7 @@ import '../widgets/home/hero_section.dart';
 import '../widgets/home/home_header.dart';
 import '../widgets/home/live_transit_card.dart';
 import '../widgets/home/rate_estimator_section.dart';
+import '../widgets/home/telemetry_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -75,6 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
               corridorService: _corridorService,
               onRequestTrucks: () => _snack('Broadcasting ${_selectedCorridor.originCity} ➔ ${_selectedCorridor.destinationCity} load to carriers...'),
             ),
+            const SizedBox(height: 20),
+            TelemetrySection(telemetry: _telemetry),
             const SizedBox(height: 20),
           ]),
         ),

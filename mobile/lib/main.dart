@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 
+import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/login_screen.dart';
 
 void main() {
@@ -17,7 +18,11 @@ class HabeshaFreightApp extends StatelessWidget {
       title: 'Habesha Freight',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const LoginScreen(),
+      home: const HomeScreen(),
+      routes: {
+        '/login': (_) => const LoginScreen(),
+        '/home': (_) => const HomeScreen(),
+      },
     );
   }
 }
