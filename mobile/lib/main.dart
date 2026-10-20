@@ -27,7 +27,7 @@ import 'presentation/screens/driver/request_details_screen.dart';
 import 'presentation/screens/shipper/company_profile_screen.dart';
 import 'presentation/screens/shipper/escrow_invoices_screen.dart';
 import 'presentation/screens/shipper/freight_history_screen.dart';
-import 'presentation/screens/shipper/preferred_fleet_screen.dart';
+import 'presentation/screens/shipper/preferred_fleet_directory.dart';
 import 'presentation/screens/shipper/rate_driver_screen.dart';
 import 'presentation/screens/shipper/shipper_shell_screen.dart';
 void main() {
@@ -65,7 +65,7 @@ class HabeshaFreightApp extends StatelessWidget {
         AppRoutes.page40Intermodal: (_) => const IntermodalHubScreen(),
 
         AppRoutes.page11FreightHistory: (_) => const FreightHistoryScreen(),
-       // AppRoutes.page12PreferredFleet: (_) => const PreferredFleetScreen(),
+        AppRoutes.page12PreferredFleet: (_) => const PreferredFleetScreen(),
        // AppRoutes.page13EscrowInvoices: (_) => const EscrowInvoicesScreen(),
        // AppRoutes.page14CompanyProfile: (_) => const CompanyProfileScreen(),
        // AppRoutes.page15RateDriver: (_) => const RateDriverScreen(),
