@@ -19,6 +19,17 @@ import 'presentation/screens/ops/customs_hub_screen.dart';
 import 'presentation/screens/ops/intermodal_hub_screen.dart';
 import 'presentation/screens/ops/weighbridge_screen.dart';
 
+import 'presentation/screens/driver/available_loads_screen.dart';
+import 'presentation/screens/driver/direct_offers_screen.dart';
+import 'presentation/screens/driver/driver_home_screen.dart';
+import 'presentation/screens/driver/driver_shell_screen.dart';
+import 'presentation/screens/driver/request_details_screen.dart';
+import 'presentation/screens/shipper/company_profile_screen.dart';
+import 'presentation/screens/shipper/escrow_invoices_screen.dart';
+import 'presentation/screens/shipper/freight_history_screen.dart';
+import 'presentation/screens/shipper/preferred_fleet_screen.dart';
+import 'presentation/screens/shipper/rate_driver_screen.dart';
+import 'presentation/screens/shipper/shipper_shell_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const HabeshaFreightApp());
@@ -52,6 +63,17 @@ class HabeshaFreightApp extends StatelessWidget {
         AppRoutes.page38Compliance: (_) => const ComplianceAuditScreen(),
         AppRoutes.page39ColdChain: (_) => const ColdChainScreen(),
         AppRoutes.page40Intermodal: (_) => const IntermodalHubScreen(),
+
+         
+        AppRoutes.page11FreightHistory: (_) => const FreightHistoryScreen(),
+        AppRoutes.page12PreferredFleet: (_) => const PreferredFleetScreen(),
+        AppRoutes.page13EscrowInvoices: (_) => const EscrowInvoicesScreen(),
+        AppRoutes.page14CompanyProfile: (_) => const CompanyProfileScreen(),
+        AppRoutes.page15RateDriver: (_) => const RateDriverScreen(),
+        AppRoutes.page16DriverHome: (_) => const DriverHomeScreen(),
+        AppRoutes.page17AvailableLoads: (_) => const AvailableLoadsScreen(),
+        AppRoutes.page18DirectOffers: (_) => const DirectOffersScreen(),
+        AppRoutes.page19RequestDetails: (_) => const RequestDetailsScreen(),
       },
     );
   }
