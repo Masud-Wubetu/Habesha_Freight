@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
@@ -403,7 +404,15 @@ class WeighbridgeScreen extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('ERA Scale Certificate #ERA-WB-2024 transmitted to rig onboard terminal.'),
+                    backgroundColor: AppColors.card,
+                  ),
+                );
+                Navigator.pushNamed(context, AppRoutes.page28RigTelemetry);
+              },
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primaryContainer,
                 foregroundColor: AppColors.onPrimaryContainer,
@@ -426,7 +435,14 @@ class WeighbridgeScreen extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Official ERA Weighbridge PDF Slip downloaded.'),
+                    backgroundColor: AppColors.card,
+                  ),
+                );
+              },
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.onSurface,
                 backgroundColor: AppColors.surfaceHigh,
@@ -439,6 +455,44 @@ class WeighbridgeScreen extends StatelessWidget {
               icon: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
               label: const Text('Export Official ERA Weighbridge Slip (PDF)'),
             ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'CORRIDOR CHECKPOINT MODULES',
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.page36BorderPass),
+                  icon: const Icon(Icons.qr_code_2, size: 16),
+                  label: const Text('Border Pass QR'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryContainer,
+                    side: const BorderSide(color: AppColors.surfaceBright),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.page40Intermodal),
+                  icon: const Icon(Icons.train, size: 16),
+                  label: const Text('Mojo Rail Hub'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryContainer,
+                    side: const BorderSide(color: AppColors.surfaceBright),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

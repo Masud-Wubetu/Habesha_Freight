@@ -15,6 +15,7 @@ class KpiTile extends StatelessWidget {
     this.trailingIcon,
     this.iconColor = AppColors.primary,
     this.valueColor = AppColors.onSurface,
+    this.onTap,
   });
 
   final String label;
@@ -25,10 +26,12 @@ class KpiTile extends StatelessWidget {
   final IconData? trailingIcon;
   final Color iconColor;
   final Color valueColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return HfCard(
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

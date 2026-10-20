@@ -16,6 +16,10 @@ import 'package:mobile/presentation/screens/ops/compliance_audit_screen.dart';
 import 'package:mobile/presentation/screens/ops/customs_hub_screen.dart';
 import 'package:mobile/presentation/screens/ops/intermodal_hub_screen.dart';
 import 'package:mobile/presentation/screens/ops/weighbridge_screen.dart';
+import 'package:mobile/presentation/screens/home_screen.dart';
+import 'package:mobile/presentation/screens/registration_screen.dart';
+import 'package:mobile/presentation/screens/shipper_features/submit_bid_screen.dart';
+import 'package:mobile/presentation/widgets/navigation/corridor_navigation_sheet.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
 
@@ -59,6 +63,13 @@ class _FleetShellScreenState extends State<FleetShellScreen> {
           const EscrowBatchScreen(),
           _OpsCatalog(onOpen: _open),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.small(
+        onPressed: () => CorridorNavigationSheet.show(context),
+        backgroundColor: AppColors.primaryContainer,
+        foregroundColor: AppColors.onPrimaryContainer,
+        tooltip: 'Corridor Modules Catalog',
+        child: const Icon(Icons.grid_view_rounded, size: 20),
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
@@ -112,6 +123,9 @@ class _FleetShellScreenState extends State<FleetShellScreen> {
 
   void _open(String route) {
     final map = <String, WidgetBuilder>{
+      AppRoutes.home: (_) => const HomeScreen(),
+      AppRoutes.register: (_) => const RegistrationScreen(),
+      AppRoutes.page20SubmitBid: (_) => const SubmitFreightBidScreen(),
       AppRoutes.page28RigTelemetry: (_) => const RigTelemetryScreen(),
       AppRoutes.page30DispatchMatrix: (_) => const DispatchMatrixScreen(),
       AppRoutes.page32FuelToll: (_) => const FuelTollScreen(),
@@ -144,6 +158,9 @@ class _MoreCatalog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
+      _CatalogItem('01', 'Shipper Portal', 'Cargo loads & rate estimator', AppRoutes.home, Icons.storefront_outlined),
+      _CatalogItem('03', 'Registration', 'Multi-role carrier onboarding', AppRoutes.register, Icons.app_registration_rounded),
+      _CatalogItem('20', 'Submit Freight Bid', 'Dynamic corridor bidding', AppRoutes.page20SubmitBid, Icons.gavel_rounded),
       _CatalogItem('28', 'Rig Telemetry', 'CAN-bus & immobilizer', AppRoutes.page28RigTelemetry, Icons.sensors),
       _CatalogItem('30', 'Dispatch Matrix', 'Assign empty trucks', AppRoutes.page30DispatchMatrix, Icons.route),
       _CatalogItem('32', 'Fuel & Toll Pass', 'QR vouchers & RFID', AppRoutes.page32FuelToll, Icons.local_gas_station),
@@ -154,7 +171,7 @@ class _MoreCatalog extends StatelessWidget {
       ribbonPage: '27+',
       ribbonTitle: 'FLEET ASSET COMMAND',
       ribbonStatus: 'Pages 28–34',
-      heading: 'Fleet modules',
+      heading: 'Fleet & Shipper modules',
       items: items,
       onOpen: onOpen,
     );

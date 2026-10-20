@@ -4,8 +4,10 @@ import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_service.dart';
 import 'package:mobile/core/services/storage_service.dart';
 import 'package:mobile/core/theme/app_colors.dart';
+import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/presentation/screens/fleet/fleet_shell_screen.dart';
 import 'package:mobile/presentation/screens/login_screen.dart';
+import 'package:mobile/presentation/widgets/navigation/corridor_navigation_sheet.dart';
 
 /// Boots into fleet shell when a session exists; otherwise login.
 class AuthGate extends StatefulWidget {
@@ -191,32 +193,51 @@ class _AuthGateState extends State<AuthGate> {
                 ],
               ),
               const Spacer(),
-              ElevatedButton(
-                onPressed: _backendUp ? _demoFleetLogin : null,
-                child: const Text('Continue as Fleet Owner (demo)'),
+              ElevatedButton.icon(
+                onPressed: _backendUp ? _demoFleetLogin : () => setState(() => _authenticated = true),
+                icon: const Icon(Icons.dashboard_rounded),
+                label: const Text('Fleet Command Hub (Pages 27–34)'),
               ),
               const SizedBox(height: 10),
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  ).then((_) => _bootstrap());
-                },
-                child: const Text('Sign in manually'),
-              ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: () {
-                  setState(() => _authenticated = true);
-                },
-                child: const Text(
-                  'Browse UI without API',
-                  style: TextStyle(color: AppColors.primary),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.home),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.surfaceHigh,
+                  foregroundColor: AppColors.gold,
                 ),
+                icon: const Icon(Icons.local_shipping_outlined),
+                label: const Text('Shipper Dashboard & Loads'),
               ),
-              TextButton(
-                onPressed: _bootstrap,
-                child: const Text('Retry connection'),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.register),
+                icon: const Icon(Icons.app_registration_rounded),
+                label: const Text('Multi-Role Registration (Page 03)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => CorridorNavigationSheet.show(context),
+                icon: const Icon(Icons.grid_view_rounded),
+                label: const Text('Explore All 16 Corridor Modules'),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      ).then((_) => _bootstrap());
+                    },
+                    child: const Text('Sign in manually'),
+                  ),
+                  const Text('•', style: TextStyle(color: AppColors.textMuted)),
+                  TextButton(
+                    onPressed: _bootstrap,
+                    child: const Text('Retry connection'),
+                  ),
+                ],
               ),
             ],
           ),

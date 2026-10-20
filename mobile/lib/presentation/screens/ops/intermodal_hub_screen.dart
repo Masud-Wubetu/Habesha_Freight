@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
@@ -615,6 +616,44 @@ class IntermodalHubScreen extends StatelessWidget {
                 'Track EDR Train Telemetry & Doraleh Berth Schedule',
               ),
             ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'CORRIDOR INTERMODAL MODULES',
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.page37Weighbridge),
+                  icon: const Icon(Icons.scale, size: 16),
+                  label: const Text('Weighbridge Tare'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryContainer,
+                    side: const BorderSide(color: AppColors.surfaceBright),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.page31EscrowBatch),
+                  icon: const Icon(Icons.account_balance_wallet, size: 16),
+                  label: const Text('Escrow Vault'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryContainer,
+                    side: const BorderSide(color: AppColors.surfaceBright),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
