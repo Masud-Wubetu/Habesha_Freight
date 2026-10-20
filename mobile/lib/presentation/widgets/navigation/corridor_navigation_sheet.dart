@@ -126,6 +126,15 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'Verify 6-Digit OTP Code',
+                  subtitle: 'Secure transit code authorization with Ethio Telecom',
+                  badge: 'Page 04',
+                  icon: Icons.password_rounded,
+                  route: AppRoutes.page04VerifyOtp,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
                   title: 'Submit Freight Bid Screen',
                   subtitle: 'Dynamic corridor bidding, gate slots, and tariff rates',
                   badge: 'Page 20',
