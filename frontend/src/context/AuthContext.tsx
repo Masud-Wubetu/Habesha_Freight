@@ -1,17 +1,14 @@
-
 import { createContext, ReactNode, useState, useEffect, useCallback, useContext } from 'react';
 import { get, post } from '../services/api';
+import {
+  clearSession,
+  getStoredToken,
+  getStoredUser,
+  persistSession,
+} from '../services/authService';
+import type { AuthUser } from '../types/person2';
 
-export interface User {
-  id: string;
-  full_name: string;
-  phone_number?: string;
-  email: string;
-  role: 'SHIPPER' | 'DRIVER' | 'FLEET_OWNER' | 'ADMIN';
-  is_verified: boolean;
-  status: string;
-  kyc_status?: string;
-}
+export type User = AuthUser;
 
 interface AuthContextType {
   user: User | null;
@@ -26,24 +23,20 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    const raw = localStorage.getItem('hf_user');
-    if (!raw) return null;
-    try { return JSON.parse(raw) as User; } catch { return null; }
-  });
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('hf_token'));
+  const [user, setUser] = useState<User | null>(() => getStoredUser());
+  const [token, setToken] = useState<string | null>(() => getStoredToken());
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchUserProfile = useCallback(async () => {
     try {
       const userData = await get<User>('/auth/me');
       if (userData) {
+        const currentToken = getStoredToken() ?? '';
+        persistSession(currentToken, userData);
         setUser(userData);
-        localStorage.setItem('hf_user', JSON.stringify(userData));
       }
     } catch {
-      localStorage.removeItem('hf_token');
-      localStorage.removeItem('hf_user');
+      clearSession();
       setToken(null);
       setUser(null);
     } finally {
@@ -63,10 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isEmail = identifier.includes('@');
     const body = isEmail ? { email: identifier, password } : { phone_number: identifier, password };
     const data = await post<{ user: User; token: string }>('/auth/login', body);
-    const authToken = data.token;
-    localStorage.setItem('hf_token', authToken);
-    localStorage.setItem('hf_user', JSON.stringify(data.user));
-    setToken(authToken);
+    persistSession(data.token, data.user);
+    setToken(data.token);
     setUser(data.user);
     return data.user;
   };
@@ -92,8 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data = await post<{ user?: any; token?: string }>('/auth/register', payload);
     }
     if (data.token && data.user) {
-      localStorage.setItem('hf_token', data.token);
-      localStorage.setItem('hf_user', JSON.stringify(data.user));
+      persistSession(data.token, data.user);
       setToken(data.token);
       setUser(data.user);
     }
@@ -106,19 +96,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ? { email: identifier, otp_code: otpCode }
       : { phone_number: identifier, otp_code: otpCode };
     const data = await post<{ user: User; token: string }>('/auth/verify-otp', body);
-    const authToken = data.token;
-    localStorage.setItem('hf_token', authToken);
-    localStorage.setItem('hf_user', JSON.stringify(data.user));
-    setToken(authToken);
+    persistSession(data.token, data.user);
+    setToken(data.token);
     setUser(data.user);
     return data.user;
   };
 
   const logout = () => {
+    clearSession();
     setToken(null);
     setUser(null);
-    localStorage.removeItem('hf_token');
-    localStorage.removeItem('hf_user');
   };
 
   return (

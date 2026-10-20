@@ -32,7 +32,7 @@ export function authenticateToken(
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as UserPayload;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_fallback_jwt_secret') as UserPayload;
     req.user = decoded;
     next();
   } catch (error) {

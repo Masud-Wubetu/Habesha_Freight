@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { get, post } from '../../services/api';
 import { getStoredUser } from '../../services/authService';
-import GoogleMapView, { resolveCityCoords } from '../../components/GoogleMapView';
+import GoogleMapView, { LocationPoint, resolveCityCoords } from '../../components/GoogleMapView';
 
 interface Shipment {
   id: string;
@@ -15,6 +15,10 @@ interface Shipment {
   weight_tons: number;
   origin_city: string;
   destination_city: string;
+  origin_lat?: number;
+  origin_lng?: number;
+  destination_lat?: number;
+  destination_lng?: number;
   offered_price_etb: number;
   shipper_name: string;
   carrier_name: string;
@@ -48,8 +52,10 @@ export default function ShipperTracking() {
   // Live Track Modal State
   const [showTrackModal, setShowTrackModal] = useState(false);
   const [trackingShipment, setTrackingShipment] = useState<Shipment | null>(null);
-  const [, setTrackingPoints] = useState<any[]>([]);
-  const [, setLoadingTracking] = useState(false);
+  const [trackingPoints, setTrackingPoints] = useState<LocationPoint[]>([]);
+  const [driverPos, setDriverPos] = useState<LocationPoint | null>(null);
+  const [trackSpeed, setTrackSpeed] = useState(0);
+  const [loadingTracking, setLoadingTracking] = useState(false);
 
   const initials = (user?.full_name ?? 'Sara Bekele')
     .split(' ')
@@ -104,21 +110,54 @@ export default function ShipperTracking() {
     }
   };
 
-  const handleTrack = async (shipment: Shipment) => {
-    setTrackingShipment(shipment);
-    setShowTrackModal(true);
+  const loadTrackingData = async (shipment: Shipment) => {
     setLoadingTracking(true);
-    setTrackingPoints([]);
     try {
-      // Fetch latest tracking points
       const res = await get<any>(`/tracking/${shipment.id}`);
-      setTrackingPoints(res || []);
+      const crumbs: LocationPoint[] = (res?.breadcrumbs || []).map((b: any) => ({
+        lat: Number(b.lat ?? b.latitude),
+        lng: Number(b.lng ?? b.longitude),
+      })).filter((p: LocationPoint) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+      setTrackingPoints(crumbs);
+
+      const latest = res?.latestPoint;
+      if (latest) {
+        const lat = Number(latest.lat ?? latest.latitude);
+        const lng = Number(latest.lng ?? latest.longitude);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          setDriverPos({ lat, lng, label: `Driver: ${shipment.carrier_name}` });
+        }
+        if (latest.speed != null) setTrackSpeed(Math.round(Number(latest.speed)));
+      } else if (crumbs.length > 0) {
+        const last = crumbs[crumbs.length - 1];
+        setDriverPos({ ...last, label: `Driver: ${shipment.carrier_name}` });
+      } else {
+        setDriverPos(null);
+      }
     } catch (err) {
       console.error('Error fetching tracking:', err);
+      setTrackingPoints([]);
+      setDriverPos(null);
     } finally {
       setLoadingTracking(false);
     }
   };
+
+  const handleTrack = async (shipment: Shipment) => {
+    setTrackingShipment(shipment);
+    setShowTrackModal(true);
+    setTrackingPoints([]);
+    setDriverPos(null);
+    await loadTrackingData(shipment);
+  };
+
+  useEffect(() => {
+    if (!showTrackModal || !trackingShipment) return;
+    const poll = window.setInterval(() => {
+      void loadTrackingData(trackingShipment);
+    }, 8000);
+    return () => window.clearInterval(poll);
+  }, [showTrackModal, trackingShipment?.id]);
 
   const getStatusBadgeColor = (status: string) => {
     const s = status.toUpperCase();
@@ -156,7 +195,7 @@ export default function ShipperTracking() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto font-sans text-slate-900 min-h-screen">
+    <div className="p-4 sm:p-5 w-full font-sans text-slate-900 min-h-screen">
       {/* ── Top Header ── */}
       <header className="flex justify-between items-center mb-8">
         <div>
@@ -284,7 +323,7 @@ export default function ShipperTracking() {
 
       {/* ── Modal: Enter Delivery OTP ── */}
       {showOtpModal && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[1100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 max-w-sm w-full animate-in fade-in zoom-in-95 duration-200">
             <h3 className="text-lg font-bold text-slate-900 mb-2">Confirm Shipment Delivery</h3>
             <p className="text-xs text-slate-500 mb-6">
@@ -328,7 +367,7 @@ export default function ShipperTracking() {
 
       {/* ── Modal: Live GPS Tracking ── */}
       {showTrackModal && trackingShipment && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[1100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 max-w-md w-full">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -347,25 +386,43 @@ export default function ShipperTracking() {
               </button>
             </div>
 
-            {/* Google Maps Tracking View */}
+            {/* Live map with real breadcrumbs */}
             <div className="mb-6">
-              <GoogleMapView
-                originPos={{
-                  ...resolveCityCoords(trackingShipment.origin_city, 9.0300, 38.7400),
-                  label: trackingShipment.origin_city,
-                }}
-                destinationPos={{
-                  ...resolveCityCoords(trackingShipment.destination_city, 9.6000, 41.8600),
-                  label: trackingShipment.destination_city,
-                }}
-                driverPos={{
-                  lat: resolveCityCoords(trackingShipment.origin_city, 9.0300, 38.7400).lat + 0.2,
-                  lng: resolveCityCoords(trackingShipment.origin_city, 9.0300, 38.7400).lng + 0.4,
-                  label: `Driver: ${trackingShipment.carrier_name}`,
-                }}
-                speed={65}
-                height="240px"
-              />
+              {loadingTracking && trackingPoints.length === 0 && !driverPos ? (
+                <p className="text-xs text-slate-500 py-8 text-center">Loading live GPS…</p>
+              ) : (
+                <GoogleMapView
+                  originPos={{
+                    ...(Number.isFinite(Number(trackingShipment.origin_lat))
+                      ? { lat: Number(trackingShipment.origin_lat), lng: Number(trackingShipment.origin_lng) }
+                      : resolveCityCoords(trackingShipment.origin_city, 9.03, 38.74)),
+                    label: trackingShipment.origin_city,
+                  }}
+                  destinationPos={{
+                    ...(Number.isFinite(Number(trackingShipment.destination_lat))
+                      ? {
+                          lat: Number(trackingShipment.destination_lat),
+                          lng: Number(trackingShipment.destination_lng),
+                        }
+                      : resolveCityCoords(trackingShipment.destination_city, 9.6, 41.86)),
+                    label: trackingShipment.destination_city,
+                  }}
+                  driverPos={
+                    driverPos || {
+                      ...resolveCityCoords(trackingShipment.origin_city, 9.03, 38.74),
+                      label: `Driver: ${trackingShipment.carrier_name}`,
+                    }
+                  }
+                  breadcrumbs={trackingPoints}
+                  speed={trackSpeed}
+                  height="260px"
+                />
+              )}
+              <p className="text-[11px] text-slate-400 mt-2 text-center">
+                {trackingPoints.length > 0
+                  ? `${trackingPoints.length} GPS points · live refresh every 8s`
+                  : 'Waiting for driver GPS broadcasts…'}
+              </p>
             </div>
 
             {/* Tracking timeline */}

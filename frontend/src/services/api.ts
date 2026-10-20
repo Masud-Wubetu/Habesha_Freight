@@ -27,11 +27,37 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
+    const status = error.response?.status;
+    const data = (error.response?.data as Record<string, unknown>) || {};
     const msg =
-      (error.response?.data as any)?.message ||
+      (data.message as string) ||
       error.message ||
       'API Request failed';
-    return Promise.reject(new Error(msg));
+
+    // Expired / invalid session — clear local auth so protected routes redirect
+    if (status === 401) {
+      localStorage.removeItem('hf_token');
+      localStorage.removeItem('hf_user');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
+      const path = window.location.pathname;
+      if (
+        path !== '/login' &&
+        path !== '/register' &&
+        path !== '/verify-otp' &&
+        path !== '/'
+      ) {
+        window.location.assign('/login');
+      }
+    }
+
+    const enriched = new Error(msg) as Error & Record<string, unknown>;
+    // Preserve backend flags (e.g. requires_otp_verification) for login redirect
+    for (const key of Object.keys(data)) {
+      if (key !== 'message') enriched[key] = data[key];
+    }
+    enriched.status = status;
+    return Promise.reject(enriched);
   }
 );
 

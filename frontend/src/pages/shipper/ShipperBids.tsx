@@ -123,7 +123,7 @@ export default function ShipperBids() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto font-sans min-h-screen">
+    <div className="p-4 sm:p-5 w-full font-sans min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Bids & Driver Proposals</h1>
@@ -277,7 +277,7 @@ export default function ShipperBids() {
 
       {/* ── Counter Offer Modal ── */}
       {counterTarget && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[1100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 max-w-md w-full">
             <h3 className="text-lg font-bold text-slate-900 mb-1">Make Counter Offer</h3>
             <p className="text-xs text-slate-500 mb-4">

@@ -46,13 +46,12 @@ class _LoginScreenState extends State<LoginScreen> {
           Text('Welcome, ${user.fullName}', style: GoogleFonts.outfit(color: Colors.white, fontSize: 16)),
         ]),
         actions: [
-          ElevatedButton(
+          TextButton(
             onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pushReplacementNamed(context, '/home');
+              Navigator.pop(context);
+              Navigator.of(context).pushReplacementNamed('/fleet');
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: AppColors.textDark),
-            child: const Text('Proceed to Fleet'),
+            child: const Text('Open Fleet Hub', style: TextStyle(color: AppColors.gold)),
           ),
         ],
       ),

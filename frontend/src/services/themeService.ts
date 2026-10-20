@@ -23,5 +23,7 @@ export const toggleTheme = (): 'light' | 'dark' => {
   return next;
 };
 
-// Apply saved theme immediately on module load
-applyTheme(getTheme());
+// Apply saved theme before React mounts to avoid a light flash
+if (typeof document !== 'undefined') {
+  applyTheme(getTheme());
+}

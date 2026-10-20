@@ -71,10 +71,9 @@ export default function Person2Layout({ role, navItems, children }: Person2Layou
       <aside
         className={`p2-sidebar no-scrollbar admin-sidebar-nav ${sidebarOpen ? 'p2-sidebar--open' : ''}`}
         style={{
-          width: window.innerWidth >= 769 ? `${currentWidth}px` : undefined,
+          width: `${currentWidth}px`,
           transition: isResizing ? 'none' : 'width 0.2s ease',
           userSelect: isResizing ? 'none' : 'auto',
-          position: 'relative',
         }}
       >
         {/* Drag-to-Resize Right Edge Handle */}

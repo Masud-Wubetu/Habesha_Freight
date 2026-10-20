@@ -10,7 +10,7 @@ export default function CompanyDashboard() {
   const pendingRequests = requests.filter((r) => r.status === 'Pending').length;
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-5 space-y-6 w-full">
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm z-50">
           <div className="text-center">

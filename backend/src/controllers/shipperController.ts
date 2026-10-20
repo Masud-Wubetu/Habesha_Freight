@@ -3,6 +3,7 @@ import db from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { MessageService } from '../services/messageService';
 import { FileService } from '../services/fileService';
+import { generateOtpAndHash } from '../utils/crypto';
 
 export async function getShipperProfile(req: AuthenticatedRequest, res: Response) {
   try {
@@ -351,19 +352,16 @@ export async function acceptBid(req: AuthenticatedRequest, res: Response) {
 
     const [updatedLoad] = await db('loads').where('id', id).update({ status: 'MATCHED' }).returning('*');
 
-    const bcrypt = await import('bcryptjs');
-    const pickupOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const deliveryOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const pickupHash = await bcrypt.default.hash(pickupOtp, 10);
-    const deliveryHash = await bcrypt.default.hash(deliveryOtp, 10);
+    const pickupData = generateOtpAndHash();
+    const deliveryData = generateOtpAndHash();
 
     const [shipment] = await db('shipments')
       .insert({
         load_id: id,
         carrier_id: bid.driver_id,
         status: 'ASSIGNED',
-        pickup_otp_hash: pickupHash,
-        delivery_otp_hash: deliveryHash,
+        pickup_otp_hash: pickupData.hash,
+        delivery_otp_hash: deliveryData.hash,
       })
       .returning('*');
 
@@ -388,7 +386,7 @@ export async function acceptBid(req: AuthenticatedRequest, res: Response) {
       data: {
         load: updatedLoad,
         shipment,
-        otps: { pickup: pickupOtp, delivery: deliveryOtp },
+        otps: { pickup: pickupData.otp, delivery: deliveryData.otp },
       },
     });
   } catch (error) {
@@ -483,7 +481,8 @@ export async function confirmDelivery(req: AuthenticatedRequest, res: Response) 
       return res.status(400).json({ success: false, message: `Cannot confirm delivery with status: ${shipment.status}` });
     }
 
-    await db('loads').where('id', shipment.load_id).update({ status: 'COMPLETED' });
+    // Load status enum has DELIVERED (not COMPLETED); shipment is already DELIVERED.
+    await db('loads').where('id', shipment.load_id).update({ status: 'DELIVERED' });
 
     return res.status(200).json({ success: true, message: 'Delivery confirmed successfully.' });
   } catch (error) {
