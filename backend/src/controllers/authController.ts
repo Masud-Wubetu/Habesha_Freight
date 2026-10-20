@@ -60,6 +60,14 @@ export async function register(req: Request, res: Response) {
     const generatedPhone = `+2519${Math.floor(10000000 + Math.random() * 90000000)}`;
     const finalPhoneNumber = phone_number && phone_number.trim() ? phone_number.trim() : generatedPhone;
 
+    const existingPhone = await db('users').where({ phone_number: finalPhoneNumber }).first();
+    if (existingPhone) {
+      return res.status(409).json({
+        success: false,
+        message: 'A user with this phone number already exists. Use a different number or log in.',
+      });
+    }
+
     const insertData: Record<string, any> = {
       full_name,
       email: normalizedEmail,
@@ -111,8 +119,27 @@ export async function register(req: Request, res: Response) {
         token: token || undefined,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registration Error:', error);
+    if (error?.code === '23505') {
+      const detail = String(error?.detail || '');
+      if (detail.includes('phone_number')) {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this phone number already exists. Use a different number or log in.',
+        });
+      }
+      if (detail.includes('email')) {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this email address already exists.',
+        });
+      }
+      return res.status(409).json({
+        success: false,
+        message: 'An account with these details already exists.',
+      });
+    }
     return res.status(500).json({
       success: false,
       message: 'Internal server error during registration.',

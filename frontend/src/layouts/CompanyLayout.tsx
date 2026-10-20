@@ -1,22 +1,36 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import type { LucideIcon } from 'lucide-react';
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Truck,
+  Bus,
+  Users,
+  Building2,
+  Star,
+  Settings,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react';
 import { clearSession, getStoredUser } from '../services/authService';
-import { toggleTheme } from '../services/themeService';
+import ThemeToggle from '../components/ThemeToggle';
 import useCompanySidebar from '../hooks/useCompanySidebar';
 
 interface CompanyLayoutProps {
   children: ReactNode;
 }
 
-const NAV_ITEMS = [
-  { path: '/company/dashboard', icon: '🏠', label: 'Dashboard' },
-  { path: '/company/fleet-requests', icon: '📋', label: 'Fleet Requests' },
-  { path: '/company/deliveries', icon: '🚚', label: 'Deliveries' },
-  { path: '/company/vehicles', icon: '🚛', label: 'Vehicles / Fleet' },
-  { path: '/company/drivers', icon: '👤', label: 'Drivers' },
-  { path: '/company/profile', icon: '🏢', label: 'Company Profile' },
-  { path: '/company/ratings', icon: '⭐', label: 'Ratings' },
-  { path: '/company/settings', icon: '⚙️', label: 'Settings' },
+const NAV_ITEMS: { path: string; icon: LucideIcon; label: string }[] = [
+  { path: '/company/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/company/fleet-requests', icon: ClipboardList, label: 'Fleet Requests' },
+  { path: '/company/deliveries', icon: Truck, label: 'Deliveries' },
+  { path: '/company/vehicles', icon: Bus, label: 'Vehicles / Fleet' },
+  { path: '/company/drivers', icon: Users, label: 'Drivers' },
+  { path: '/company/profile', icon: Building2, label: 'Company Profile' },
+  { path: '/company/ratings', icon: Star, label: 'Ratings' },
+  { path: '/company/settings', icon: Settings, label: 'Settings' },
 ];
 
 export default function CompanyLayout({ children }: CompanyLayoutProps) {
@@ -114,10 +128,9 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
         className={`dl-sidebar no-scrollbar admin-sidebar-nav ${sidebarOpen ? 'dl-sidebar--open' : ''}`}
         aria-label="Company navigation sidebar"
         style={{
-          width: window.innerWidth >= 769 ? `${currentWidth}px` : undefined,
-          transition: isResizing ? 'none' : 'width 0.2s ease',
+          width: `${currentWidth}px`,
+          transition: isResizing ? 'none' : 'width 0.2s ease, transform 0.28s ease',
           userSelect: isResizing ? 'none' : 'auto',
-          position: 'relative',
         }}
       >
         {/* Drag-to-Resize Right Edge Handle */}
@@ -153,7 +166,7 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
           {!isCollapsed && (
             <div>
               <Link to="/company/dashboard" className="dl-brand-link">
-                <span className="dl-brand-icon">🚛</span>
+                <Truck size={20} strokeWidth={2} className="dl-brand-mark" />
                 <span className="dl-brand-habesha">Habesha</span>
                 <span className="dl-brand-freight">Freight</span>
               </Link>
@@ -161,33 +174,21 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
             </div>
           )}
 
-          {/* Desktop Collapse / Expand Toggle Button */}
           {window.innerWidth >= 769 && (
             <button
+              type="button"
               onClick={() => setIsCollapsed(!isCollapsed)}
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.08)',
-                border: 'none',
-                borderRadius: '0.35rem',
-                color: '#FFFFFF',
-                width: '28px',
-                height: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-              }}
+              className="dl-collapse-btn"
               title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             >
-              {isCollapsed ? '»' : '«'}
+              {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
             </button>
           )}
         </div>
 
-        {/* Nav */}
         <nav className="dl-nav no-scrollbar" aria-label="Company navigation" style={{ overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
           {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
             return (
               <NavLink
                 key={item.path}
@@ -197,7 +198,9 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
                 className={({ isActive }) => `dl-nav-item ${isActive ? 'dl-nav-item--active' : ''}`}
                 style={{ justifyContent: isCollapsed ? 'center' : 'flex-start', whiteSpace: 'nowrap' }}
               >
-                <span className="dl-nav-icon">{item.icon}</span>
+                <span className="dl-nav-icon">
+                  <Icon size={18} strokeWidth={1.85} />
+                </span>
                 {!isCollapsed && <span className="dl-nav-label">{item.label}</span>}
               </NavLink>
             );
@@ -225,7 +228,8 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
               type="button"
               onClick={handleLogout}
             >
-              ← Log Out
+              <LogOut size={14} />
+              Log Out
             </button>
           )}
         </div>
@@ -240,7 +244,9 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
       <div
         className="dl-main"
         style={{
-          marginLeft: window.innerWidth >= 769 ? `${currentWidth}px` : undefined,
+          marginLeft: sidebarOpen && typeof window !== 'undefined' && window.innerWidth >= 769
+            ? `${currentWidth}px`
+            : 0,
           transition: isResizing ? 'none' : 'margin-left 0.2s ease',
         }}
       >
@@ -263,27 +269,8 @@ export default function CompanyLayout({ children }: CompanyLayoutProps) {
             <span className="dl-topbar-date">{today}</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto' }}>
-            <button
-              onClick={() => toggleTheme()}
-              style={{
-                backgroundColor: '#1E293B',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '2rem',
-                padding: '0.4rem 0.9rem',
-                fontSize: '0.825rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-              }}
-              title="Toggle Light/Dark Theme"
-            >
-              <span>🌙 / ☀️</span>
-              <span>Theme</span>
-            </button>
+          <div className="dl-topbar-actions">
+            <ThemeToggle />
             <Link to="/company/dashboard" className="dl-topbar-brand">
               <span>Habesha</span>
               <span className="dl-brand-freight">Freight</span>

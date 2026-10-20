@@ -2,7 +2,7 @@ import { createApp } from './app';
 import { testDbConnection } from './config/db';
 import db from './config/db';
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT = parseInt(process.env.PORT || '5000', 10);
 
 async function startServer() {
   try {

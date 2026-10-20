@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import type { BackendRole } from '../types/person2';
+import { useAuth } from '../context/AuthContext';
 import { getStoredToken, getStoredUser } from '../services/authService';
 
 interface ProtectedRouteProps {
@@ -14,12 +15,21 @@ export default function ProtectedRoute({
   redirectTo = '/login',
   children,
 }: ProtectedRouteProps) {
-  const token = getStoredToken();
-  const user = getStoredUser();
+  const { user: ctxUser, token: ctxToken, isLoading } = useAuth();
+  const token = ctxToken ?? getStoredToken();
+  const user = ctxUser ?? getStoredUser();
   const location = useLocation();
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--hf-bg,#0b1220)] text-[var(--hf-muted,#94a3b8)]">
+        Loading secure session…
+      </div>
+    );
+  }
+
   if (!token || !user) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={redirectTo} replace state={{ from: location }} />;
   }
 
   // Determine if driver/fleet owner is approved by Admin

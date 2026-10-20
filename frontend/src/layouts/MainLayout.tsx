@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import ThemeToggle from '../components/ThemeToggle';
 import { getStoredUser } from '../services/authService';
 
 interface MainLayoutProps {
@@ -11,11 +12,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const isDashboard = location.pathname === '/dashboard';
-  const { theme, toggleTheme } = useTheme();
+  const barePaths = ['/dashboard', '/login', '/register', '/verify-otp', '/pending-approval'];
+  const { theme } = useTheme();
 
-  if (isDashboard) {
-    return <div>{children}</div>;
+  if (barePaths.some((p) => location.pathname === p || location.pathname.startsWith(p + '/'))) {
+    return <>{children}</>;
   }
 
   const user = getStoredUser();
@@ -46,7 +47,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <header
         className="navbar"
         style={{
-          backgroundColor: theme === 'dark' ? '#070F19' : '#0B1F33',
+          backgroundColor: theme === 'dark' ? '#11161D' : '#0B1F33',
           height: '64px',
           position: 'sticky',
           top: 0,
@@ -196,21 +197,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
               gap: '0.5rem',
             }}
           >
-            <button
-              onClick={toggleTheme}
-              className="btn-nav"
-              style={{
-                fontSize: '1.2rem',
-                padding: '0.25rem 0.5rem',
-                background: 'none',
-                border: 'none',
-                color: '#FFFFFF',
-                cursor: 'pointer',
-              }}
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? '☀️' : '🌙'}
-            </button>
+            <ThemeToggle className="theme-toggle--nav" />
 
             <button
               className="mobile-menu-btn"
@@ -222,7 +209,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 fontSize: '1.5rem',
                 cursor: 'pointer',
                 padding: '0.25rem 0.5rem',
-                display: 'block',
               }}
               aria-label="Toggle mobile menu"
             >
@@ -236,7 +222,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <div
             style={{
               backgroundColor:
-                theme === 'dark' ? '#070F19' : '#0B1F33',
+                theme === 'dark' ? '#11161D' : '#0B1F33',
               padding: '1rem 1.5rem',
               borderTop: '1px solid rgba(255,255,255,0.05)',
               display: 'flex',

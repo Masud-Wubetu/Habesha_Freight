@@ -113,7 +113,7 @@ export default function ShipperRatings() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto font-sans text-slate-900 min-h-screen">
+    <div className="p-4 sm:p-5 w-full font-sans text-slate-900 min-h-screen">
       {/* ── Top Header ── */}
       <header className="flex justify-between items-center mb-8">
         <div>

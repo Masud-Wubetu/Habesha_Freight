@@ -7,7 +7,7 @@ export default function CompanyDrivers() {
   const { drivers, loading, error } = useCompanyDrivers(companyId);
   if (profileLoading) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-4 sm:p-5 w-full">
         <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm">
           <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-slate-600 font-medium text-sm">Loading company directory...</p>
@@ -16,7 +16,7 @@ export default function CompanyDrivers() {
     );
   }
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-5 w-full space-y-6">
       <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Company Drivers Directory</h1>

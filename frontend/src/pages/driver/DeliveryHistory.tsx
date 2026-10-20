@@ -6,11 +6,11 @@ const DeliveryHistory: React.FC = () => {
   const { shipments, loading, error } = useDriverShipments();
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-500">Loading delivery history...</div>;
+    return <div className="p-4 sm:p-5 text-center text-slate-500">Loading delivery history...</div>;
   }
 
   if (error) {
-    return <div className="p-8 text-center text-red-500">{error}</div>;
+    return <div className="p-4 sm:p-5 text-center text-red-500">{error}</div>;
   }
 
   return (

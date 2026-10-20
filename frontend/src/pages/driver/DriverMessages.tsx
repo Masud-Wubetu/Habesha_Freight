@@ -126,7 +126,7 @@ export default function DriverMessages() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-5 w-full">
       <PageHeader
         title="Driver Messages &amp; Shipper Communications"
         subtitle="Chat directly with shippers regarding load requests, bids, and active deliveries"
@@ -142,7 +142,7 @@ export default function DriverMessages() {
 
           <div className="flex-1 overflow-y-auto">
             {loadingConv ? (
-              <div className="p-8 text-center text-slate-500 text-sm">
+              <div className="p-4 sm:p-5 text-center text-slate-500 text-sm">
                 Loading conversations...
               </div>
             ) : conversations.length === 0 ? (

@@ -1,33 +1,47 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import type { LucideIcon } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Search,
+  CircleDollarSign,
+  Truck,
+  Wallet,
+  History,
+  MessageSquare,
+  Star,
+  User,
+  Globe,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react';
 import { clearSession, getStoredUser } from '../services/authService';
-import { toggleTheme } from '../services/themeService';
+import ThemeToggle from '../components/ThemeToggle';
 
 interface DriverLayoutProps {
   children: ReactNode;
 }
 
-const NAV_ITEMS = [
-  { path: '/driver/dashboard',        icon: '📊', label: 'Dashboard'       },
-  { path: '/driver/requests',         icon: '🔍', label: 'Requests'        },
-  { path: '/driver/bids',             icon: '💰', label: 'My Bids'         },
-  { path: '/driver/active-delivery',  icon: '🚛', label: 'Active Delivery' },
-  { path: '/driver/wallet',           icon: '💳', label: 'Wallet & Payouts'},
-  { path: '/driver/history',          icon: '🗂️', label: 'History'         },
-  { path: '/driver/messages',         icon: '💬', label: 'Messages'        },
-  { path: '/driver/ratings',          icon: '⭐', label: 'Ratings'         },
-  { path: '/driver/profile',          icon: '👤', label: 'Profile'         },
+const NAV_ITEMS: { path: string; icon: LucideIcon; label: string }[] = [
+  { path: '/driver/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/driver/requests', icon: Search, label: 'Requests' },
+  { path: '/driver/bids', icon: CircleDollarSign, label: 'My Bids' },
+  { path: '/driver/active-delivery', icon: Truck, label: 'Active Delivery' },
+  { path: '/driver/wallet', icon: Wallet, label: 'Wallet & Payouts' },
+  { path: '/driver/history', icon: History, label: 'History' },
+  { path: '/driver/messages', icon: MessageSquare, label: 'Messages' },
+  { path: '/driver/ratings', icon: Star, label: 'Ratings' },
+  { path: '/driver/profile', icon: User, label: 'Profile' },
 ];
 
 export default function DriverLayout({ children }: DriverLayoutProps) {
-  // Start open on desktop, closed on mobile
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 769);
 
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const user      = getStoredUser();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const user = getStoredUser();
 
-  // Resizable & Collapsible Sidebar State
   const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
     const saved = localStorage.getItem('driver_sidebar_width');
     return saved ? Math.min(420, Math.max(180, Number(saved))) : 260;
@@ -42,12 +56,10 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
     .toUpperCase()
     .slice(0, 2);
 
-  // Close sidebar on mobile when route changes
   useEffect(() => {
     if (window.innerWidth < 769) setSidebarOpen(false);
   }, [location.pathname]);
 
-  // Keep sidebar open/closed state in sync when window resizes
   useEffect(() => {
     const onResize = () => {
       if (window.innerWidth >= 769) setSidebarOpen(true);
@@ -57,7 +69,6 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Drag Resizing Logic
   const startResizing = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
@@ -72,9 +83,7 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
     };
 
     const handleMouseUp = () => {
-      if (isResizing) {
-        setIsResizing(false);
-      }
+      if (isResizing) setIsResizing(false);
     };
 
     if (isResizing) {
@@ -94,35 +103,29 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
     navigate('/login');
   };
 
-  // Derive current page label for topbar title
-  const currentPage = NAV_ITEMS.find((n) =>
-    location.pathname.startsWith(n.path)
-  )?.label ?? 'Dashboard';
+  const currentPage =
+    NAV_ITEMS.find((n) => location.pathname.startsWith(n.path))?.label ?? 'Dashboard';
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
   });
 
   const currentWidth = isCollapsed ? 72 : sidebarWidth;
 
   return (
     <div className={`dl-layout ${sidebarOpen ? 'dl-layout--sidebar-open' : 'dl-layout--sidebar-closed'}`}>
-
-      {/* ── Sidebar ─────────────────────────────────────────── */}
       <aside
         className={`dl-sidebar no-scrollbar admin-sidebar-nav ${sidebarOpen ? 'dl-sidebar--open' : ''}`}
         aria-label="Driver navigation sidebar"
         style={{
-          width: window.innerWidth >= 769 ? `${currentWidth}px` : undefined,
-          transition: isResizing ? 'none' : 'width 0.2s ease',
+          width: `${currentWidth}px`,
+          transition: isResizing ? 'none' : 'width 0.2s ease, transform 0.28s ease',
           userSelect: isResizing ? 'none' : 'auto',
-          position: 'relative',
         }}
       >
-        {/* Drag-to-Resize Right Edge Handle */}
         {!isCollapsed && window.innerWidth >= 769 && (
           <div
             onMouseDown={startResizing}
@@ -141,22 +144,28 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
           />
         )}
 
-        {/* Sidebar header: close button + brand + collapse toggle */}
-        <div className="dl-brand" style={{ display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between' }}>
-          <button
-            id="dl-close-sidebar-btn"
-            type="button"
-            className="dl-sidebar-close"
-            aria-label="Close sidebar"
-            onClick={toggle}
-          >
-            ✕
-          </button>
+        <button
+          id="dl-close-sidebar-btn"
+          type="button"
+          className="dl-sidebar-close"
+          aria-label="Close sidebar"
+          onClick={toggle}
+        >
+          ×
+        </button>
 
+        <div
+          className="dl-brand"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isCollapsed ? 'center' : 'space-between',
+          }}
+        >
           {!isCollapsed && (
             <div>
               <Link to="/driver/dashboard" className="dl-brand-link">
-                <span className="dl-brand-icon">🚛</span>
+                <Truck size={20} strokeWidth={2} className="dl-brand-mark" />
                 <span className="dl-brand-habesha">Habesha</span>
                 <span className="dl-brand-freight">Freight</span>
               </Link>
@@ -164,70 +173,82 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
             </div>
           )}
 
-          {/* Desktop Collapse / Expand Button */}
           {window.innerWidth >= 769 && (
             <button
+              type="button"
               onClick={() => setIsCollapsed(!isCollapsed)}
-              style={{
-                backgroundColor: 'rgba(255,255,255,0.08)',
-                border: 'none',
-                borderRadius: '0.35rem',
-                color: '#FFFFFF',
-                width: '28px',
-                height: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-              }}
+              className="dl-collapse-btn"
               title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             >
-              {isCollapsed ? '»' : '«'}
+              {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
             </button>
           )}
         </div>
 
-        {/* Nav */}
-        <nav className="dl-nav no-scrollbar" aria-label="Driver navigation" style={{ overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === '/driver/dashboard' || item.path === '/driver/requests'}
-              title={isCollapsed ? item.label : undefined}
-              className={({ isActive }) =>
-                `dl-nav-item ${isActive ? 'dl-nav-item--active' : ''}`
-              }
-              style={{
-                justifyContent: isCollapsed ? 'center' : 'flex-start',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <span className="dl-nav-icon">{item.icon}</span>
-              {!isCollapsed && <span className="dl-nav-label">{item.label}</span>}
-            </NavLink>
-          ))}
-          
-          <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.08)', margin: '0.5rem 0' }} />
+        <nav
+          className="dl-nav no-scrollbar"
+          aria-label="Driver navigation"
+          style={{ overflowY: 'auto', msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+        >
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === '/driver/dashboard' || item.path === '/driver/requests'}
+                title={isCollapsed ? item.label : undefined}
+                className={({ isActive }) =>
+                  `dl-nav-item ${isActive ? 'dl-nav-item--active' : ''}`
+                }
+                style={{
+                  justifyContent: isCollapsed ? 'center' : 'flex-start',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span className="dl-nav-icon">
+                  <Icon size={18} strokeWidth={1.85} />
+                </span>
+                {!isCollapsed && <span className="dl-nav-label">{item.label}</span>}
+              </NavLink>
+            );
+          })}
 
-          <Link to="/" className="dl-nav-item" style={{ justifyContent: isCollapsed ? 'center' : 'flex-start' }} title={isCollapsed ? 'Main Landing Page' : undefined}>
-            <span className="dl-nav-icon">🌐</span>
+          <div
+            style={{
+              height: '1px',
+              backgroundColor: 'rgba(255,255,255,0.08)',
+              margin: '0.5rem 0',
+            }}
+          />
+
+          <Link
+            to="/"
+            className="dl-nav-item"
+            style={{ justifyContent: isCollapsed ? 'center' : 'flex-start' }}
+            title={isCollapsed ? 'Main Landing Page' : undefined}
+          >
+            <span className="dl-nav-icon">
+              <Globe size={18} strokeWidth={1.85} />
+            </span>
             {!isCollapsed && <span className="dl-nav-label">Main Landing Page</span>}
           </Link>
         </nav>
 
-        {/* User footer */}
         <div className="dl-footer">
           <div className="dl-user-row" style={{ justifyContent: isCollapsed ? 'center' : 'flex-start' }}>
-            <div className="dl-user-avatar" aria-hidden="true" title={user?.full_name ?? 'Abebe Girma'}>
+            <div
+              className="dl-user-avatar"
+              aria-hidden="true"
+              title={user?.full_name ?? 'Driver'}
+            >
               {initials}
             </div>
             {!isCollapsed && (
               <div className="dl-user-info">
-                <p className="dl-user-name">{user?.full_name ?? 'Abebe Girma'}</p>
+                <p className="dl-user-name">{user?.full_name ?? 'Driver'}</p>
                 <p className="dl-user-meta">
-                  <span className="dl-star-icon">⭐</span>
+                  <Star size={12} className="dl-star-icon" fill="currentColor" />
                   4.8 · <span className="dl-verified">Verified Driver</span>
                 </p>
               </div>
@@ -235,21 +256,28 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
           </div>
 
           {!isCollapsed && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: '0.75rem',
+              }}
+            >
               <button
                 id="dl-logout-btn"
                 className="dl-logout-btn"
                 type="button"
                 onClick={handleLogout}
               >
-                ← Log Out
+                <LogOut size={14} />
+                Log Out
               </button>
             </div>
           )}
         </div>
       </aside>
 
-      {/* ── Backdrop (mobile only) ───────────────────────────── */}
       {sidebarOpen && (
         <button
           type="button"
@@ -259,16 +287,16 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
         />
       )}
 
-      {/* ── Main area ───────────────────────────────────────── */}
       <div
         className="dl-main"
         style={{
-          marginLeft: window.innerWidth >= 769 ? `${currentWidth}px` : undefined,
+          marginLeft:
+            sidebarOpen && typeof window !== 'undefined' && window.innerWidth >= 769
+              ? `${currentWidth}px`
+              : 0,
           transition: isResizing ? 'none' : 'margin-left 0.2s ease',
         }}
       >
-
-        {/* Top bar — always visible, hamburger always present */}
         <header className="dl-topbar">
           <button
             id="dl-hamburger-btn"
@@ -278,7 +306,6 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
             aria-expanded={sidebarOpen}
             onClick={toggle}
           >
-            {/* Three-bar hamburger → X animation */}
             <span className="dl-hamburger-bar" />
             <span className="dl-hamburger-bar" />
             <span className="dl-hamburger-bar" />
@@ -289,29 +316,11 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
             <span className="dl-topbar-date">{today}</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto' }}>
-            <button
-              onClick={() => toggleTheme()}
-              style={{
-                backgroundColor: '#1E293B',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '2rem',
-                padding: '0.4rem 0.9rem',
-                fontSize: '0.825rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-              }}
-              title="Toggle Light/Dark Theme"
-            >
-              <span>🌙 / ☀️</span>
-              <span>Theme</span>
-            </button>
-            <Link to="/" style={{ fontSize: '0.85rem', color: '#c8933a', textDecoration: 'none', fontWeight: 500 }}>
-              Landing Page 🌐
+          <div className="dl-topbar-actions">
+            <ThemeToggle />
+            <Link to="/" className="dl-topbar-link">
+              <Globe size={14} />
+              Landing
             </Link>
             <Link to="/driver/dashboard" className="dl-topbar-brand">
               <span>Habesha</span>
@@ -320,11 +329,8 @@ export default function DriverLayout({ children }: DriverLayoutProps) {
           </div>
         </header>
 
-        <main className="dl-content">
-          {children}
-        </main>
+        <main className="dl-content">{children}</main>
       </div>
-
     </div>
   );
 }

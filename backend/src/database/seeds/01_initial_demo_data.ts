@@ -1,5 +1,6 @@
 import { Knex } from 'knex';
 import bcrypt from 'bcryptjs';
+import { hashOtpSha256 } from '../../utils/crypto';
 
 export async function seed(knex: Knex): Promise<void> {
   // Clear existing entries in correct order (reverse dependency)
@@ -17,6 +18,7 @@ export async function seed(knex: Knex): Promise<void> {
   await knex('bids').del();
   await knex('loads').del();
   await knex('vehicles').del();
+  await knex('company_drivers').del();
   await knex('audit_logs').del();
   await knex('users').del();
   
@@ -198,22 +200,77 @@ export async function seed(knex: Knex): Promise<void> {
     status: 'PENDING',
   });
 
+  // Link drivers to fleet owner for company / mobile fleet screens
+  console.log('🏢 Linking company drivers…');
+  await knex('company_drivers').insert([
+    {
+      company_id: fleetOwner.id,
+      driver_id: driver.id,
+      status: 'ACTIVE',
+    },
+    {
+      company_id: fleetOwner.id,
+      driver_id: driver2.id,
+      status: 'ACTIVE',
+    },
+  ]);
+
+  // Fleet-owned spare rig (shown on company vehicles even without a driver link)
+  await knex('vehicles').insert({
+    driver_id: fleetOwner.id,
+    plate_number: 'ET-3-FLEET1',
+    vehicle_type: 'SINO_TRUCK',
+    capacity_tons: 40.0,
+    is_active: true,
+    verification_status: 'VERIFIED',
+  });
+
   // Create a shipment for the first load
   console.log('🚚 Creating shipments...');
-  await knex('shipments').insert({
-    load_id: load1.id,
-    carrier_id: driver.id,
-    vehicle_id: vehicle1.id,
-    status: 'ASSIGNED',
-    pickup_otp_hash: await bcrypt.hash('123456', 10),
-    delivery_otp_hash: await bcrypt.hash('654321', 10),
-  });
+  const [shipment1] = await knex('shipments')
+    .insert({
+      load_id: load1.id,
+      carrier_id: driver.id,
+      vehicle_id: vehicle1.id,
+      status: 'ASSIGNED',
+      pickup_otp_hash: hashOtpSha256('123456'),
+      delivery_otp_hash: hashOtpSha256('654321'),
+    })
+    .returning('*');
+
+  // Escrow samples for mobile fleet settlements screen
+  console.log('💳 Creating escrow ledger rows…');
+  await knex('escrow_ledger').insert([
+    {
+      shipment_id: shipment1.id,
+      payer_id: shipper.id,
+      beneficiary_id: fleetOwner.id,
+      gross_amount_etb: 45000,
+      commission_amount_etb: 1125,
+      net_payout_amount_etb: 43875,
+      status: 'LOCKED',
+      gateway_reference: 'SIM-ESCROW-001',
+      idempotency_key: `demo-escrow-locked-${shipment1.id}`,
+    },
+    {
+      shipment_id: shipment1.id,
+      payer_id: shipper.id,
+      beneficiary_id: driver.id,
+      gross_amount_etb: 44000,
+      commission_amount_etb: 1100,
+      net_payout_amount_etb: 42900,
+      status: 'RELEASED',
+      gateway_reference: 'SIM-ESCROW-002',
+      idempotency_key: `demo-escrow-released-${shipment1.id}`,
+    },
+  ]);
 
   console.log('✅ Demo seed data successfully populated.');
   console.log('📊 Data Summary:');
   console.log(`  👤 Users: 5 (SHIPPER, DRIVER, ADMIN, FLEET_OWNER, DRIVER2)`);
-  console.log(`  🚗 Vehicles: 3`);
+  console.log(`  🚗 Vehicles: 4`);
   console.log(`  📦 Loads: 3`);
   console.log(`  💰 Bids: 2`);
   console.log(`  🚚 Shipments: 1`);
+  console.log(`  🏢 Company drivers: 2`);
 }

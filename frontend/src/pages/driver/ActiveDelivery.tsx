@@ -308,7 +308,7 @@ export default function ActiveDelivery() {
 
       {/* ── Delivery OTP Verification Modal ────────────────────── */}
       {showOtpModal && (
-        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[1100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-6 max-w-md w-full text-white shadow-2xl animate-fade-in">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">

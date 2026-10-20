@@ -160,7 +160,7 @@ export default function ShipperPayments() {
   const formatETB = (amount: number) => `ETB ${Number(amount).toLocaleString()}`;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto font-sans text-slate-900 min-h-screen">
+    <div className="p-4 sm:p-5 w-full font-sans text-slate-900 min-h-screen">
       {error && <div className="mb-4 p-3 bg-amber-50 text-amber-800 border border-amber-200 rounded-xl text-sm">{error}</div>}
       {/* Header */}
       <header className="flex justify-between items-center mb-8">
@@ -301,7 +301,7 @@ export default function ShipperPayments() {
 
       {/* Modal: Deposit & Lock Escrow */}
       {showDepositModal && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[1100] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 max-w-md w-full animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-start mb-4">
               <div>

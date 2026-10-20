@@ -35,8 +35,8 @@ export default function PendingApproval() {
   };
 
   const isApproved =
-    currentUser?.is_verified === true &&
-    (currentUser?.kyc_status === 'APPROVED' || currentUser?.status === 'ACTIVE' || !currentUser?.kyc_status);
+    currentUser?.kyc_status === 'APPROVED' ||
+    (currentUser?.is_verified === true && currentUser?.status === 'ACTIVE' && currentUser?.kyc_status !== 'PENDING' && currentUser?.kyc_status !== 'REJECTED');
 
   const handleGoToDashboard = () => {
     if (currentUser?.role === 'FLEET_OWNER') {

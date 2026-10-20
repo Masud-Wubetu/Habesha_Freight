@@ -65,7 +65,7 @@ const DriverInfo: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-500">Loading driver profile...</div>;
+    return <div className="p-4 sm:p-5 text-center text-slate-500">Loading driver profile...</div>;
   }
 
   if (error || !profile) {
