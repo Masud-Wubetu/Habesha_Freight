@@ -144,6 +144,15 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'Shipper Escrow & Settlement Vaults',
+                  subtitle: 'NBE & Telebirr locked funds, POD release, batch funding',
+                  badge: 'Page 21',
+                  icon: Icons.shield_rounded,
+                  route: AppRoutes.page21EscrowVault,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
                   title: 'Carrier & Shipper Sign In',
                   subtitle: 'SMS OTP verification, Telebirr & passwords',
                   badge: 'Auth',

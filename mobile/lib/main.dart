@@ -16,6 +16,7 @@ import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/registration_screen.dart';
 import 'presentation/screens/verify_otp_screen.dart';
 import 'presentation/screens/shipper_features/submit_bid_screen.dart';
+import 'presentation/screens/shipper_features/escrow_vault_screen.dart';
 import 'presentation/screens/ops/border_pass_screen.dart';
 import 'presentation/screens/ops/cold_chain_screen.dart';
 import 'presentation/screens/ops/compliance_audit_screen.dart';
@@ -45,6 +46,7 @@ class HabeshaFreightApp extends StatelessWidget {
         AppRoutes.page04VerifyOtp: (_) => const VerifyOtpScreen(),
         AppRoutes.home: (_) => const HomeScreen(),
         AppRoutes.page20SubmitBid: (_) => const SubmitFreightBidScreen(),
+        AppRoutes.page21EscrowVault: (_) => const ShipperEscrowVaultScreen(),
         AppRoutes.fleetHub: (_) => const FleetShellScreen(),
         AppRoutes.page27FleetCommand: (_) => const FleetCommandHubScreen(),
         AppRoutes.page28RigTelemetry: (_) => const RigTelemetryScreen(),
