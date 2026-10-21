@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_colors.dart';
+import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
 
 class EscrowInvoicesScreen extends StatefulWidget {
   const EscrowInvoicesScreen({super.key});
@@ -63,34 +64,109 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
+
+      // HabeshaFreight branded header.
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: const Color(0xFF0A111F),
         elevation: 0,
-        title: const Text(
-          'Escrow & Invoices',
-          style: TextStyle(
-            color: AppColors.onSurface,
-            fontWeight: FontWeight.bold,
-          ),
+        titleSpacing: 20,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            RichText(
+              text: const TextSpan(
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                children: [
+                  TextSpan(
+                    text: 'Habesha',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  TextSpan(
+                    text: 'Freight',
+                    style: TextStyle(color: Color(0xFFFFB300)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 2),
+            const Text(
+              'LOGISTICS EXCHANGE',
+              style: TextStyle(
+                color: Color(0xFF8B95A5),
+                fontSize: 8,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ],
         ),
       ),
+
+      // Escrow page content.
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            const Text(
+              'Escrow & Invoices',
+              style: TextStyle(
+                color: AppColors.onSurface,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Manage protected payments and freight invoices.',
+              style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13),
+            ),
+            const SizedBox(height: 20),
+
             _securityBanner(),
             const SizedBox(height: 16),
             _summaryCard(),
             const SizedBox(height: 16),
             _tabBar(),
             const SizedBox(height: 14),
-            ..._visibleTransactions.map(_transactionCard),
+
+            if (_visibleTransactions.isEmpty)
+              _emptyState()
+            else
+              ..._visibleTransactions.map(_transactionCard),
+
             const SizedBox(height: 12),
             _batchFundingCard(),
+            const SizedBox(height: 16),
           ],
         ),
       ),
+
+      // Shipper bottom navigation.
+      bottomNavigationBar: ShipperBottomNavBar(
+        currentIndex: 1,
+        onItemSelected: _handleNavigation,
+        onAddPressed: () {
+          _showMessage('Create a new freight request.');
+        },
+      ),
     );
+  }
+
+  void _handleNavigation(int index) {
+    // Replace these messages with your app's actual route navigation.
+    switch (index) {
+      case 0:
+        _showMessage('Home selected');
+        break;
+      case 1:
+        _showMessage('Shipments selected');
+        break;
+      case 2:
+        _showMessage('Bids selected');
+        break;
+      case 3:
+        _showMessage('Tracking selected');
+        break;
+    }
   }
 
   Widget _securityBanner() {
@@ -135,6 +211,7 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
             ),
           ),
           const SizedBox(height: 6),
+
           const Text.rich(
             TextSpan(
               children: [
@@ -157,7 +234,9 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               ],
             ),
           ),
+
           const SizedBox(height: 16),
+
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -180,7 +259,9 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               ],
             ),
           ),
+
           const SizedBox(height: 16),
+
           Row(
             children: [
               Expanded(child: _metric('Released This Month', '890,000 ETB')),
@@ -190,7 +271,9 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               ),
             ],
           ),
+
           const SizedBox(height: 20),
+
           const Text(
             'SETTLEMENT VAULTS',
             style: TextStyle(
@@ -200,6 +283,7 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               letterSpacing: 1,
             ),
           ),
+
           const SizedBox(height: 10),
           _vault('Telebirr Business', '+251 911 ••• 567'),
           const SizedBox(height: 8),
@@ -329,6 +413,40 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
     );
   }
 
+  Widget _emptyState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceHigh,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const Column(
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            color: AppColors.onSurfaceVariant,
+            size: 36,
+          ),
+          SizedBox(height: 10),
+          Text(
+            'No disputes to display',
+            style: TextStyle(
+              color: AppColors.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Disputed transactions will appear here.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _transactionCard(_EscrowTransaction transaction) {
     final released = transaction.kind == _TransactionKind.released;
     final ready = transaction.kind == _TransactionKind.readyToRelease;
@@ -399,7 +517,9 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               ),
             ],
           ),
+
           const SizedBox(height: 12),
+
           Text(
             '${transaction.origin} → ${transaction.destination}',
             style: const TextStyle(
@@ -407,7 +527,9 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
+
           const SizedBox(height: 12),
+
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -451,7 +573,9 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               ],
             ),
           ),
+
           const SizedBox(height: 12),
+
           if (transaction.kind == _TransactionKind.active)
             const Row(
               children: [
@@ -555,12 +679,15 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
+              onPressed: () {
+                Navigator.pop(dialogContext);
+              },
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () =>
-                  Navigator.pop(dialogContext, controller.text.trim()),
+              onPressed: () {
+                Navigator.pop(dialogContext, controller.text.trim());
+              },
               child: const Text('Continue'),
             ),
           ],
