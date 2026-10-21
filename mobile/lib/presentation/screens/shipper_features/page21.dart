@@ -9,6 +9,7 @@ import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/post_load/post_load_sheet.dart';
 import '../../widgets/shipper_escrow/shipper_escrow_header.dart';
 import '../../widgets/shipper_escrow/active_escrow_hero_card.dart';
+import '../../widgets/shipper_escrow/escrow_status_filter_tabs.dart';
 
 class ShipperEscrowVaultScreen extends StatefulWidget {
   const ShipperEscrowVaultScreen({super.key});
@@ -225,6 +226,16 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
                 releasedThisMonth: 890000.0,
                 activeConsignmentsCount: 2,
                 onManageVaults: _handleManageVaults,
+              ),
+              const SizedBox(height: 16),
+
+              // Status Filter Tabs (Active Escrow: 2, Invoices: 45, Disputes: 0)
+              EscrowStatusFilterTabs(
+                selectedIndex: _activeTabIndex,
+                onTabSelected: _onTabSelected,
+                activeEscrowCount: 2,
+                invoicesCount: 45,
+                disputesCount: 0,
               ),
               const SizedBox(height: 16),
 
