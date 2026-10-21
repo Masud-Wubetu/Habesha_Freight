@@ -3,6 +3,7 @@ class AppRoutes {
   static const register = '/register';
   static const page04VerifyOtp = '/auth/verify-otp';
   static const page05EscrowVault = '/shipper/escrow';
+  static const page06ShipperHub = '/shipper/active-hub';
   static const home = '/home';
   static const fleetHub = '/fleet';
   static const page20SubmitBid = '/shipper/bid';

@@ -144,6 +144,15 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'Shipper Active Hub & Operations',
+                  subtitle: 'Live transit radar, 2x2 corridor telemetry & driver tracking',
+                  badge: 'Page 06',
+                  icon: Icons.dashboard_rounded,
+                  route: AppRoutes.page06ShipperHub,
+                  color: const Color(0xFF38BDF8),
+                ),
+                _navTile(
+                  context,
                   title: 'Submit Freight Bid Screen',
                   subtitle: 'Dynamic corridor bidding, gate slots, and tariff rates',
                   badge: 'Page 20',

@@ -222,6 +222,12 @@ class _AuthGateState extends State<AuthGate> {
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page06ShipperHub),
+                icon: const Icon(Icons.dashboard_rounded, color: Color(0xFF38BDF8)),
+                label: const Text('Shipper Active Hub & Ops (Page 06)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
                 onPressed: () => CorridorNavigationSheet.show(context),
                 icon: const Icon(Icons.grid_view_rounded),
                 label: const Text('Explore All 16 Corridor Modules'),
