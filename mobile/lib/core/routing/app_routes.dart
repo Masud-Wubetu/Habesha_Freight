@@ -11,6 +11,13 @@ class AppRoutes {
   static const page20SubmitBid = '/shipper/bid';
   static const page21EscrowVault = '/shipper/escrow-vault';
 
+static const String shipperHome = '/shipper/home';
+static const String page11FreightHistory = '/shipper/history';
+static const String page12PreferredFleet = '/shipper/preferred-fleet';
+static const String page13EscrowInvoices = '/shipper/escrow-invoices';
+static const String page14CompanyProfile = '/shipper/company-profile';
+static const String page15RateDriver = '/shipper/rate-driver';
+
   // Phase 5 — Fleet Enterprise (27–34)
   static const page27FleetCommand = '/fleet/command';
   static const page28RigTelemetry = '/fleet/rigs';

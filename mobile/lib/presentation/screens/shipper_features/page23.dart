@@ -13,6 +13,10 @@ import '../../widgets/post_cargo/post_cargo_step_header.dart';
 import '../../widgets/post_cargo/publish_cargo_cta.dart';
 import '../../widgets/post_cargo/weight_and_transit_seal_row.dart';
 
+// Export ProofOfDeliveryInspectionScreen for Page 23 POD inspection callers & tests
+export 'proofOfDeliveryInspection.dart'
+    show ProofOfDeliveryInspectionScreen, ProofOfDeliveryInspectionApp;
+
 class PostCargoRequestScreen extends StatefulWidget {
   const PostCargoRequestScreen({super.key});
 
@@ -362,3 +366,4 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
 typedef Page23Screen = PostCargoRequestScreen;
 typedef Page07Screen = PostCargoRequestScreen;
 typedef Page7Screen = PostCargoRequestScreen;
+
