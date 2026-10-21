@@ -8,6 +8,7 @@ import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/post_load/post_load_sheet.dart';
 import '../../widgets/shipper_hub/shipper_hub_header.dart';
+import '../../widgets/shipper_hub/shipper_profile_card.dart';
 
 class ShipperActiveHubScreen extends StatefulWidget {
   const ShipperActiveHubScreen({super.key});
@@ -99,6 +100,15 @@ class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
     );
   }
 
+  void _handleNotificationTap() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Notifications: 3 new carrier updates on Addis-Djibouti Corridor.'),
+        backgroundColor: AppColors.gold,
+      ),
+    );
+  }
+
   void _openPostLoadSheet() {
     showModalBottomSheet(
       context: context,
@@ -134,6 +144,16 @@ class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
                 language: _selectedLanguage,
                 onLanguageChanged: _handleLanguageTap,
                 onProfileTap: _handleProfileTap,
+              ),
+              const SizedBox(height: 14),
+
+              // Shipper Enterprise Profile Card & Post Cargo CTA Button
+              ShipperProfileCard(
+                name: 'Selamawit Tadesse',
+                company: 'Bole Dry Port Logistics • Enterprise',
+                activeCorridor: 'Addis-Djibouti Corridor Active',
+                onNotificationTap: _handleNotificationTap,
+                onPostCargoTap: _openPostLoadSheet,
               ),
               const SizedBox(height: 14),
 
