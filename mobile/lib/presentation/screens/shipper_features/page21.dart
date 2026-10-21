@@ -615,6 +615,8 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
   }
 }
 
-// Aliases for page 21/22 semantic naming
+// Aliases for page 05/21/22 semantic naming
+typedef Page05Screen = ShipperEscrowVaultScreen;
+typedef Page5Screen = ShipperEscrowVaultScreen;
 typedef Page21Screen = ShipperEscrowVaultScreen;
 typedef Page22Screen = ShipperEscrowVaultScreen;

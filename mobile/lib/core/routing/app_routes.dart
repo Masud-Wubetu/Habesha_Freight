@@ -2,10 +2,11 @@ class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const page04VerifyOtp = '/auth/verify-otp';
+  static const page05EscrowVault = '/shipper/escrow';
   static const home = '/home';
   static const fleetHub = '/fleet';
   static const page20SubmitBid = '/shipper/bid';
-  static const page21EscrowVault = '/shipper/escrow';
+  static const page21EscrowVault = '/shipper/escrow-vault';
 
   // Phase 5 — Fleet Enterprise (27–34)
   static const page27FleetCommand = '/fleet/command';
