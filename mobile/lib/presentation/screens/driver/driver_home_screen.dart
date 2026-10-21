@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class DriverHomeScreen extends StatefulWidget {
@@ -35,6 +34,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               _buildAvailabilityCard(),
               const SizedBox(height: 24),
               _buildUrgentMatchCard(),
+              const SizedBox(height: 24),
+              _buildStatistics(),
             ],
           ),
         ),
@@ -71,9 +72,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           child: const Icon(
             Icons.notifications_none_rounded,
@@ -91,9 +90,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Row(
         children: [
@@ -125,9 +122,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  _isAvailable
-                      ? 'Available for Loads'
-                      : 'Currently Offline',
+                  _isAvailable ? 'Available for Loads' : 'Currently Offline',
                   style: const TextStyle(
                     color: textWhite,
                     fontSize: 16,
@@ -166,9 +161,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: gold.withValues(alpha: 0.45),
-        ),
+        border: Border.all(color: gold.withValues(alpha: 0.45)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,11 +180,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.bolt_rounded,
-                      color: gold,
-                      size: 16,
-                    ),
+                    Icon(Icons.bolt_rounded, color: gold, size: 16),
                     SizedBox(width: 4),
                     Text(
                       'URGENT MATCH',
@@ -205,11 +194,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
               ),
               const Spacer(),
-              const Icon(
-                Icons.local_shipping_outlined,
-                color: muted,
-                size: 22,
-              ),
+              const Icon(Icons.local_shipping_outlined, color: muted, size: 22),
             ],
           ),
           const SizedBox(height: 18),
@@ -231,11 +216,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(
-                Icons.route_rounded,
-                color: blue,
-                size: 20,
-              ),
+              const Icon(Icons.route_rounded, color: blue, size: 20),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
@@ -243,10 +224,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   style: TextStyle(color: muted, fontSize: 13),
                 ),
               ),
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const Text(
+                  Text(
                     'ETB 18,500',
                     style: TextStyle(
                       color: gold,
@@ -254,7 +235,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Proposed load rate',
                     style: TextStyle(color: muted, fontSize: 11),
                   ),
@@ -285,13 +266,125 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               ),
               child: const Text(
                 'View Load Details',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatistics() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Your Statistics',
+          style: TextStyle(
+            color: textWhite,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.local_shipping_rounded,
+                title: 'Deliveries',
+                value: '24',
+                subtitle: 'Completed trips',
+                color: blue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.account_balance_wallet_rounded,
+                title: 'Earnings',
+                value: 'ETB 48k',
+                subtitle: 'Total earned',
+                color: gold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.star_rounded,
+                title: 'Rating',
+                value: '4.8',
+                subtitle: 'Driver rating',
+                color: Color(0xFFF59E0B),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.route_rounded,
+                title: 'Distance',
+                value: '3.2k km',
+                subtitle: 'Total travelled',
+                color: green,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required String subtitle,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(icon, color: color, size: 21),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            value,
+            style: const TextStyle(
+              color: textWhite,
+              fontSize: 19,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            title,
+            style: const TextStyle(
+              color: textWhite,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(subtitle, style: const TextStyle(color: muted, fontSize: 10)),
         ],
       ),
     );
