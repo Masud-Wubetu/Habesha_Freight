@@ -5,6 +5,8 @@ import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
+import '../../widgets/post_cargo/cargo_classification_selector.dart';
+import '../../widgets/post_cargo/corridor_waypoints_card.dart';
 import '../../widgets/post_cargo/post_cargo_step_header.dart';
 
 class PostCargoRequestScreen extends StatefulWidget {
@@ -16,11 +18,145 @@ class PostCargoRequestScreen extends StatefulWidget {
 
 class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
   String _selectedLanguage = 'EN';
+  String _selectedCargoType = 'container_40ft';
+  String _origin = 'Addis Ababa (Kality Port)';
+  String _destination = 'Dire Dawa (Free Trade Zone)';
+  int _distanceKm = 452;
+
+  final List<Map<String, dynamic>> _corridorHubs = const [
+    {'name': 'Addis Ababa (Kality Port)', 'region': 'Sheger / Central', 'km': 0},
+    {'name': 'Dire Dawa (Free Trade Zone)', 'region': 'Eastern Dry Port', 'km': 452},
+    {'name': 'Modjo Dry Port (Multimodal)', 'region': 'Oromia Logistics Hub', 'km': 73},
+    {'name': 'Djibouti (PK12 Terminal)', 'region': 'Red Sea Maritime', 'km': 865},
+    {'name': 'Hawassa Industrial Park', 'region': 'Sidama Textile Corridor', 'km': 275},
+    {'name': 'Kombolcha Dry Port', 'region': 'Amhara Northern Corridor', 'km': 376},
+    {'name': 'Semera Logistics Center', 'region': 'Afar Port Gate', 'km': 588},
+    {'name': 'Moyale Border Post', 'region': 'Kenya Border Highway', 'km': 770},
+  ];
 
   void _handleLanguageTap(String lang) {
     setState(() {
       _selectedLanguage = lang;
     });
+  }
+
+  void _swapWaypoints() {
+    setState(() {
+      final temp = _origin;
+      _origin = _destination;
+      _destination = temp;
+    });
+  }
+
+  void _pickHub({required bool isOrigin}) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    isOrigin ? 'Select Pickup Origin' : 'Select Dropoff Destination',
+                    style: GoogleFonts.outfit(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8)),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Ethio-Djibouti & Trans-African Freight Terminals',
+                style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF94A3B8)),
+              ),
+              const SizedBox(height: 14),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: _corridorHubs.length,
+                  separatorBuilder: (context, index) => const Divider(color: Color(0xFF1E293B), height: 1),
+                  itemBuilder: (context, index) {
+                    final hub = _corridorHubs[index];
+                    final name = hub['name'] as String;
+                    final region = hub['region'] as String;
+                    final isCurrent = isOrigin ? _origin == name : _destination == name;
+
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      leading: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: isCurrent ? AppColors.gold : const Color(0xFF1E293B),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isOrigin ? Icons.upload_rounded : Icons.download_rounded,
+                          color: isCurrent ? const Color(0xFF0F172A) : Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(
+                        name,
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                          fontSize: 13.5,
+                        ),
+                      ),
+                      subtitle: Text(
+                        region,
+                        style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 11.5),
+                      ),
+                      trailing: isCurrent
+                          ? const Icon(Icons.check_circle_rounded, color: AppColors.gold, size: 20)
+                          : null,
+                      onTap: () {
+                        setState(() {
+                          if (isOrigin) {
+                            _origin = name;
+                          } else {
+                            _destination = name;
+                          }
+                          // Recalculate indicative distance
+                          if ((_origin.contains('Addis') && _destination.contains('Dire')) ||
+                              (_destination.contains('Addis') && _origin.contains('Dire'))) {
+                            _distanceKm = 452;
+                          } else if (_origin.contains('Djibouti') || _destination.contains('Djibouti')) {
+                            _distanceKm = 865;
+                          } else if (_origin.contains('Modjo') || _destination.contains('Modjo')) {
+                            _distanceKm = 380;
+                          } else {
+                            _distanceKm = 520;
+                          }
+                        });
+                        Navigator.pop(ctx);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _handleProfileTap() {
@@ -119,28 +255,21 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Placeholder for classification, waypoints, weight, dispatch mode, CTA (populated in micro-tasks 2-5)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF1E293B)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.post_add_rounded, color: AppColors.gold, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Cargo & Route Dispatch Wizard initializing...',
-                        style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
-                      ),
-                    ),
-                  ],
-                ),
+              CargoClassificationSelector(
+                selectedId: _selectedCargoType,
+                onSelected: (id) => setState(() => _selectedCargoType = id),
               ),
+              const SizedBox(height: 16),
+              CorridorWaypointsCard(
+                origin: _origin,
+                destination: _destination,
+                distanceKm: _distanceKm,
+                corridorName: 'Expressway A1',
+                onOriginTap: () => _pickHub(isOrigin: true),
+                onDestinationTap: () => _pickHub(isOrigin: false),
+                onSwapTap: _swapWaypoints,
+              ),
+              const SizedBox(height: 16),
               const SizedBox(height: 100),
             ],
           ),
