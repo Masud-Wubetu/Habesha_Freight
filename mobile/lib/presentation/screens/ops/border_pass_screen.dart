@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
@@ -456,6 +457,44 @@ class BorderPassScreen extends StatelessWidget {
               icon: const Icon(Icons.phone_in_talk, color: AppColors.primary),
               label: const Text('Galafi Border Officer (+253 77 12 34 56)'),
             ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'CROSS-CORRIDOR MODULES',
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.page35Customs),
+                  icon: const Icon(Icons.description_outlined, size: 16),
+                  label: const Text('Customs ASYCUDA'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryContainer,
+                    side: const BorderSide(color: AppColors.surfaceBright),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.page37Weighbridge),
+                  icon: const Icon(Icons.scale, size: 16),
+                  label: const Text('Weighbridge Slip'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryContainer,
+                    side: const BorderSide(color: AppColors.surfaceBright),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

@@ -1,17 +1,11 @@
 class AppRoutes {
   static const login = '/login';
+  static const register = '/register';
+  static const page04VerifyOtp = '/auth/verify-otp';
+  static const home = '/home';
   static const fleetHub = '/fleet';
-  //Phase 2: Shipper
-  static const page11FreightHistory = '/shipper/history';
-  static const page12PreferredFleet = '/shipper/fleet';
-  static const page13EscrowInvoices = '/shipper/escrow';
-  static const page14CompanyProfile = '/shipper/profile';
-  static const page15RateDriver = '/shipper/rate-driver';
-  //Phase 3: Driver & Carrier Operations Suite (pages 16–19)
-  static const page16DriverHome = '/driver/home';
-  static const page17AvailableLoads = '/driver/loads';
-  static const page18DirectOffers = '/driver/offers';
-  static const page19RequestDetails = '/driver/request';
+  static const page20SubmitBid = '/shipper/bid';
+
   // Phase 5 — Fleet Enterprise (27–34)
   static const page27FleetCommand = '/fleet/command';
   static const page28RigTelemetry = '/fleet/rigs';

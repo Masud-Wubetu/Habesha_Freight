@@ -9,7 +9,7 @@ import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/kpi_tile.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
-import 'package:mobile/presentation/screens/shipper/freight_history_screen.dart';
+import 'package:mobile/presentation/widgets/navigation/corridor_navigation_sheet.dart';
 
 /// PAGE 27 — Fleet Operations Command Hub (tab shell).
 class FleetCommandHubScreen extends StatefulWidget {
@@ -104,35 +104,22 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
+                    onPressed: () => CorridorNavigationSheet.show(context),
+                    icon: const Icon(Icons.grid_view_rounded),
+                    color: AppColors.primaryContainer,
+                    tooltip: 'All Corridor Modules',
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pushNamed(context, AppRoutes.home),
+                    icon: const Icon(Icons.storefront_outlined),
+                    color: AppColors.onSurfaceVariant,
+                    tooltip: 'Shipper Portal',
+                  ),
+                  IconButton(
                     onPressed: _load,
                     icon: const Icon(Icons.refresh),
                     color: AppColors.onSurfaceVariant,
                     tooltip: 'Refresh from API',
-                  ),
-                  Stack(
-                    children: [
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.notifications_outlined),
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryContainer,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.surface,
-                              width: 2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                   const CircleAvatar(
                     radius: 16,
@@ -143,7 +130,7 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                       color: AppColors.onPrimary,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                 ],
               ),
             ),
@@ -521,10 +508,12 @@ class _KpiGrid extends StatelessWidget {
               child: KpiTile(
                 label: 'Active Rigs',
                 value: activeRigs,
-                trend: 'Fleet capacity',
+                trend: 'Fleet capacity · Tap rigs',
                 trendIcon: Icons.arrow_upward,
                 trailingIcon: Icons.local_shipping,
                 iconColor: AppColors.secondary,
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.page28RigTelemetry),
               ),
             ),
             const SizedBox(width: 8),
@@ -532,9 +521,11 @@ class _KpiGrid extends StatelessWidget {
               child: KpiTile(
                 label: 'Dispatched',
                 value: dispatched,
-                trend: 'From shipments API',
+                trend: 'Tap for dispatch',
                 trendIcon: Icons.trending_up,
                 trailingIcon: Icons.scale,
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.page30DispatchMatrix),
               ),
             ),
           ],
@@ -549,6 +540,8 @@ class _KpiGrid extends StatelessWidget {
                 trend: 'CBE Escrow ledger',
                 trendColor: AppColors.onSurfaceVariant,
                 trailingIcon: Icons.account_balance,
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.page31EscrowBatch),
               ),
             ),
             const SizedBox(width: 8),
@@ -557,10 +550,12 @@ class _KpiGrid extends StatelessWidget {
                 label: 'Drivers',
                 value: telemetry,
                 valueColor: AppColors.primaryContainer,
-                trend: 'Active on roster',
+                trend: 'Tap driver roster',
                 trendColor: AppColors.primaryFixedDim,
                 trailingIcon: Icons.groups,
                 iconColor: AppColors.primaryContainer,
+                onTap: () =>
+                    Navigator.pushNamed(context, AppRoutes.page29DriverRoster),
               ),
             ),
           ],
@@ -604,7 +599,8 @@ class _CorridorTelemetryCard extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.page28RigTelemetry),
                 style: TextButton.styleFrom(
                   backgroundColor: AppColors.surfaceHigh,
                   foregroundColor: AppColors.primary,
@@ -725,31 +721,34 @@ class _CorridorTelemetryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const _CorridorRow(
+          _CorridorRow(
             icon: Icons.alt_route,
             iconColor: AppColors.primary,
             title: 'A1 Djibouti Mainline',
-            subtitle: '14 Rigs in transit • Avg 64 km/h',
+            subtitle: '14 Rigs in transit • Avg 64 km/h · Tap Border Pass',
             badge: 'Optimal',
             badgeColor: AppColors.secondary,
+            onTap: () => Navigator.pushNamed(context, AppRoutes.page36BorderPass),
           ),
           const SizedBox(height: 4),
-          const _CorridorRow(
+          _CorridorRow(
             icon: Icons.flag,
             iconColor: AppColors.tertiary,
             title: 'A2 Mekelle Corridor',
-            subtitle: '6 Rigs • Customs Cleared',
+            subtitle: '6 Rigs • Customs Cleared · Tap Customs Hub',
             badge: 'Cleared',
             badgeColor: AppColors.secondary,
+            onTap: () => Navigator.pushNamed(context, AppRoutes.page35Customs),
           ),
           const SizedBox(height: 4),
-          const _CorridorRow(
+          _CorridorRow(
             icon: Icons.warehouse,
             iconColor: AppColors.primaryContainer,
             title: 'Mojo Dry Port Hub',
-            subtitle: '4 Rigs loading/docked',
+            subtitle: '4 Rigs loading/docked · Tap Intermodal Hub',
             badge: 'Docking',
             badgeColor: AppColors.primary,
+            onTap: () => Navigator.pushNamed(context, AppRoutes.page40Intermodal),
           ),
         ],
       ),
@@ -765,6 +764,7 @@ class _CorridorRow extends StatelessWidget {
     required this.subtitle,
     required this.badge,
     required this.badgeColor,
+    this.onTap,
   });
 
   final IconData icon;
@@ -773,80 +773,79 @@ class _CorridorRow extends StatelessWidget {
   final String subtitle;
   final String badge;
   final Color badgeColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceHigh,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceLow,
-              borderRadius: BorderRadius.circular(4),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceHigh,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLow,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Icon(icon, size: 18, color: iconColor),
             ),
-            child: Icon(icon, size: 18, color: iconColor),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.onSurface,
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onSurface,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.onSurfaceVariant,
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: badgeColor,
-                    shape: BoxShape.circle,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: badgeColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(color: badgeColor, shape: BoxShape.circle),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  badge,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: badgeColor,
+                  const SizedBox(width: 4),
+                  Text(
+                    badge,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: badgeColor,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -967,7 +966,8 @@ class _TelemetryLogCard extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () =>
+                    Navigator.pushNamed(context, AppRoutes.page34Analytics),
                 child: Text(
                   'View All Logs',
                   style: GoogleFonts.inter(
@@ -978,40 +978,46 @@ class _TelemetryLogCard extends StatelessWidget {
               ),
             ],
           ),
-          const _LogEvent(
+          _LogEvent(
             icon: Icons.verified_user,
-            iconBg: Color(0x264EDEA3),
+            iconBg: const Color(0x264EDEA3),
             iconColor: AppColors.secondary,
             title: 'Rig ET-3-8821',
             time: '12m ago',
             body: 'Customs E-Seal unlocked at Galafi Border',
-            meta: 'Security Signature Synced',
+            meta: 'Security Signature Synced · Tap Border Pass',
             metaIcon: Icons.check_circle,
             metaColor: AppColors.secondary,
+            onTap: () =>
+                Navigator.pushNamed(context, AppRoutes.page36BorderPass),
           ),
           const SizedBox(height: 8),
-          const _LogEvent(
+          _LogEvent(
             icon: Icons.balance,
-            iconBg: Color(0x26FFC174),
+            iconBg: const Color(0x26FFC174),
             iconColor: AppColors.primary,
             title: 'Rig ET-3-1049',
             time: '35m ago',
             body: 'Tare weight verified at Kaliti Weighbridge: 32.4 MT',
-            meta: 'Slip #WB-9481 Issued',
+            meta: 'Slip #WB-9481 Issued · Tap Weighbridge',
             metaIcon: Icons.done,
             metaColor: AppColors.primary,
+            onTap: () =>
+                Navigator.pushNamed(context, AppRoutes.page37Weighbridge),
           ),
           const SizedBox(height: 8),
-          const _LogEvent(
+          _LogEvent(
             icon: Icons.fact_check,
-            iconBg: Color(0x269FD1FF),
+            iconBg: const Color(0x269FD1FF),
             iconColor: AppColors.tertiary,
             title: 'Driver Yohannes T.',
             time: '1h ago',
             body: 'Completed digital e-POD for REQ-9840 Mekelle',
-            meta: 'Escrow Trigger Pending CBE Sign',
+            meta: 'Escrow Trigger Pending · Tap Settlements',
             metaIcon: Icons.payments,
             metaColor: AppColors.secondary,
+            onTap: () =>
+                Navigator.pushNamed(context, AppRoutes.page31EscrowBatch),
           ),
         ],
       ),
@@ -1030,6 +1036,7 @@ class _LogEvent extends StatelessWidget {
     required this.meta,
     required this.metaIcon,
     required this.metaColor,
+    this.onTap,
   });
 
   final IconData icon;
@@ -1041,77 +1048,76 @@ class _LogEvent extends StatelessWidget {
   final String meta;
   final IconData metaIcon;
   final Color metaColor;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceLow,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: iconBg,
-            child: Icon(icon, size: 18, color: iconColor),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.onSurface,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Text(
-                      time,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: AppColors.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  body,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(metaIcon, size: 13, color: metaColor),
-                    const SizedBox(width: 4),
-                    Text(
-                      meta,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: metaColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceLow,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: iconBg,
+              child: Icon(icon, size: 18, color: iconColor),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.onSurface,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        time,
+                        style: const TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    body,
+                    style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(metaIcon, size: 13, color: metaColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        meta,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: metaColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

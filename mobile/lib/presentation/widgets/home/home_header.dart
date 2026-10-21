@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
+import '../navigation/corridor_navigation_sheet.dart';
 
 class HomeHeader extends StatelessWidget {
   final String language;
@@ -42,6 +43,33 @@ class HomeHeader extends StatelessWidget {
               dropdownColor: AppColors.card, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.white),
               onChanged: (v) => v != null ? onLanguageChanged(v) : null,
               items: const [DropdownMenuItem(value: 'EN', child: Text('EN')), DropdownMenuItem(value: 'አም', child: Text('አም'))],
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => CorridorNavigationSheet.show(context),
+          child: Container(
+            height: 30,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: AppColors.gold.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.gold.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.grid_view_rounded, size: 14, color: AppColors.gold),
+                const SizedBox(width: 5),
+                Text(
+                  'Modules',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.gold,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
