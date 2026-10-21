@@ -33,7 +33,24 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 8),
+              _buildHeader(),
+              const SizedBox(height: 20),
+              _buildAvailabilityCard(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Dashboard header
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               const Text(
                 'Driver Dashboard',
                 style: TextStyle(
@@ -42,7 +59,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               const Text(
                 'Your logistics overview',
                 style: TextStyle(
@@ -53,6 +70,103 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             ],
           ),
         ),
+        Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+            ),
+          ),
+          child: const Icon(
+            Icons.notifications_none_rounded,
+            color: textWhite,
+            size: 25,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Driver availability card
+  Widget _buildAvailabilityCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: _isAvailable
+                  ? green.withValues(alpha: 0.15)
+                  : muted.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              _isAvailable
+                  ? Icons.local_shipping_rounded
+                  : Icons.pause_circle_outline_rounded,
+              color: _isAvailable ? green : muted,
+              size: 26,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Availability Status',
+                  style: TextStyle(
+                    color: muted,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  _isAvailable
+                      ? 'Available for Loads'
+                      : 'Currently Offline',
+                  style: const TextStyle(
+                    color: textWhite,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  _isAvailable
+                      ? 'Ready to receive delivery requests'
+                      : 'You will not receive new requests',
+                  style: const TextStyle(
+                    color: muted,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: _isAvailable,
+            onChanged: (value) {
+              setState(() {
+                _isAvailable = value;
+              });
+            },
+            activeThumbColor: gold,
+            activeTrackColor: gold.withValues(alpha: 0.35),
+          ),
+        ],
       ),
     );
   }
