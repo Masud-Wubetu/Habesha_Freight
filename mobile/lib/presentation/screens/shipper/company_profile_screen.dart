@@ -117,9 +117,11 @@ class _ShipperCompanyProfileScreenState
               ),
               child: Row(
                 children: [
-                  Text('EN', style: TextStyle(color: _textMain, fontSize: 12)),
+                  Text(
+                    'EN 文A',
+                    style: TextStyle(color: _textMain, fontSize: 12),
+                  ),
                   const SizedBox(width: 4),
-                  Icon(Icons.language, color: _textMain, size: 14),
                 ],
               ),
             ),

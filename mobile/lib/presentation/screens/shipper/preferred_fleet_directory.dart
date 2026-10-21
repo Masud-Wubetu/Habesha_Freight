@@ -20,40 +20,40 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
 
   String _selectedCategory = 'All';
 
-  final List<Map<String, String>> _carriers = [
-    {
-      'name': 'Abyssinia Freight PLC',
-      'type': 'Enterprise Fleet • 24 Sino Trucks',
-      'route': 'Addis Ababa → Djibouti & Dire Dawa',
-      'tag': 'Daily Run',
-      'rating': '4.9',
-      'trips': '210',
-      'badge': 'FTA Certified',
-      'category': 'Heavy Trailers',
-      'image': 'truck',
-    },
-    {
-      'name': 'Solomon Tekle',
-      'type': 'FAW J6P 32T Heavy Rig • Verified Solo',
-      'route': 'Addis Ababa → Adama / Awash',
-      'tag': '32 Metric Ton',
-      'rating': '4.8',
-      'trips': '89',
-      'badge': 'GPS Live Linked',
-      'category': 'Heavy Trailers',
-      'image': 'person',
-    },
-    {
-      'name': 'Selam Logistics PLC',
-      'type': 'Multi-Asset • 18 Refrigerated Units',
-      'route': 'Hawassa Agro → Modjo Cold Chain',
-      'tag': '-20°C Reefer',
-      'rating': '4.9',
-      'trips': '154',
-      'badge': 'Real-time Temp Logs',
-      'category': 'Cold Chain',
-      'image': 'cold',
-    },
+  static const List<_PreferredCarrier> _carriers = [
+    _PreferredCarrier(
+      name: 'Abyssinia Freight PLC',
+      type: 'Enterprise Fleet • 24 Sino Trucks',
+      route: 'Addis Ababa → Djibouti & Dire Dawa',
+      tag: 'Daily Run',
+      rating: '4.9',
+      trips: '210',
+      badge: 'FTA Certified',
+      category: 'Heavy Trailers',
+      icon: Icons.local_shipping,
+    ),
+    _PreferredCarrier(
+      name: 'Solomon Tekle',
+      type: 'FAW J6P 32T Heavy Rig • Verified Solo',
+      route: 'Addis Ababa → Adama / Awash',
+      tag: '32 Metric Ton',
+      rating: '4.8',
+      trips: '89',
+      badge: 'GPS Live Linked',
+      category: 'Heavy Trailers',
+      icon: Icons.person,
+    ),
+    _PreferredCarrier(
+      name: 'Selam Logistics PLC',
+      type: 'Multi-Asset • 18 Refrigerated Units',
+      route: 'Hawassa Agro → Modjo Cold Chain',
+      tag: '-20°C Reefer',
+      rating: '4.9',
+      trips: '154',
+      badge: 'Real-time Temp Logs',
+      category: 'Cold Chain',
+      icon: Icons.ac_unit,
+    ),
   ];
 
   @override
@@ -68,13 +68,12 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
 
     final filteredCarriers = _carriers.where((carrier) {
       final matchesSearch =
-          carrier['name']!.toLowerCase().contains(query) ||
-          carrier['type']!.toLowerCase().contains(query) ||
-          carrier['route']!.toLowerCase().contains(query);
+          carrier.name.toLowerCase().contains(query) ||
+          carrier.type.toLowerCase().contains(query) ||
+          carrier.route.toLowerCase().contains(query);
 
       final matchesCategory =
-          _selectedCategory == 'All' ||
-          carrier['category'] == _selectedCategory;
+          _selectedCategory == 'All' || carrier.category == _selectedCategory;
 
       return matchesSearch && matchesCategory;
     }).toList();
@@ -407,7 +406,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
     );
   }
 
-  Widget _carrierCard(Map<String, String> carrier) {
+  Widget _carrierCard(_PreferredCarrier carrier) {
     return Container(
       margin: const EdgeInsets.only(bottom: 18),
       padding: const EdgeInsets.all(16),
@@ -430,15 +429,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                   color: inner,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  carrier['image'] == 'person'
-                      ? Icons.person
-                      : carrier['image'] == 'cold'
-                      ? Icons.ac_unit
-                      : Icons.local_shipping,
-                  color: yellow,
-                  size: 28,
-                ),
+                child: Icon(carrier.icon, color: yellow, size: 28),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -446,7 +437,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      carrier['name']!,
+                      carrier.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -457,7 +448,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      carrier['type']!,
+                      carrier.type,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: muted, fontSize: 11),
@@ -469,7 +460,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('${carrier['name']} saved to favorites.'),
+                      content: Text('${carrier.name} saved to favorites.'),
                     ),
                   );
                 },
@@ -491,7 +482,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    carrier['route']!,
+                    carrier.route,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Colors.white, fontSize: 11),
@@ -500,7 +491,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                 const SizedBox(width: 5),
                 Flexible(
                   child: Text(
-                    carrier['tag']!,
+                    carrier.tag,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -521,12 +512,12 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
             children: [
               _infoTag(
                 Icons.star,
-                '${carrier['rating']} (${carrier['trips']} trips)',
+                '${carrier.rating} (${carrier.trips} trips)',
               ),
-              _infoTag(Icons.verified_user, carrier['badge']!),
-              if (carrier['category'] == 'Cold Chain')
+              _infoTag(Icons.verified_user, carrier.badge),
+              if (carrier.category == 'Cold Chain')
                 _infoTag(Icons.timer, '99.2% On-Time'),
-              if (carrier['category'] == 'Heavy Trailers')
+              if (carrier.category == 'Heavy Trailers')
                 _infoTag(Icons.bolt, 'Direct Booking'),
             ],
           ),
@@ -540,7 +531,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'Quote request for ${carrier['name']} coming soon.',
+                          'Quote request for ${carrier.name} coming soon.',
                         ),
                       ),
                     );
@@ -562,9 +553,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Contact ${carrier['name']} soon.'),
-                      ),
+                      SnackBar(content: Text('Contact ${carrier.name} soon.')),
                     );
                   },
                   icon: const Icon(Icons.call, size: 17),
@@ -603,4 +592,28 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
       ),
     );
   }
+}
+
+class _PreferredCarrier {
+  const _PreferredCarrier({
+    required this.name,
+    required this.type,
+    required this.route,
+    required this.tag,
+    required this.rating,
+    required this.trips,
+    required this.badge,
+    required this.category,
+    required this.icon,
+  });
+
+  final String name;
+  final String type;
+  final String route;
+  final String tag;
+  final String rating;
+  final String trips;
+  final String badge;
+  final String category;
+  final IconData icon;
 }
