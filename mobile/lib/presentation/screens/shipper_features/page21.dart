@@ -10,6 +10,7 @@ import '../../widgets/post_load/post_load_sheet.dart';
 import '../../widgets/shipper_escrow/shipper_escrow_header.dart';
 import '../../widgets/shipper_escrow/active_escrow_hero_card.dart';
 import '../../widgets/shipper_escrow/escrow_status_filter_tabs.dart';
+import '../../widgets/shipper_escrow/consignment_escrow_card.dart';
 
 class ShipperEscrowVaultScreen extends StatefulWidget {
   const ShipperEscrowVaultScreen({super.key});
@@ -23,6 +24,43 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
   String _selectedLanguage = 'EN';
   int _activeTabIndex = 0; // 0: Active Escrow, 1: Invoices, 2: Disputes
 
+  final List<ConsignmentEscrowItem> _consignments = [
+    const ConsignmentEscrowItem(
+      id: '#HF-9012',
+      escrowProvider: 'Telebirr Escrow',
+      amountEtb: 38000.0,
+      status: EscrowCardStatus.inTransit,
+      origin: 'Addis Ababa',
+      destination: 'Dire Dawa',
+      carrierName: 'Abyssinia Haulage #881',
+      telemetryText: 'Awash Corridor · 62 km/h · ETA 3h 15m',
+      cargoDetails: '40ft Container · Heavy Equipment',
+    ),
+    const ConsignmentEscrowItem(
+      id: '#HF-8841',
+      escrowProvider: 'CBE Birr Escrow',
+      amountEtb: 18500.0,
+      status: EscrowCardStatus.pendingPodOtp,
+      origin: 'Addis Ababa',
+      destination: 'Adama Dry Port',
+      carrierName: 'Ethio Express Trucking',
+      telemetryText: 'At Adama Gate 3 · Offloading proof uploaded',
+      cargoDetails: '28 Tons Industrial Steel',
+    ),
+    const ConsignmentEscrowItem(
+      id: '#HF-7720',
+      escrowProvider: 'Telebirr Escrow',
+      amountEtb: 42000.0,
+      status: EscrowCardStatus.settled,
+      origin: 'Hawassa Industrial Park',
+      destination: 'Modjo Dry Port',
+      carrierName: 'Selam Logistics PLC',
+      telemetryText: 'Delivered & Verified · Settled on Oct 19, 2026',
+      cargoDetails: 'Export Textiles & Apparel (22 Tons)',
+      taxInvoiceNo: 'INV-2026-NBE-7720',
+    ),
+  ];
+
   void _handleLanguageTap(String lang) {
     setState(() {
       _selectedLanguage = lang;
@@ -33,6 +71,209 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
     setState(() {
       _activeTabIndex = idx;
     });
+  }
+
+  void _showTaxInvoiceModal(ConsignmentEscrowItem item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.receipt_long_rounded, color: Color(0xFF10B981), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Official Tax Invoice',
+                            style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
+                          Text(
+                            item.taxInvoiceNo ?? 'INV-2026-NBE-7720',
+                            style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF94A3B8)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF064E3B),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text('ERCA CERTIFIED', style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w800, color: const Color(0xFF6EE7B7))),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF091220),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF1E2E48)),
+                ),
+                child: Column(
+                  children: [
+                    _invoiceRow('Carrier / Transporter', item.carrierName),
+                    const Divider(height: 16, color: Color(0xFF1E2E48)),
+                    _invoiceRow('Cargo Corridor Route', '${item.origin} ➔ ${item.destination}'),
+                    const Divider(height: 16, color: Color(0xFF1E2E48)),
+                    _invoiceRow('Gross Freight Amount', '${item.amountEtb.toStringAsFixed(0)} ETB'),
+                    const Divider(height: 16, color: Color(0xFF1E2E48)),
+                    _invoiceRow('Withholding Tax (2% MOR)', '-${(item.amountEtb * 0.02).toStringAsFixed(0)} ETB', valueColor: const Color(0xFFF59E0B)),
+                    const Divider(height: 16, color: Color(0xFF1E2E48)),
+                    _invoiceRow('Net Carrier Settlement Paid', '${(item.amountEtb * 0.98).toStringAsFixed(0)} ETB', isBold: true, valueColor: const Color(0xFF10B981)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Tax invoice ${item.taxInvoiceNo} downloaded for tax filing.'),
+                        backgroundColor: const Color(0xFF059669),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.download_rounded, size: 18),
+                  label: Text('Download Certified PDF Invoice', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: const Color(0xFF0B1321),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _invoiceRow(String label, String value, {bool isBold = false, Color? valueColor}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: GoogleFonts.inter(fontSize: 11.5, color: const Color(0xFF94A3B8))),
+        Text(
+          value,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+            color: valueColor ?? Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleEnterPodOtp(ConsignmentEscrowItem item) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Opening POD OTP verification for consignment ${item.id}...'),
+        backgroundColor: AppColors.gold,
+      ),
+    );
+  }
+
+  Widget _buildConsignmentsList() {
+    List<ConsignmentEscrowItem> items;
+    if (_activeTabIndex == 0) {
+      items = _consignments.where((c) => c.status != EscrowCardStatus.settled).toList();
+    } else if (_activeTabIndex == 1) {
+      items = _consignments.where((c) => c.status == EscrowCardStatus.settled).toList();
+    } else {
+      items = [];
+    }
+
+    if (items.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0C1628),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFF1E2E48)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E2E48).withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _activeTabIndex == 2 ? Icons.gavel_rounded : Icons.folder_open_rounded,
+                color: _activeTabIndex == 2 ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _activeTabIndex == 2 ? 'Zero Active Disputes' : 'No Records Found',
+              style: GoogleFonts.outfit(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              _activeTabIndex == 2
+                  ? 'All corridor shipments are operating under standard verified escrow and cargo insurance conditions.'
+                  : 'There are currently no items under this escrow filter.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 11.5,
+                color: const Color(0xFF94A3B8),
+                height: 1.35,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: items.map((item) {
+        return ConsignmentEscrowCard(
+          item: item,
+          onEnterPodOtp: () => _handleEnterPodOtp(item),
+          onViewInvoice: () => _showTaxInvoiceModal(item),
+        );
+      }).toList(),
+    );
   }
 
   void _handleProfileTap() {
@@ -239,32 +480,8 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Placeholder slot for Hero Card, Tabs, Consignment list, and Batch Fund Banner (populated in micro-tasks 2-5)
-              InkWell(
-                onTap: () => _onTabSelected((_activeTabIndex + 1) % 3),
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFF1E293B)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.shield_outlined, color: AppColors.gold, size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Escrow Vault Engine initializing... Tab: $_activeTabIndex',
-                          style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // Consignment Escrow Cards list
+              _buildConsignmentsList(),
               const SizedBox(height: 100), // Spacing for bottom bar
             ],
           ),
