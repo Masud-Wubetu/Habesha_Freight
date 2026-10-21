@@ -147,6 +147,15 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'Rate Driver',
+                  subtitle: 'Rate your driver and share feedback',
+                  badge: 'Page 15',
+                  icon: Icons.star_rate,
+                  route: AppRoutes.page15RateDriver,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
                   title: 'Company Profile',
                   subtitle: 'TIN, gateways & dispatch staff',
                   badge: 'Page 14',
