@@ -87,7 +87,10 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded, color: AppColors.textSecondary),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -117,6 +120,51 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'Freight History',
+                  subtitle: 'Completed deliveries & e-POD receipts',
+                  badge: 'Page 11',
+                  icon: Icons.history,
+                  route: AppRoutes.page11FreightHistory,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
+                  title: 'Preferred Fleet Directory',
+                  subtitle: 'Vetted carriers & direct dispatch',
+                  badge: 'Page 12',
+                  icon: Icons.groups_outlined,
+                  route: AppRoutes.page12PreferredFleet,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
+                  title: 'Escrow & Invoices',
+                  subtitle: 'Vault balance, releases & tax invoices',
+                  badge: 'Page 13',
+                  icon: Icons.lock_clock,
+                  route: AppRoutes.page13EscrowInvoices,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
+                  title: 'Rate Driver',
+                  subtitle: 'Rate your driver and share feedback',
+                  badge: 'Page 15',
+                  icon: Icons.star_rate,
+                  route: AppRoutes.page15RateDriver,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
+                  title: 'Company Profile',
+                  subtitle: 'TIN, gateways & dispatch staff',
+                  badge: 'Page 14',
+                  icon: Icons.domain,
+                  route: AppRoutes.page14CompanyProfile,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
                   title: 'Multi-Role Registration',
                   subtitle: 'Choose role: Shipper, Driver, or Fleet Enterprise',
                   badge: 'Page 03',
@@ -127,7 +175,8 @@ class CorridorNavigationSheet extends StatelessWidget {
                 _navTile(
                   context,
                   title: 'Verify 6-Digit OTP Code',
-                  subtitle: 'Secure transit code authorization with Ethio Telecom',
+                  subtitle:
+                      'Secure transit code authorization with Ethio Telecom',
                   badge: 'Page 04',
                   icon: Icons.password_rounded,
                   route: AppRoutes.page04VerifyOtp,
@@ -136,7 +185,8 @@ class CorridorNavigationSheet extends StatelessWidget {
                 _navTile(
                   context,
                   title: 'Submit Freight Bid Screen',
-                  subtitle: 'Dynamic corridor bidding, gate slots, and tariff rates',
+                  subtitle:
+                      'Dynamic corridor bidding, gate slots, and tariff rates',
                   badge: 'Page 20',
                   icon: Icons.gavel_rounded,
                   route: AppRoutes.page20SubmitBid,
@@ -156,7 +206,8 @@ class CorridorNavigationSheet extends StatelessWidget {
                 // SECTION 2: FLEET ENTERPRISE (PAGES 27–34)
                 _sectionHeader(
                   title: 'FLEET ENTERPRISE MODULES',
-                  subtitle: 'Pages 27–34 · Line-haul telematics & fleet command',
+                  subtitle:
+                      'Pages 27–34 · Line-haul telematics & fleet command',
                   color: const Color(0xFF4EDEA3),
                   icon: Icons.business_center_outlined,
                 ),
@@ -232,6 +283,7 @@ class CorridorNavigationSheet extends StatelessWidget {
                   route: AppRoutes.page34Analytics,
                   color: const Color(0xFF4EDEA3),
                 ),
+
                 const SizedBox(height: 16),
 
                 // SECTION 3: CUSTOMS & INTERMODAL (PAGES 35–40)
@@ -410,7 +462,10 @@ class CorridorNavigationSheet extends StatelessWidget {
           padding: const EdgeInsets.only(top: 2),
           child: Text(
             subtitle,
-            style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: AppColors.textSecondary,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),

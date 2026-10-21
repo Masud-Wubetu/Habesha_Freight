@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:mobile/presentation/screens/shipper/freight_history_screen.dart';
@@ -9,8 +8,7 @@ class ShipperShellScreen extends StatefulWidget {
   const ShipperShellScreen({super.key});
 
   @override
-  State<ShipperShellScreen> createState() =>
-      _ShipperShellScreenState();
+  State<ShipperShellScreen> createState() => _ShipperShellScreenState();
 }
 
 class _ShipperShellScreenState extends State<ShipperShellScreen> {
@@ -28,17 +26,11 @@ class _ShipperShellScreenState extends State<ShipperShellScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: ShipperBottomNavBar(
-        currentIndex: _currentIndex,
-        onItemSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        currentIndex: const {0: 0, 1: 1, 3: 2, 4: 3}[_currentIndex] ?? -1,
+        onItemSelected: (i) =>
+            setState(() => _currentIndex = const [0, 1, 3, 4][i]),
         onAddPressed: () {
           setState(() {
             _currentIndex = 2;
@@ -84,9 +76,7 @@ class _ShipperShellScreenState extends State<ShipperShellScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => PreferredFleetScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => PreferredFleetScreen()),
                 );
               },
             ),
@@ -162,19 +152,12 @@ class _ShipperShellScreenState extends State<ShipperShellScreen> {
     );
   }
 
-  Widget _placeholderPage(
-    String title,
-    String description,
-    IconData icon,
-  ) {
+  Widget _placeholderPage(String title, String description, IconData icon) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A111F),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0A111F),
-        title: Text(
-          title,
-          style: const TextStyle(color: Colors.white),
-        ),
+        title: Text(title, style: const TextStyle(color: Colors.white)),
       ),
       body: Center(
         child: Column(
@@ -191,10 +174,7 @@ class _ShipperShellScreenState extends State<ShipperShellScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              description,
-              style: const TextStyle(color: Colors.white70),
-            ),
+            Text(description, style: const TextStyle(color: Colors.white70)),
           ],
         ),
       ),
