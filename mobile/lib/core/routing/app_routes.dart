@@ -13,6 +13,12 @@ static const String page13EscrowInvoices = '/shipper/escrow-invoices';
 static const String page14CompanyProfile = '/shipper/company-profile';
 static const String page15RateDriver = '/shipper/rate-driver';
 
+  static const String page16DriverHome = '/driver/home';
+  static const String page17AvailableLoads = '/driver/loads';
+  static const String page18DirectOffers = '/driver/offers';
+  static const String page19RequestDetails = '/driver/request';
+  static const String shipperHub = '/shipper';
+  static const String driverHub = '/driver';
   // Phase 5 — Fleet Enterprise (27–34)
   static const page27FleetCommand = '/fleet/command';
   static const page28RigTelemetry = '/fleet/rigs';
