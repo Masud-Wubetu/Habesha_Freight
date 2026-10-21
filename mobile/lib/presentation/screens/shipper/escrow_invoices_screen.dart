@@ -65,7 +65,7 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface,
 
-      // HabeshaFreight branded header.
+      
       appBar: AppBar(
         backgroundColor: const Color(0xFF0A111F),
         elevation: 0,
@@ -99,6 +99,27 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
             ),
           ],
         ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceHigh,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Text(
+              'EN 文A',
+              style: TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const CircleAvatar(
+            radius: 16,
+            backgroundColor: Color(0xFFFFB300),
+            child: Icon(Icons.person, color: Colors.black, size: 20),
+          ),
+          const SizedBox(width: 20),
+        ],
       ),
 
       // Escrow page content.
@@ -140,7 +161,7 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
         ),
       ),
 
-      // Shipper bottom navigation.
+      // Reuse the existing shipper bottom navigation bar.
       bottomNavigationBar: ShipperBottomNavBar(
         currentIndex: 1,
         onItemSelected: _handleNavigation,
@@ -211,7 +232,6 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
             ),
           ),
           const SizedBox(height: 6),
-
           const Text.rich(
             TextSpan(
               children: [
@@ -234,9 +254,7 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -259,9 +277,7 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-
           Row(
             children: [
               Expanded(child: _metric('Released This Month', '890,000 ETB')),
@@ -271,9 +287,7 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 20),
-
           const Text(
             'SETTLEMENT VAULTS',
             style: TextStyle(
@@ -283,7 +297,6 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               letterSpacing: 1,
             ),
           ),
-
           const SizedBox(height: 10),
           _vault('Telebirr Business', '+251 911 ••• 567'),
           const SizedBox(height: 8),
@@ -517,9 +530,7 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 12),
-
           Text(
             '${transaction.origin} → ${transaction.destination}',
             style: const TextStyle(
@@ -527,9 +538,7 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
-
           const SizedBox(height: 12),
-
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -573,9 +582,7 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
               ],
             ),
           ),
-
           const SizedBox(height: 12),
-
           if (transaction.kind == _TransactionKind.active)
             const Row(
               children: [
