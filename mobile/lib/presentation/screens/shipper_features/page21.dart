@@ -8,6 +8,7 @@ import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/post_load/post_load_sheet.dart';
 import '../../widgets/shipper_escrow/shipper_escrow_header.dart';
+import '../../widgets/shipper_escrow/active_escrow_hero_card.dart';
 
 class ShipperEscrowVaultScreen extends StatefulWidget {
   const ShipperEscrowVaultScreen({super.key});
@@ -102,6 +103,84 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
     );
   }
 
+  void _handleManageVaults() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Settlement Vault Configurations',
+                style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Instant payout channels authorized under National Bank of Ethiopia directive.',
+                style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF94A3B8)),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF081220),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF1E2E48)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Telebirr Merchant: Active · Auto-Release Ready', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+                          Text('Daily Escrow Limit: 2,500,000 ETB', style: GoogleFonts.inter(fontSize: 10.5, color: const Color(0xFF94A3B8))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF081220),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF1E2E48)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('CBE Birr Transit: Active · Interbank Settlement', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+                          Text('Daily Escrow Limit: 5,000,000 ETB', style: GoogleFonts.inter(fontSize: 10.5, color: const Color(0xFF94A3B8))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _openPostLoadSheet() {
     showModalBottomSheet(
       context: context,
@@ -137,6 +216,15 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
                 language: _selectedLanguage,
                 onLanguageChanged: _handleLanguageTap,
                 onProfileTap: _handleProfileTap,
+              ),
+              const SizedBox(height: 16),
+
+              // Active Escrow Locked Hero Card
+              ActiveEscrowHeroCard(
+                activeLockedAmount: 150000.0,
+                releasedThisMonth: 890000.0,
+                activeConsignmentsCount: 2,
+                onManageVaults: _handleManageVaults,
               ),
               const SizedBox(height: 16),
 
