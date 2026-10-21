@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 class DriverHomeScreen extends StatefulWidget {
@@ -36,6 +37,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               _buildUrgentMatchCard(),
               const SizedBox(height: 24),
               _buildStatistics(),
+              const SizedBox(height: 24),
+              _buildActiveDelivery(),
             ],
           ),
         ),
@@ -72,7 +75,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+            ),
           ),
           child: const Icon(
             Icons.notifications_none_rounded,
@@ -90,7 +95,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+        ),
       ),
       child: Row(
         children: [
@@ -122,7 +129,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  _isAvailable ? 'Available for Loads' : 'Currently Offline',
+                  _isAvailable
+                      ? 'Available for Loads'
+                      : 'Currently Offline',
                   style: const TextStyle(
                     color: textWhite,
                     fontSize: 16,
@@ -194,7 +203,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
               ),
               const Spacer(),
-              const Icon(Icons.local_shipping_outlined, color: muted, size: 22),
+              const Icon(
+                Icons.local_shipping_outlined,
+                color: muted,
+                size: 22,
+              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -250,9 +263,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text(
-                      'Load details will be available in the next step.',
-                    ),
+                    content: Text('Load details will be available soon.'),
                   ),
                 );
               },
@@ -266,7 +277,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               ),
               child: const Text(
                 'View Load Details',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -320,7 +331,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 title: 'Rating',
                 value: '4.8',
                 subtitle: 'Driver rating',
-                color: Color(0xFFF59E0B),
+                color: const Color(0xFFF59E0B),
               ),
             ),
             const SizedBox(width: 12),
@@ -351,7 +362,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -384,9 +397,254 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(color: muted, fontSize: 10)),
+          Text(
+            subtitle,
+            style: const TextStyle(color: muted, fontSize: 10),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildActiveDelivery() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Active Delivery',
+                  style: TextStyle(
+                    color: textWhite,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: green.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'IN TRANSIT',
+                  style: TextStyle(
+                    color: green,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Container(
+            height: 145,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Stack(
+              children: [
+                const Center(
+                  child: Icon(
+                    Icons.map_outlined,
+                    size: 70,
+                    color: Color(0xFF334155),
+                  ),
+                ),
+                Positioned(
+                  left: 20,
+                  top: 20,
+                  child: _buildMapPoint(
+                    color: blue,
+                    label: 'Origin',
+                  ),
+                ),
+                Positioned(
+                  right: 18,
+                  bottom: 20,
+                  child: _buildMapPoint(
+                    color: gold,
+                    label: 'Destination',
+                  ),
+                ),
+                Center(
+                  child: Transform.rotate(
+                    angle: 0.5,
+                    child: const Icon(
+                      Icons.local_shipping_rounded,
+                      color: textWhite,
+                      size: 30,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Row(
+            children: [
+              Icon(
+                Icons.trip_origin_rounded,
+                color: blue,
+                size: 20,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Pickup',
+                      style: TextStyle(color: muted, fontSize: 11),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'Addis Ababa',
+                      style: TextStyle(
+                        color: textWhite,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_downward_rounded,
+                color: muted,
+                size: 20,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Row(
+            children: [
+              Icon(
+                Icons.location_on_rounded,
+                color: gold,
+                size: 20,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Delivery destination',
+                      style: TextStyle(color: muted, fontSize: 11),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      'Hawassa',
+                      style: TextStyle(
+                        color: textWhite,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Delivery progress',
+                style: TextStyle(color: muted, fontSize: 12),
+              ),
+              Text(
+                '65%',
+                style: TextStyle(
+                  color: gold,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: const LinearProgressIndicator(
+              value: 0.65,
+              minHeight: 7,
+              backgroundColor: Color(0xFF334155),
+              valueColor: AlwaysStoppedAnimation<Color>(gold),
+            ),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Delivery tracking will be connected in a later step.',
+                    ),
+                  ),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: gold,
+                side: const BorderSide(color: gold),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Track Delivery',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMapPoint({
+    required Color color,
+    required String label,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.location_on_rounded,
+          color: color,
+          size: 25,
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            color: muted,
+            fontSize: 10,
+          ),
+        ),
+      ],
     );
   }
 }
