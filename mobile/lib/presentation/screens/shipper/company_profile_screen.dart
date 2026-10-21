@@ -1,4 +1,3 @@
-export '../phase_11_19_screens.dart' show CompanyProfileScreen;
 import 'package:flutter/material.dart';
 
 class ShipperCompanyProfileScreen extends StatefulWidget {
