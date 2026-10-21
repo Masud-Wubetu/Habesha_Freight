@@ -41,8 +41,25 @@ class ApiConfig {
   static const String companyDeliveries = '/company/deliveries';
   static const String companyFleetRequests = '/company/fleet-requests';
 
+  static String companyFleetRequestAccept(String id) =>
+      '/company/fleet-requests/$id/accept';
+  static String companyFleetRequestDecline(String id) =>
+      '/company/fleet-requests/$id/decline';
+  static String companyFleetRequestAssign(String id) =>
+      '/company/fleet-requests/$id/assign';
+
+  // Marketplace (corridor / home / bids)
+  static const String loads = '/loads';
+  static const String shipments = '/shipments';
+  static const String vehicles = '/vehicles';
+  static const String bids = '/bids';
+
   // Escrow / driver
   static const String escrowLedger = '/escrow/ledger/all';
+  static String escrowRelease(String shipmentId) =>
+      '/escrow/$shipmentId/release';
+  static String escrowRefund(String shipmentId) =>
+      '/escrow/$shipmentId/refund';
   static const String driverStats = '/driver/stats';
   static const String driverShipments = '/driver/shipments';
   static const String driverBids = '/driver/bids';

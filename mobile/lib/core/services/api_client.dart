@@ -66,6 +66,23 @@ class ApiClient {
     return _decode(response);
   }
 
+  Future<Map<String, dynamic>> patch(
+    String path, {
+    Map<String, dynamic>? body,
+    bool auth = true,
+  }) async {
+    final base = await _base();
+    final uri = Uri.parse('$base$path');
+    final response = await _client
+        .patch(
+          uri,
+          headers: await _headers(auth: auth),
+          body: body == null ? null : jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    return _decode(response);
+  }
+
   /// Health is mounted at /health (not under /api).
   Future<bool> pingHealth() async {
     try {

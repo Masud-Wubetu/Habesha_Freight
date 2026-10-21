@@ -86,6 +86,13 @@ class EscrowService {
       items: items,
     );
   }
+
+  /// Release is shipper/admin-only on the backend; fleet UI surfaces the error if denied.
+  Future<Map<String, dynamic>> release(String shipmentId) async {
+    final res = await _api.post(ApiConfig.escrowRelease(shipmentId));
+    return (res['data'] as Map?)?.cast<String, dynamic>() ??
+        (res.cast<String, dynamic>());
+  }
 }
 
 double _num(dynamic v) {

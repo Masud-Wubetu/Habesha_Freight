@@ -65,15 +65,78 @@ class _DispatchMatrixScreenState extends State<DispatchMatrixScreen> {
       _dispatching = true;
       _authorized = false;
     });
-    await Future<void>.delayed(const Duration(milliseconds: 1000));
-    if (!mounted) return;
-    setState(() {
-      _dispatching = false;
-      _authorized = true;
-    });
-    await Future<void>.delayed(const Duration(seconds: 3));
-    if (!mounted) return;
-    setState(() => _authorized = false);
+
+    try {
+      // Prefer a POSTED open request; fall back to first list entry.
+      final posted = _requests.where((r) {
+        final s = (r['status']?.toString() ?? '').toUpperCase();
+        return s == 'POSTED' || s == 'OPEN';
+      }).toList();
+      final target = posted.isNotEmpty
+          ? posted.first
+          : (_requests.isNotEmpty ? _requests.first : null);
+
+      if (target == null) {
+        throw ApiException('No open fleet requests to authorize');
+      }
+
+      final requestId = target['id']?.toString();
+      if (requestId == null || requestId.isEmpty) {
+        throw ApiException('Fleet request is missing an id');
+      }
+
+      final status = (target['status']?.toString() ?? '').toUpperCase();
+      if (status == 'POSTED' || status == 'OPEN') {
+        await _fleet.acceptFleetRequest(requestId);
+      }
+
+      final drivers = await _fleet.getDrivers();
+      final active = drivers.where((d) => d.status == 'ACTIVE').toList();
+      if (active.isNotEmpty) {
+        await _fleet.assignDriverToRequest(
+          requestId: requestId,
+          driverId: active.first.id,
+        );
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _dispatching = false;
+        _authorized = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            active.isEmpty
+                ? 'Request accepted (no active drivers to assign).'
+                : 'Dispatch authorized — assigned ${active.first.fullName}.',
+          ),
+          backgroundColor: AppColors.surfaceBright,
+        ),
+      );
+      await _load();
+      await Future<void>.delayed(const Duration(seconds: 3));
+      if (!mounted) return;
+      setState(() => _authorized = false);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _dispatching = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _dispatching = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Dispatch authorization failed'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   @override

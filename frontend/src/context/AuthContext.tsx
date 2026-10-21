@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (payload: FormData | Record<string, any>) => {
-    let data: { user?: any; token?: string };
+    let data: { user?: any; token?: string; demo_otp?: string };
     if (payload instanceof FormData) {
       const apiBase = import.meta.env.VITE_API_URL || '/api';
       const token = localStorage.getItem('hf_token');
@@ -80,7 +80,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       data = json.data || json;
     } else {
-      data = await post<{ user?: any; token?: string }>('/auth/register', payload);
+      data = await post<{ user?: any; token?: string; demo_otp?: string }>(
+        '/auth/register',
+        payload
+      );
     }
     if (data.token && data.user) {
       persistSession(data.token, data.user);

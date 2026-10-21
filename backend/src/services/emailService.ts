@@ -49,6 +49,11 @@ class EmailService {
     const fromAddress = process.env.SMTP_FROM || '"Habesha Freight" <noreply@habeshafreight.com>';
     const recipientName = name || 'Valued User';
 
+    console.log('\n📧 [EMAIL OTP] Preparing message');
+    console.log(`   To:   ${toEmail}`);
+    console.log(`   Name: ${recipientName}`);
+    console.log(`   OTP:  ${otpCode}\n`);
+
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -94,16 +99,27 @@ class EmailService {
         html: htmlContent,
       });
 
-      console.log(`📧 [EMAIL OTP DISPATCH] Sent OTP ${otpCode} to email ${toEmail}`);
+      console.log(`📧 [EMAIL OTP DISPATCH] Sent OTP ${otpCode} to ${toEmail}`);
       const previewUrl = nodemailer.getTestMessageUrl(info);
       if (previewUrl) {
         console.log(`🔗 [VIEW SENT EMAIL IN BROWSER]: ${previewUrl}`);
       }
+      // jsonTransport (no SMTP configured) — dump payload so OTP is visible locally
+      if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
+        console.log('📬 [DEV/jsonTransport] Email not delivered via SMTP — use console OTP above.');
+        if (info?.message) {
+          try {
+            const parsed = typeof info.message === 'string' ? JSON.parse(info.message) : info.message;
+            console.log(`📬 [DEV EMAIL SUBJECT]: ${parsed?.subject || '(none)'}`);
+          } catch {
+            /* ignore */
+          }
+        }
+      }
       return true;
     } catch (error) {
       console.error(`❌ [EMAIL DISPATCH ERROR] Failed to send email to ${toEmail}:`, error);
-      // Fallback console log so dev flow is never blocked
-      console.log(`🔑 [FALLBACK OTP CODE]: ${otpCode} for ${toEmail}`);
+      console.log(`\n🔑 [FALLBACK OTP CODE]: ${otpCode} for ${toEmail}\n`);
       return false;
     }
   }

@@ -2,6 +2,7 @@ import { Response } from 'express';
 import db from '../config/db';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { FileService } from '../services/fileService';
+import { generateOtpAndHash } from '../utils/crypto';
 
 export async function getCompanyProfile(req: AuthenticatedRequest, res: Response) {
   try {
@@ -406,27 +407,83 @@ export async function assignDriverToFleetRequest(req: AuthenticatedRequest, res:
       return res.status(400).json({ success: false, message: 'Driver is not assigned to this company.' });
     }
 
-    // Get vehicle for driver
-    const vehicle = await db('vehicles')
+    // Prefer a verified vehicle on this driver with enough capacity; fall back to any active verified rig.
+    const weight = Number(request.weight_tons) || 0;
+    let vehicle = await db('vehicles')
       .where('driver_id', driver_id)
       .where('is_active', true)
       .where('verification_status', 'VERIFIED')
-      .where('capacity_tons', '>=', request.weight_tons)
+      .whereRaw('capacity_tons >= ?', [weight])
       .first();
 
     if (!vehicle) {
-      return res.status(400).json({ success: false, message: 'Driver does not have a verified vehicle with sufficient capacity.' });
+      vehicle = await db('vehicles')
+        .where('driver_id', driver_id)
+        .where('is_active', true)
+        .where('verification_status', 'VERIFIED')
+        .orderBy('capacity_tons', 'desc')
+        .first();
     }
 
-    const [updated] = await db('loads')
-      .where('id', id)
-      .update({ driver_id: driver_id })
-      .returning('*');
+    if (!vehicle) {
+      return res.status(400).json({
+        success: false,
+        message: 'Driver does not have a verified vehicle with sufficient capacity.',
+      });
+    }
+
+    const existingShipment = await db('shipments').where('load_id', id).first();
+    if (existingShipment) {
+      return res.status(200).json({
+        success: true,
+        message: 'Driver already assigned via existing shipment.',
+        data: { load: request, shipment: existingShipment },
+      });
+    }
+
+    const pickupData = generateOtpAndHash();
+    const deliveryData = generateOtpAndHash();
+
+    const result = await db.transaction(async (trx) => {
+      const [shipment] = await trx('shipments')
+        .insert({
+          load_id: id,
+          carrier_id: driver_id,
+          vehicle_id: vehicle.id,
+          status: 'ASSIGNED',
+          pickup_otp_hash: pickupData.hash,
+          delivery_otp_hash: deliveryData.hash,
+        })
+        .returning('*');
+
+      const [updatedLoad] = await trx('loads')
+        .where('id', id)
+        .update({ status: 'DISPATCHED' })
+        .returning('*');
+
+      const gross = Number(request.offered_price_etb) || 0;
+      const commission = gross * 0.05;
+      const net = gross - commission;
+
+      await trx('escrow_ledger').insert({
+        shipment_id: shipment.id,
+        payer_id: request.shipper_id,
+        beneficiary_id: userId,
+        gross_amount_etb: gross,
+        commission_amount_etb: commission,
+        net_payout_amount_etb: net,
+        idempotency_key: `FLEET-ESCROW-${shipment.id}`,
+        status: 'PENDING',
+        gateway_reference: 'SIM-FLEET-ASSIGN',
+      });
+
+      return { load: updatedLoad, shipment };
+    });
 
     return res.status(200).json({
       success: true,
       message: 'Driver assigned to fleet request successfully.',
-      data: updated,
+      data: result,
     });
   } catch (error) {
     console.error('Assign Driver To Fleet Request Error:', error);
