@@ -6,6 +6,7 @@ import 'package:mobile/core/services/storage_service.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/screens/fleet/fleet_shell_screen.dart';
 import 'package:mobile/presentation/screens/login_screen.dart';
+import 'package:mobile/presentation/screens/shipper/shipper_shell_screen.dart';
 
 /// Boots into fleet shell when a session exists; otherwise login.
 class AuthGate extends StatefulWidget {
@@ -88,6 +89,12 @@ class _AuthGateState extends State<AuthGate> {
     });
   }
 
+  void _openShipperDemo() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ShipperShellScreen()));
+  }
+
   Future<void> _demoFleetLogin() async {
     setState(() {
       _loading = true;
@@ -109,9 +116,9 @@ class _AuthGateState extends State<AuthGate> {
         _loading = false;
         _status = res.message;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(res.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(res.message)));
     }
   }
 
@@ -128,7 +135,9 @@ class _AuthGateState extends State<AuthGate> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const CircularProgressIndicator(color: AppColors.primaryContainer),
+              const CircularProgressIndicator(
+                color: AppColors.primaryContainer,
+              ),
               const SizedBox(height: 16),
               Text(
                 _status ?? 'Loading…',
@@ -177,13 +186,17 @@ class _AuthGateState extends State<AuthGate> {
                   Icon(
                     _backendUp ? Icons.cloud_done : Icons.cloud_off,
                     size: 16,
-                    color: _backendUp ? AppColors.secondary : AppColors.errorStrong,
+                    color: _backendUp
+                        ? AppColors.secondary
+                        : AppColors.errorStrong,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     _backendUp ? 'API online' : 'API offline',
                     style: TextStyle(
-                      color: _backendUp ? AppColors.secondary : AppColors.errorStrong,
+                      color: _backendUp
+                          ? AppColors.secondary
+                          : AppColors.errorStrong,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -196,11 +209,19 @@ class _AuthGateState extends State<AuthGate> {
                 child: const Text('Continue as Fleet Owner (demo)'),
               ),
               const SizedBox(height: 10),
+
+              OutlinedButton(
+                onPressed: _openShipperDemo,
+                child: const Text('Continue as Shipper (demo)'),
+              ),
+              const SizedBox(height: 10),
               OutlinedButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  ).then((_) => _bootstrap());
+                  Navigator.of(context)
+                      .push(
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      )
+                      .then((_) => _bootstrap());
                 },
                 child: const Text('Sign in manually'),
               ),
