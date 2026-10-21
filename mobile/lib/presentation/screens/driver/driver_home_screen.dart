@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class DriverHomeScreen extends StatefulWidget {
@@ -39,6 +38,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               _buildStatistics(),
               const SizedBox(height: 24),
               _buildActiveDelivery(),
+              const SizedBox(height: 24),
+              _buildQuickActions(),
             ],
           ),
         ),
@@ -75,9 +76,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-            ),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           ),
           child: const Icon(
             Icons.notifications_none_rounded,
@@ -95,9 +94,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Row(
         children: [
@@ -129,9 +126,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  _isAvailable
-                      ? 'Available for Loads'
-                      : 'Currently Offline',
+                  _isAvailable ? 'Available for Loads' : 'Currently Offline',
                   style: const TextStyle(
                     color: textWhite,
                     fontSize: 16,
@@ -203,11 +198,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
               ),
               const Spacer(),
-              const Icon(
-                Icons.local_shipping_outlined,
-                color: muted,
-                size: 22,
-              ),
+              const Icon(Icons.local_shipping_outlined, color: muted, size: 22),
             ],
           ),
           const SizedBox(height: 18),
@@ -362,9 +353,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.06),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -397,10 +386,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: const TextStyle(color: muted, fontSize: 10),
-          ),
+          Text(subtitle, style: const TextStyle(color: muted, fontSize: 10)),
         ],
       ),
     );
@@ -413,9 +399,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,18 +456,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 Positioned(
                   left: 20,
                   top: 20,
-                  child: _buildMapPoint(
-                    color: blue,
-                    label: 'Origin',
-                  ),
+                  child: _buildMapPoint(color: blue, label: 'Origin'),
                 ),
                 Positioned(
                   right: 18,
                   bottom: 20,
-                  child: _buildMapPoint(
-                    color: gold,
-                    label: 'Destination',
-                  ),
+                  child: _buildMapPoint(color: gold, label: 'Destination'),
                 ),
                 Center(
                   child: Transform.rotate(
@@ -501,11 +479,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           const SizedBox(height: 18),
           const Row(
             children: [
-              Icon(
-                Icons.trip_origin_rounded,
-                color: blue,
-                size: 20,
-              ),
+              Icon(Icons.trip_origin_rounded, color: blue, size: 20),
               SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -527,21 +501,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_downward_rounded,
-                color: muted,
-                size: 20,
-              ),
+              Icon(Icons.arrow_downward_rounded, color: muted, size: 20),
             ],
           ),
           const SizedBox(height: 14),
           const Row(
             children: [
-              Icon(
-                Icons.location_on_rounded,
-                color: gold,
-                size: 20,
-              ),
+              Icon(Icons.location_on_rounded, color: gold, size: 20),
               SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -566,10 +532,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             ],
           ),
           const SizedBox(height: 20),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Delivery progress',
                 style: TextStyle(color: muted, fontSize: 12),
               ),
@@ -600,9 +566,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text(
-                      'Delivery tracking will be connected in a later step.',
-                    ),
+                    content: Text('Delivery tracking will be connected later.'),
                   ),
                 );
               },
@@ -625,26 +589,135 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 
-  Widget _buildMapPoint({
-    required Color color,
-    required String label,
-  }) {
+  Widget _buildMapPoint({required Color color, required String label}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          Icons.location_on_rounded,
-          color: color,
-          size: 25,
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            color: muted,
-            fontSize: 10,
+        Icon(Icons.location_on_rounded, color: color, size: 25),
+        Text(label, style: const TextStyle(color: muted, fontSize: 10)),
+      ],
+    );
+  }
+
+  Widget _buildQuickActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Quick Actions',
+          style: TextStyle(
+            color: textWhite,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
         ),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.search_rounded,
+                title: 'Find Loads',
+                subtitle: 'Browse opportunities',
+                color: blue,
+                onTap: () => _showActionMessage('Find Loads'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.assignment_rounded,
+                title: 'My Bids',
+                subtitle: 'Review your bids',
+                color: gold,
+                onTap: () => _showActionMessage('My Bids'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.receipt_long_rounded,
+                title: 'Earnings',
+                subtitle: 'View payment summary',
+                color: green,
+                onTap: () => _showActionMessage('Earnings'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionCard(
+                icon: Icons.person_outline_rounded,
+                title: 'My Profile',
+                subtitle: 'Manage your details',
+                color: const Color(0xFFB28DFF),
+                onTap: () => _showActionMessage('My Profile'),
+              ),
+            ),
+          ],
+        ),
       ],
+    );
+  }
+
+  Widget _buildActionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: cardColor,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 13),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: textWhite,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                subtitle,
+                style: const TextStyle(color: muted, fontSize: 10),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showActionMessage(String action) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$action screen will be connected later.')),
     );
   }
 }
