@@ -7,6 +7,8 @@ import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/presentation/screens/fleet/fleet_shell_screen.dart';
 import 'package:mobile/presentation/screens/login_screen.dart';
+import 'package:mobile/presentation/widgets/navigation/corridor_navigation_sheet.dart';
+import 'package:mobile/presentation/screens/shipper/shipper_shell_screen.dart';
 
 /// Boots into fleet shell when a session exists; otherwise login.
 class AuthGate extends StatefulWidget {
