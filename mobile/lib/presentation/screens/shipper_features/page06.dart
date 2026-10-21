@@ -9,6 +9,7 @@ import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/post_load/post_load_sheet.dart';
 import '../../widgets/shipper_hub/shipper_hub_header.dart';
 import '../../widgets/shipper_hub/shipper_profile_card.dart';
+import '../../widgets/shipper_hub/operations_metrics_grid.dart';
 
 class ShipperActiveHubScreen extends StatefulWidget {
   const ShipperActiveHubScreen({super.key});
@@ -156,6 +157,33 @@ class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
                 onPostCargoTap: _openPostLoadSheet,
               ),
               const SizedBox(height: 14),
+
+              // 2x2 Operations Metrics Grid Cards
+              OperationsMetricsGrid(
+                activeLoadsCount: 3,
+                pendingBidsCount: 8,
+                completedCount: 42,
+                inEscrowFormatted: '145k',
+                onActiveLoadsTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Viewing 3 active line-haul shipments on A1 corridor.'),
+                      backgroundColor: AppColors.gold,
+                    ),
+                  );
+                },
+                onPendingBidsTap: () => Navigator.pushNamed(context, AppRoutes.page20SubmitBid),
+                onCompletedTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('42 corridor runs successfully completed and settled.'),
+                      backgroundColor: Color(0xFF10B981),
+                    ),
+                  );
+                },
+                onInEscrowTap: () => Navigator.pushNamed(context, AppRoutes.page05EscrowVault),
+              ),
+              const SizedBox(height: 16),
 
               // Placeholder slot for Profile Card, Post CTA, 2x2 Grid, and Live Transit (populated in micro-tasks 2-5)
               Container(
