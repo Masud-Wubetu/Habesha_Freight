@@ -75,7 +75,7 @@ class HabeshaFreightApp extends StatelessWidget {
 
         AppRoutes.page11FreightHistory: (_) => const FreightHistoryScreen(),
         AppRoutes.page12PreferredFleet: (_) => const PreferredFleetScreen(),
-        // AppRoutes.page13EscrowInvoices: (_) => const EscrowInvoicesScreen(),
+       // AppRoutes.page13EscrowInvoices: (_) => const EscrowInvoicesScreen(),
         // AppRoutes.page14CompanyProfile: (_) => const CompanyProfileScreen(),
         // AppRoutes.page15RateDriver: (_) => const RateDriverScreen(),
         // AppRoutes.page16DriverHome: (_) => const DriverHomeScreen(),
