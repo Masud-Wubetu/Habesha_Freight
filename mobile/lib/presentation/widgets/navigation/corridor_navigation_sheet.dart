@@ -184,6 +184,33 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'Shipper Escrow & Settlement Vaults',
+                  subtitle: 'NBE & Telebirr locked funds, POD release, batch funding',
+                  badge: 'Page 05',
+                  icon: Icons.shield_rounded,
+                  route: AppRoutes.page05EscrowVault,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
+                  title: 'Shipper Active Hub & Operations',
+                  subtitle: 'Live transit radar, 2x2 corridor telemetry & driver tracking',
+                  badge: 'Page 06',
+                  icon: Icons.dashboard_rounded,
+                  route: AppRoutes.page06ShipperHub,
+                  color: const Color(0xFF38BDF8),
+                ),
+                _navTile(
+                  context,
+                  title: 'Post Cargo Request (Step 1)',
+                  subtitle: 'Waypoints routing, weight stepper, transit seal & dispatch',
+                  badge: 'Page 07 / 23',
+                  icon: Icons.post_add_rounded,
+                  route: AppRoutes.page07PostCargo,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
                   title: 'Submit Freight Bid Screen',
                   subtitle:
                       'Dynamic corridor bidding, gate slots, and tariff rates',

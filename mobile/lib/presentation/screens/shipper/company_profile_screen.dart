@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+typedef CompanyProfileScreen = ShipperCompanyProfileScreen;
+
 class ShipperCompanyProfileScreen extends StatefulWidget {
-  const ShipperCompanyProfileScreen({Key? key}) : super(key: key);
+  const ShipperCompanyProfileScreen({super.key});
 
   @override
   State<ShipperCompanyProfileScreen> createState() =>

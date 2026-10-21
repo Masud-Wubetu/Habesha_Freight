@@ -154,12 +154,12 @@ class _AuthGateState extends State<AuthGate> {
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(),
+              const SizedBox(height: 20),
               Icon(
                 Icons.local_shipping,
                 size: 48,
@@ -205,7 +205,7 @@ class _AuthGateState extends State<AuthGate> {
                   ),
                 ],
               ),
-              const Spacer(),
+              const SizedBox(height: 20),
               ElevatedButton.icon(
                 onPressed: _backendUp ? _demoFleetLogin : () => setState(() => _authenticated = true),
                 icon: const Icon(Icons.dashboard_rounded),
@@ -223,9 +223,33 @@ class _AuthGateState extends State<AuthGate> {
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
+                onPressed: _openShipperDemo,
+                icon: const Icon(Icons.business_center_rounded, color: AppColors.gold),
+                label: const Text('Shipper Enterprise Portal (Pages 11–15)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.register),
                 icon: const Icon(Icons.app_registration_rounded),
                 label: const Text('Multi-Role Registration (Page 03)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page05EscrowVault),
+                icon: const Icon(Icons.shield_rounded, color: AppColors.gold),
+                label: const Text('Shipper Escrow & Settlement (Page 05)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page06ShipperHub),
+                icon: const Icon(Icons.dashboard_rounded, color: Color(0xFF38BDF8)),
+                label: const Text('Shipper Active Hub & Ops (Page 06)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page23PostCargo),
+                icon: const Icon(Icons.post_add_rounded, color: AppColors.gold),
+                label: const Text('Post Cargo Request Wizard (Page 23 / 07)'),
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(

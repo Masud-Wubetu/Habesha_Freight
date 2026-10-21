@@ -160,6 +160,10 @@ class _MoreCatalog extends StatelessWidget {
     final items = [
       _CatalogItem('01', 'Shipper Portal', 'Cargo loads & rate estimator', AppRoutes.home, Icons.storefront_outlined),
       _CatalogItem('03', 'Registration', 'Multi-role carrier onboarding', AppRoutes.register, Icons.app_registration_rounded),
+      _CatalogItem('04', 'OTP Verification', 'Ethio Telecom 6-digit auth', AppRoutes.page04VerifyOtp, Icons.password_rounded),
+      _CatalogItem('05', 'Escrow Vaults', 'NBE & Telebirr locked funds', AppRoutes.page05EscrowVault, Icons.shield_rounded),
+      _CatalogItem('06', 'Active Hub & Ops', 'Live transit & telematics', AppRoutes.page06ShipperHub, Icons.dashboard_rounded),
+      _CatalogItem('07', 'Post Cargo Wizard', 'Step 1: Cargo & route dispatch', AppRoutes.page23PostCargo, Icons.post_add_rounded),
       _CatalogItem('20', 'Submit Freight Bid', 'Dynamic corridor bidding', AppRoutes.page20SubmitBid, Icons.gavel_rounded),
       _CatalogItem('28', 'Rig Telemetry', 'CAN-bus & immobilizer', AppRoutes.page28RigTelemetry, Icons.sensors),
       _CatalogItem('30', 'Dispatch Matrix', 'Assign empty trucks', AppRoutes.page30DispatchMatrix, Icons.route),
