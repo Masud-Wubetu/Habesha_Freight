@@ -10,13 +10,20 @@ class DriverHomeScreen extends StatefulWidget {
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
   bool _isAvailable = true;
 
-  static const Color navy = Color(0xFF0F172A);
-  static const Color gold = Color(0xFFFFB300);
-  static const Color background = Color(0xFF0B1120);
-  static const Color muted = Color(0xFF94A3B8);
+  // --- EXACT COLORS FROM YOUR PROVIDED CODE (repurposed for dark mode) ---
+  static const Color navy = Color(
+    0xFF0F172A,
+  ); // Used as the main dark background
+  static const Color gold = Color(0xFFFFB300); // Used as primary yellow accent
+  static const Color background = Color(
+    0xFF0B1120,
+  ); // Slightly darker app background
+  static const Color muted = Color(0xFF94A3B8); // Used for grey text
   static const Color blue = Color(0xFF4385D7);
   static const Color green = Color(0xFF239B70);
-  static const Color cardColor = Color(0xFF1E293B);
+
+  // --- NEW COLORS FOR DARK UI ---
+  static const Color cardColor = Color(0xFF1E293B); // Darker card background
   static const Color textWhite = Colors.white;
 
   @override
@@ -24,25 +31,49 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     return Scaffold(
       backgroundColor: navy,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 20),
-              _buildAvailabilityCard(),
-              const SizedBox(height: 24),
-              _buildUrgentMatchCard(),
-              const SizedBox(height: 24),
-              _buildStatistics(),
-              const SizedBox(height: 24),
-              _buildActiveDelivery(),
-              const SizedBox(height: 24),
-              _buildQuickActions(),
-            ],
-          ),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 16),
+                    _buildAvailabilityCard(),
+                    const SizedBox(height: 16),
+                    _buildUrgentMatchCard(),
+                    const SizedBox(height: 16),
+                    _buildStatsGrid(),
+                    const SizedBox(height: 16),
+                    _buildActiveDelivery(),
+                    const SizedBox(height: 20),
+                    _buildSectionTitle('CARRIER ACTIONS', null),
+                    const SizedBox(height: 12),
+                    _buildQuickActions(),
+                    const SizedBox(height: 20),
+                    _buildActiveBidPipeline(),
+                    const SizedBox(height: 30),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
+      ),
+      // Wrapping the BottomNavBar in a Stack to position the custom FAB
+      bottomNavigationBar: Stack(
+        clipBehavior:
+            Clip.none, // Allows the button to overflow upwards out of the bar
+        alignment: Alignment.topCenter,
+        children: [
+          _buildBottomNavBar(),
+          Positioned(
+            top: -24, // Moves the FAB down into the bottom bar
+            child: _buildCustomFAB(),
+          ),
+        ],
       ),
     );
   }
@@ -50,39 +81,80 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   Widget _buildHeader() {
     return Row(
       children: [
-        const Expanded(
+        Container(
+          height: 40,
+          width: 40,
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(
+            Icons.local_shipping_rounded,
+            color: gold,
+            size: 24,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Driver Dashboard',
-                style: TextStyle(
-                  color: textWhite,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              RichText(
+                text: const TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Habesha',
+                      style: TextStyle(
+                        color: textWhite,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'Freight',
+                      style: TextStyle(
+                        color: gold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 6),
-              Text(
-                'Your logistics overview',
-                style: TextStyle(color: muted, fontSize: 14),
+              const Text(
+                'LOGISTICS EXCHANGE',
+                style: TextStyle(
+                  color: muted,
+                  fontSize: 9,
+                  letterSpacing: 1.2,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
         ),
         Container(
-          width: 46,
-          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: cardColor,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            borderRadius: BorderRadius.circular(20),
           ),
-          child: const Icon(
-            Icons.notifications_none_rounded,
-            color: textWhite,
-            size: 25,
+          child: Row(
+            children: [
+              const Text(
+                'EN',
+                style: TextStyle(color: textWhite, fontSize: 12),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.translate, size: 14, color: muted),
+            ],
           ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: const BoxDecoration(color: gold, shape: BoxShape.circle),
+          child: const Icon(Icons.person, color: Colors.black, size: 20),
         ),
       ],
     );
@@ -90,68 +162,92 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
   Widget _buildAvailabilityCard() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: _isAvailable
-                  ? green.withValues(alpha: 0.15)
-                  : muted.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              _isAvailable
-                  ? Icons.local_shipping_rounded
-                  : Icons.pause_circle_outline_rounded,
-              color: _isAvailable ? green : muted,
-              size: 26,
-            ),
+          Stack(
+            children: [
+              const CircleAvatar(
+                radius: 22,
+                backgroundColor: Colors.grey,
+                backgroundImage: NetworkImage(
+                  'https://i.pravatar.cc/150?img=11',
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: green,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: cardColor, width: 2),
+                  ),
+                  padding: const EdgeInsets.all(3),
+                  child: const Icon(Icons.check, size: 10, color: Colors.white),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  children: [
+                    const Text(
+                      'Selam, Solomo...',
+                      style: TextStyle(
+                        color: textWhite,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.settings, size: 16, color: muted),
+                  ],
+                ),
+                const SizedBox(height: 4),
                 const Text(
-                  'Availability Status',
+                  'FAW 32T Heavy Rig • 3-8...',
                   style: TextStyle(color: muted, fontSize: 12),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  _isAvailable ? 'Available for Loads' : 'Currently Offline',
-                  style: const TextStyle(
-                    color: textWhite,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  _isAvailable
-                      ? 'Ready to receive delivery requests'
-                      : 'You will not receive new requests',
-                  style: const TextStyle(color: muted, fontSize: 11),
                 ),
               ],
             ),
           ),
-          Switch(
-            value: _isAvailable,
-            onChanged: (value) {
-              setState(() {
-                _isAvailable = value;
-              });
-            },
-            activeThumbColor: gold,
-            activeTrackColor: gold.withValues(alpha: 0.35),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: navy,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade800),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: green,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Text(
+                  'ONLINE',
+                  style: TextStyle(
+                    color: green,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -160,233 +256,295 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
   Widget _buildUrgentMatchCard() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: gold.withValues(alpha: 0.45)),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: gold.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Container(width: 5, color: gold), // Left border
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(14.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.bolt_rounded, color: gold, size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      'URGENT MATCH',
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.local_fire_department,
+                              size: 14,
+                              color: gold,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'CORRIDOR URGENT MATCH',
+                              style: TextStyle(
+                                color: gold,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: navy,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.access_time, size: 10, color: muted),
+                              SizedBox(width: 4),
+                              Text(
+                                '42m left',
+                                style: TextStyle(color: muted, fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Hawassa ➔ Modjo Dry Port',
                       style: TextStyle(
-                        color: gold,
-                        fontSize: 11,
+                        color: textWhite,
+                        fontSize: 17,
                         fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      '28T Export Washed Grade-1 Sidama Coffee',
+                      style: TextStyle(color: muted, fontSize: 11),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'GUARANTEED RATE',
+                              style: TextStyle(
+                                color: muted,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            RichText(
+                              text: const TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '45,000 ',
+                                    style: TextStyle(
+                                      color: gold,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'ETB',
+                                    style: TextStyle(
+                                      color: muted,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: gold,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 0,
+                          ),
+                          icon: const Icon(Icons.bolt, size: 16),
+                          label: const Text(
+                            'Quick Bid',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const Spacer(),
-              const Icon(Icons.local_shipping_outlined, color: muted, size: 22),
-            ],
-          ),
-          const SizedBox(height: 18),
-          const Text(
-            'Addis Ababa → Hawassa',
-            style: TextStyle(
-              color: textWhite,
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Available freight opportunity',
-            style: TextStyle(color: muted, fontSize: 13),
-          ),
-          const SizedBox(height: 18),
-          const Divider(color: Color(0xFF334155)),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(Icons.route_rounded, color: blue, size: 20),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Approx. 275 km',
-                  style: TextStyle(color: muted, fontSize: 13),
-                ),
-              ),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'ETB 18,500',
-                    style: TextStyle(
-                      color: gold,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Proposed load rate',
-                    style: TextStyle(color: muted, fontSize: 11),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Load details will be available soon.'),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: gold,
-                foregroundColor: navy,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'View Load Details',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatistics() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildStatsGrid() {
+    return Row(
       children: [
-        const Text(
-          'Your Statistics',
-          style: TextStyle(
-            color: textWhite,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        Expanded(
+          child: Column(
+            children: [
+              _buildStatCardDark(
+                title: 'TELEBIRR WALLET',
+                icon: Icons.account_balance_wallet_outlined,
+                mainValue: '42,500',
+                unit: 'ETB',
+                subWidget: const Row(
+                  children: [
+                    Icon(Icons.check_circle, size: 12, color: green),
+                    SizedBox(width: 4),
+                    Text(
+                      'Instant Payout',
+                      style: TextStyle(color: green, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              _buildStatCardDark(
+                title: "TODAY'S BIDS",
+                icon: Icons.gavel,
+                mainValue: '3',
+                suffixText: 'Active',
+                subWidget: const Text(
+                  '1 Under Final Review',
+                  style: TextStyle(color: muted, fontSize: 10),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                icon: Icons.local_shipping_rounded,
-                title: 'Deliveries',
-                value: '24',
-                subtitle: 'Completed trips',
-                color: blue,
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            children: [
+              _buildStatCardDark(
+                title: 'ACTIVE RUN',
+                icon: Icons.local_shipping_outlined,
+                mainValue: '1',
+                suffixText: 'Trip',
+                subWidget: const Row(
+                  children: [
+                    Icon(Icons.play_arrow, size: 12, color: gold),
+                    SizedBox(width: 4),
+                    Text(
+                      'In Progress',
+                      style: TextStyle(color: gold, fontSize: 10),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                icon: Icons.account_balance_wallet_rounded,
-                title: 'Earnings',
-                value: 'ETB 48k',
-                subtitle: 'Total earned',
-                color: gold,
+              const SizedBox(height: 10),
+              _buildStatCardDark(
+                title: 'SAFETY RATING',
+                icon: Icons.star_border,
+                mainValue: '4.85',
+                starIcon: true,
+                subWidget: const Text(
+                  '89 Verified Trips',
+                  style: TextStyle(color: muted, fontSize: 10),
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                icon: Icons.star_rounded,
-                title: 'Rating',
-                value: '4.8',
-                subtitle: 'Driver rating',
-                color: const Color(0xFFF59E0B),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                icon: Icons.route_rounded,
-                title: 'Distance',
-                value: '3.2k km',
-                subtitle: 'Total travelled',
-                color: green,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildStatCard({
-    required IconData icon,
+  Widget _buildStatCardDark({
     required String title,
-    required String value,
-    required String subtitle,
-    required Color color,
+    required IconData icon,
+    required String mainValue,
+    String? unit,
+    String? suffixText,
+    bool starIcon = false,
+    required Widget subWidget,
   }) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Icon(icon, color: color, size: 21),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: muted,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Icon(icon, size: 14, color: muted),
+            ],
           ),
-          const SizedBox(height: 14),
-          Text(
-            value,
-            style: const TextStyle(
-              color: textWhite,
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
+          const SizedBox(height: 8),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: mainValue,
+                  style: const TextStyle(
+                    color: textWhite,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (unit != null)
+                  TextSpan(
+                    text: ' $unit',
+                    style: const TextStyle(color: muted, fontSize: 11),
+                  ),
+                if (suffixText != null)
+                  TextSpan(
+                    text: ' $suffixText',
+                    style: const TextStyle(
+                      color: textWhite,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                if (starIcon)
+                  const WidgetSpan(
+                    child: Icon(Icons.star, color: gold, size: 14),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 5),
-          Text(
-            title,
-            style: const TextStyle(
-              color: textWhite,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(color: muted, fontSize: 10)),
+          const SizedBox(height: 8),
+          subWidget,
         ],
       ),
     );
@@ -394,268 +552,548 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
   Widget _buildActiveDelivery() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
-                child: Text(
-                  'Active Delivery',
-                  style: TextStyle(
-                    color: textWhite,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: green,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'ACTIVE TRIP: #HF-9012',
+                    style: TextStyle(
+                      color: textWhite,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: green.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
+                  color: navy,
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Text(
-                  'IN TRANSIT',
-                  style: TextStyle(
-                    color: green,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  'Dire Dawa Route',
+                  style: TextStyle(color: muted, fontSize: 10),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'ORIGIN',
+                      style: TextStyle(color: muted, fontSize: 9),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Addis Ababa',
+                      style: TextStyle(
+                        color: textWhite,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Kality Freight Depot',
+                      style: TextStyle(color: muted, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Column(
+                  children: [
+                    const Icon(Icons.arrow_forward, color: gold, size: 18),
+                    const SizedBox(height: 4),
+                    const Text(
+                      '452 km',
+                      style: TextStyle(color: muted, fontSize: 9),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    const Text(
+                      'DESTINATION',
+                      style: TextStyle(color: muted, fontSize: 9),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Dire Dawa',
+                      style: TextStyle(
+                        color: textWhite,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'Industrial Free Zone',
+                      style: TextStyle(color: muted, fontSize: 10),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.speed, size: 14, color: green),
+                  SizedBox(width: 4),
+                  Text(
+                    '68 km/h Live Cruise',
+                    style: TextStyle(color: green, fontSize: 11),
+                  ),
+                ],
+              ),
+              const Row(
+                children: [
+                  Icon(Icons.inventory_2_outlined, size: 14, color: gold),
+                  SizedBox(width: 4),
+                  Text(
+                    '28T Teff & Grain',
+                    style: TextStyle(color: muted, fontSize: 11),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Map Simulation
           Container(
-            height: 145,
-            width: double.infinity,
+            height: 120,
             decoration: BoxDecoration(
-              color: background,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFE2E8F0), Color(0xFF94A3B8)],
+              ),
             ),
             child: Stack(
               children: [
-                const Center(
-                  child: Icon(
-                    Icons.map_outlined,
-                    size: 70,
-                    color: Color(0xFF334155),
+                Positioned(
+                  bottom: 10,
+                  left: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: navy.withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.location_on, size: 14, color: Colors.white),
+                        SizedBox(width: 4),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Passing Awash Checkpoint',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'ETA Dire Dawa: 3h 15m',
+                              style: TextStyle(color: Colors.grey, fontSize: 8),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Positioned(
-                  left: 20,
-                  top: 20,
-                  child: _buildMapPoint(color: blue, label: 'Origin'),
-                ),
-                Positioned(
-                  right: 18,
-                  bottom: 20,
-                  child: _buildMapPoint(color: gold, label: 'Destination'),
-                ),
-                Center(
-                  child: Transform.rotate(
-                    angle: 0.5,
-                    child: const Icon(
-                      Icons.local_shipping_rounded,
-                      color: textWhite,
-                      size: 30,
+                  bottom: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: navy.withOpacity(0.85),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.circle, size: 6, color: green),
+                        SizedBox(width: 4),
+                        Text(
+                          'GPS Synced',
+                          style: TextStyle(color: Colors.white, fontSize: 9),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 18),
-          const Row(
-            children: [
-              Icon(Icons.trip_origin_rounded, color: blue, size: 20),
-              SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pickup',
-                      style: TextStyle(color: muted, fontSize: 11),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Addis Ababa',
-                      style: TextStyle(
-                        color: textWhite,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.arrow_downward_rounded, color: muted, size: 20),
-            ],
-          ),
           const SizedBox(height: 14),
-          const Row(
+          Row(
             children: [
-              Icon(Icons.location_on_rounded, color: gold, size: 20),
-              SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Delivery destination',
-                      style: TextStyle(color: muted, fontSize: 11),
+                child: ElevatedButton.icon(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: gold,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Hawassa',
-                      style: TextStyle(
-                        color: textWhite,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Delivery progress',
-                style: TextStyle(color: muted, fontSize: 12),
-              ),
-              Text(
-                '65%',
-                style: TextStyle(
-                  color: gold,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: const LinearProgressIndicator(
-              value: 0.65,
-              minHeight: 7,
-              backgroundColor: Color(0xFF334155),
-              valueColor: AlwaysStoppedAnimation<Color>(gold),
-            ),
-          ),
-          const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Delivery tracking will be connected later.'),
+                    elevation: 0,
                   ),
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: gold,
-                side: const BorderSide(color: gold),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  icon: const Icon(Icons.near_me, size: 16),
+                  label: const Text(
+                    'Live GPS',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
                 ),
               ),
-              child: const Text(
-                'Track Delivery',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: textWhite,
+                    side: const BorderSide(color: Colors.white24),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.receipt_long, size: 16),
+                  label: const Text(
+                    'Waybill',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMapPoint({required Color color, required String label}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+  Widget _buildSectionTitle(String title, String? action) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Icon(Icons.location_on_rounded, color: color, size: 25),
-        Text(label, style: const TextStyle(color: muted, fontSize: 10)),
+        Text(
+          title,
+          style: const TextStyle(
+            color: muted,
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+        if (action != null)
+          TextButton(
+            onPressed: () {},
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: Size.zero,
+            ),
+            child: Text(
+              action,
+              style: const TextStyle(
+                color: gold,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
       ],
     );
   }
 
   Widget _buildQuickActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
-          'Quick Actions',
-          style: TextStyle(
-            color: textWhite,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+        _buildActionButton(
+          icon: Icons.list_alt,
+          label: 'Available\nLoads',
+          badgeCount: '13',
         ),
-        const SizedBox(height: 14),
-        Row(
+        _buildActionButton(
+          icon: Icons.local_offer,
+          label: 'Direct\nOffers',
+          badgeCount: '2',
+          iconColor: green,
+        ),
+        _buildActionButton(
+          icon: Icons.account_balance_wallet_outlined,
+          label: 'Telebirr\nWallet',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    String? badgeCount,
+    Color? iconColor,
+  }) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
           children: [
-            Expanded(
-              child: _buildActionCard(
-                icon: Icons.search_rounded,
-                title: 'Find Loads',
-                subtitle: 'Browse opportunities',
-                color: blue,
-                onTap: () => _showActionMessage('Find Loads'),
-              ),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: const BoxDecoration(
+                    color: navy,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: iconColor ?? gold, size: 22),
+                ),
+                if (badgeCount != null)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: gold,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        badgeCount,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildActionCard(
-                icon: Icons.assignment_rounded,
-                title: 'My Bids',
-                subtitle: 'Review your bids',
-                color: gold,
-                onTap: () => _showActionMessage('My Bids'),
-              ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: textWhite, fontSize: 10),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+      ),
+    );
+  }
+
+  Widget _buildActiveBidPipeline() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.history, color: gold, size: 16),
+                  SizedBox(width: 8),
+                  Text(
+                    'ACTIVE BID PIPELINE',
+                    style: TextStyle(
+                      color: muted,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                'View All',
+                style: TextStyle(
+                  color: gold,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildBidItem(
+            route: 'Hawassa ➔ A...',
+            status: 'Reviewing',
+            statusColor: gold,
+            price: '36,500',
+            shipper: 'Shipper: Sidama Farmers Coop • 2...',
+            time: '18 mins ago',
+          ),
+          const Divider(color: Colors.white12, height: 24),
+          _buildBidItem(
+            route: 'Mojo ➔ ...',
+            status: 'Counter-Offer',
+            statusColor: green,
+            price: '78,000',
+            shipper: 'Shipper: Ethio Logistics S.C. • 3...',
+            subText: 'Shipper offered 74k',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBidItem({
+    required String route,
+    required String status,
+    required Color statusColor,
+    required String price,
+    required String shipper,
+    String? time,
+    String? subText,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: _buildActionCard(
-                icon: Icons.receipt_long_rounded,
-                title: 'Earnings',
-                subtitle: 'View payment summary',
-                color: green,
-                onTap: () => _showActionMessage('Earnings'),
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      route,
+                      style: const TextStyle(
+                        color: textWhite,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: statusColor.withOpacity(0.5)),
+                      ),
+                      child: Text(
+                        status,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  shipper,
+                  style: const TextStyle(color: muted, fontSize: 10),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildActionCard(
-                icon: Icons.person_outline_rounded,
-                title: 'My Profile',
-                subtitle: 'Manage your details',
-                color: const Color(0xFFB28DFF),
-                onTap: () => _showActionMessage('My Profile'),
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: price,
+                        style: const TextStyle(
+                          color: textWhite,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const TextSpan(
+                        text: ' ETB',
+                        style: TextStyle(color: muted, fontSize: 9),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                if (time != null)
+                  Row(
+                    children: [
+                      const Icon(Icons.access_time, size: 10, color: green),
+                      const SizedBox(width: 4),
+                      Text(
+                        time,
+                        style: const TextStyle(color: green, fontSize: 9),
+                      ),
+                    ],
+                  ),
+                if (subText != null)
+                  Text(
+                    subText,
+                    style: const TextStyle(color: muted, fontSize: 9),
+                  ),
+              ],
             ),
           ],
         ),
@@ -663,61 +1101,94 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 
-  Widget _buildActionCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: cardColor,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 22),
-              ),
-              const SizedBox(height: 13),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: textWhite,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                subtitle,
-                style: const TextStyle(color: muted, fontSize: 10),
-              ),
-            ],
-          ),
+  Widget _buildBottomNavBar() {
+    return BottomAppBar(
+      color: navy,
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8.0,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.dashboard_outlined, 'Home', isActive: true),
+            _buildNavItem(Icons.inventory_2_outlined, 'Shipments'),
+            const SizedBox(
+              width: 64,
+            ), // Increased to accommodate the lowered FAB and label
+            _buildNavItem(Icons.gavel, 'Bids'),
+            _buildNavItem(Icons.location_on_outlined, 'Tracking'),
+          ],
         ),
       ),
     );
   }
 
-  void _showActionMessage(String action) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$action screen will be connected later.')),
+  Widget _buildNavItem(IconData icon, String label, {bool isActive = false}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: isActive ? gold : muted, size: 22),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: isActive ? gold : muted,
+            fontSize: 9,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
     );
   }
+
+  // Custom FAB Widget with Label
+  Widget _buildCustomFAB() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: () {
+            // Handle Post Load action
+          },
+          child: Container(
+            height: 54,
+            width: 54,
+            decoration: BoxDecoration(
+              color: gold,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.add, size: 30, color: Colors.black),
+          ),
+        ),
+        const SizedBox(height: 3),
+        const Text(
+          'Post Load',
+          style: TextStyle(
+            color: gold,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// Dummy Main App to run the screen directly
+void main() {
+  runApp(
+    const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: DriverHomeScreen(),
+    ),
+  );
 }
