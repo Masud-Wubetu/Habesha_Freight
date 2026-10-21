@@ -11,6 +11,7 @@ import '../../widgets/shipper_hub/shipper_hub_header.dart';
 import '../../widgets/shipper_hub/shipper_profile_card.dart';
 import '../../widgets/shipper_hub/operations_metrics_grid.dart';
 import '../../widgets/shipper_hub/live_transit_card.dart';
+import '../../widgets/shipper_hub/toll_clearance_insight_card.dart';
 
 class ShipperActiveHubScreen extends StatefulWidget {
   const ShipperActiveHubScreen({super.key});
@@ -327,6 +328,89 @@ class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
     );
   }
 
+  void _showTollSpeedModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.hub_rounded, color: AppColors.gold, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Corridor Smart Toll Lane',
+                        style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                      Text(
+                        'Modjo Toll Plaza · Automated RFID Clearance',
+                        style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF94A3B8)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF070D18),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF1E2E48)),
+                ),
+                child: Column(
+                  children: [
+                    _infoRow('Average Clearance Speed', '4.2 minutes (88% faster than manual queue)'),
+                    const SizedBox(height: 8),
+                    _infoRow('Plate Recognition Status', 'ET 3-48192 Auto-Verified'),
+                    const SizedBox(height: 8),
+                    _infoRow('Corridor Toll Prepaid Wallet', '12,400 ETB Available'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pushNamed(context, AppRoutes.page32FuelToll);
+                  },
+                  icon: const Icon(Icons.toll_rounded, size: 18),
+                  label: Text('Open Fuel & Toll Pass (Page 32)', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: const Color(0xFF0F172A),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _openPostLoadSheet() {
     showModalBottomSheet(
       context: context,
@@ -431,6 +515,14 @@ class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
                 onWaybillTap: _showWaybillModal,
               ),
               const SizedBox(height: 14),
+
+              // Toll Clearance Speed Insight Card
+              TollClearanceInsightCard(
+                title: 'Toll Clearance Speed',
+                subtitle: 'Modjo smart lane active: 4 min avg clearance',
+                onTap: _showTollSpeedModal,
+              ),
+              const SizedBox(height: 100),
             ],
           ),
         ),

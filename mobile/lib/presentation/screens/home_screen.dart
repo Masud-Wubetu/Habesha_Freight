@@ -185,6 +185,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.dashboard_rounded, color: Color(0xFF38BDF8), size: 20),
+              title: const Text('Shipper Active Hub & Ops (Page 06)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page06ShipperHub);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.grid_view_rounded, color: AppColors.gold, size: 20),
               title: const Text('All 16 Corridor Modules Catalog', style: TextStyle(color: Colors.white, fontSize: 13)),
               onTap: () {
