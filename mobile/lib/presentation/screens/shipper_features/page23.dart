@@ -8,6 +8,7 @@ import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/post_cargo/cargo_classification_selector.dart';
 import '../../widgets/post_cargo/corridor_waypoints_card.dart';
 import '../../widgets/post_cargo/post_cargo_step_header.dart';
+import '../../widgets/post_cargo/weight_and_transit_seal_row.dart';
 
 class PostCargoRequestScreen extends StatefulWidget {
   const PostCargoRequestScreen({super.key});
@@ -22,6 +23,8 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
   String _origin = 'Addis Ababa (Kality Port)';
   String _destination = 'Dire Dawa (Free Trade Zone)';
   int _distanceKm = 452;
+  int _weightTons = 24;
+  bool _isGpsMonitored = true;
 
   final List<Map<String, dynamic>> _corridorHubs = const [
     {'name': 'Addis Ababa (Kality Port)', 'region': 'Sheger / Central', 'km': 0},
@@ -268,6 +271,13 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
                 onOriginTap: () => _pickHub(isOrigin: true),
                 onDestinationTap: () => _pickHub(isOrigin: false),
                 onSwapTap: _swapWaypoints,
+              ),
+              const SizedBox(height: 16),
+              WeightAndTransitSealRow(
+                weightTons: _weightTons,
+                onWeightChanged: (w) => setState(() => _weightTons = w),
+                isGpsMonitored: _isGpsMonitored,
+                onTransitSealToggle: (val) => setState(() => _isGpsMonitored = val),
               ),
               const SizedBox(height: 16),
               const SizedBox(height: 100),
