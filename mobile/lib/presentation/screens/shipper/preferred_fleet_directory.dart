@@ -5,8 +5,7 @@ class PreferredFleetScreen extends StatefulWidget {
   const PreferredFleetScreen({super.key});
 
   @override
-  State<PreferredFleetScreen> createState() =>
-      _PreferredFleetScreenState();
+  State<PreferredFleetScreen> createState() => _PreferredFleetScreenState();
 }
 
 class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
@@ -17,8 +16,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
   static const Color muted = Color(0xFFB6C2D2);
   static const Color green = Color(0xFF39D9AD);
 
-  final TextEditingController _searchController =
-      TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   String _selectedCategory = 'All';
 
@@ -74,7 +72,8 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
           carrier['type']!.toLowerCase().contains(query) ||
           carrier['route']!.toLowerCase().contains(query);
 
-      final matchesCategory = _selectedCategory == 'All' ||
+      final matchesCategory =
+          _selectedCategory == 'All' ||
           carrier['category'] == _selectedCategory;
 
       return matchesSearch && matchesCategory;
@@ -183,11 +182,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
             const SizedBox(height: 6),
             const Text(
               'Trusted drivers and transport enterprises across your key industrial corridors.',
-              style: TextStyle(
-                color: muted,
-                fontSize: 14,
-                height: 1.45,
-              ),
+              style: TextStyle(color: muted, fontSize: 14, height: 1.45),
             ),
             const SizedBox(height: 22),
 
@@ -197,8 +192,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Search carrier, vehicle, or route...',
-                hintStyle:
-                    const TextStyle(color: muted, fontSize: 14),
+                hintStyle: const TextStyle(color: muted, fontSize: 14),
                 prefixIcon: const Icon(Icons.search, color: muted),
                 suffixIcon: const Icon(Icons.mic_none, color: muted),
                 filled: true,
@@ -320,9 +314,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text(
-                            'Driver QR scanner coming soon.',
-                          ),
+                          content: Text('Driver QR scanner coming soon.'),
                         ),
                       );
                     },
@@ -361,9 +353,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
         },
         onAddPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Connect this button to Post Load.'),
-            ),
+            const SnackBar(content: Text('Connect this button to Post Load.')),
           );
         },
       ),
@@ -378,10 +368,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
       child: GestureDetector(
         onTap: () => setState(() => _selectedCategory = label),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 11,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
           decoration: BoxDecoration(
             color: selected ? yellow : card,
             borderRadius: BorderRadius.circular(14),
@@ -398,10 +385,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 5,
-                  vertical: 2,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
                   color: selected
                       ? const Color(0xFFD98700)
@@ -431,11 +415,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
         color: card,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -454,8 +434,8 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                   carrier['image'] == 'person'
                       ? Icons.person
                       : carrier['image'] == 'cold'
-                          ? Icons.ac_unit
-                          : Icons.local_shipping,
+                      ? Icons.ac_unit
+                      : Icons.local_shipping,
                   color: yellow,
                   size: 28,
                 ),
@@ -480,10 +460,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                       carrier['type']!,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: muted,
-                        fontSize: 11,
-                      ),
+                      style: const TextStyle(color: muted, fontSize: 11),
                     ),
                   ],
                 ),
@@ -492,17 +469,11 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        '${carrier['name']} saved to favorites.',
-                      ),
+                      content: Text('${carrier['name']} saved to favorites.'),
                     ),
                   );
                 },
-                icon: const Icon(
-                  Icons.star_border,
-                  color: yellow,
-                  size: 27,
-                ),
+                icon: const Icon(Icons.star_border, color: yellow, size: 27),
               ),
             ],
           ),
@@ -523,10 +494,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                     carrier['route']!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 11),
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -595,9 +563,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          'Contact ${carrier['name']} soon.',
-                        ),
+                        content: Text('Contact ${carrier['name']} soon.'),
                       ),
                     );
                   },
@@ -622,10 +588,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
 
   Widget _infoTag(IconData icon, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: inner,
         borderRadius: BorderRadius.circular(6),
@@ -635,13 +598,7 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
         children: [
           Icon(icon, color: yellow, size: 13),
           const SizedBox(width: 5),
-          Text(
-            label,
-            style: const TextStyle(
-              color: muted,
-              fontSize: 10,
-            ),
-          ),
+          Text(label, style: const TextStyle(color: muted, fontSize: 10)),
         ],
       ),
     );
