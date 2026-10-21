@@ -10,20 +10,16 @@ class DriverHomeScreen extends StatefulWidget {
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
   bool _isAvailable = true;
 
-  // --- EXACT COLORS FROM YOUR PROVIDED CODE (repurposed for dark mode) ---
-  static const Color navy = Color(
-    0xFF0F172A,
-  ); // Used as the main dark background
-  static const Color gold = Color(0xFFFFB300); // Used as primary yellow accent
-  static const Color background = Color(
-    0xFF0B1120,
-  ); // Slightly darker app background
-  static const Color muted = Color(0xFF94A3B8); // Used for grey text
+  // EXACT COLORS FROM YOUR PROVIDED CODE
+  static const Color navy = Color(0xFF0F172A);
+  static const Color gold = Color(0xFFFFB300);
+  static const Color background = Color(0xFF0B1120);
+  static const Color muted = Color(0xFF94A3B8);
   static const Color blue = Color(0xFF4385D7);
   static const Color green = Color(0xFF239B70);
 
-  // --- NEW COLORS FOR DARK UI ---
-  static const Color cardColor = Color(0xFF1E293B); // Darker card background
+  // NEW COLORS FOR DARK UI
+  static const Color cardColor = Color(0xFF1E293B);
   static const Color textWhite = Colors.white;
 
   @override
@@ -62,17 +58,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ],
         ),
       ),
-      // Wrapping the BottomNavBar in a Stack to position the custom FAB
+      // Bottom navigation with custom floating action button
       bottomNavigationBar: Stack(
-        clipBehavior:
-            Clip.none, // Allows the button to overflow upwards out of the bar
+        clipBehavior: Clip.none,
         alignment: Alignment.topCenter,
         children: [
           _buildBottomNavBar(),
-          Positioned(
-            top: -24, // Moves the FAB down into the bottom bar
-            child: _buildCustomFAB(),
-          ),
+          Positioned(top: -24, child: _buildCustomFAB()),
         ],
       ),
     );
@@ -139,14 +131,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             color: cardColor,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Row(
+          child: const Row(
             children: [
-              const Text(
-                'EN',
-                style: TextStyle(color: textWhite, fontSize: 12),
-              ),
-              const SizedBox(width: 4),
-              const Icon(Icons.translate, size: 14, color: muted),
+              Text('EN', style: TextStyle(color: textWhite, fontSize: 12)),
+              SizedBox(width: 4),
+              Icon(Icons.translate, size: 14, color: muted),
             ],
           ),
         ),
@@ -264,10 +253,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       child: IntrinsicHeight(
         child: Row(
           children: [
-            Container(width: 5, color: gold), // Left border
+            Container(width: 5, color: gold),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(14.0),
+                padding: const EdgeInsets.all(14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -282,7 +271,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                               color: gold,
                             ),
                             const SizedBox(width: 4),
-                            Text(
+                            const Text(
                               'CORRIDOR URGENT MATCH',
                               style: TextStyle(
                                 color: gold,
@@ -964,7 +953,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   ),
                 ],
               ),
-              Text(
+              const Text(
                 'View All',
                 style: TextStyle(
                   color: gold,
@@ -1013,48 +1002,55 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      route,
-                      style: const TextStyle(
-                        color: textWhite,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: statusColor.withOpacity(0.5)),
-                      ),
-                      child: Text(
-                        status,
-                        style: TextStyle(
-                          color: statusColor,
-                          fontSize: 9,
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        route,
+                        style: const TextStyle(
+                          color: textWhite,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  shipper,
-                  style: const TextStyle(color: muted, fontSize: 10),
-                ),
-              ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: statusColor.withOpacity(0.5),
+                          ),
+                        ),
+                        child: Text(
+                          status,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    shipper,
+                    style: const TextStyle(color: muted, fontSize: 10),
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -1107,15 +1103,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       shape: const CircularNotchedRectangle(),
       notchMargin: 8.0,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(Icons.dashboard_outlined, 'Home', isActive: true),
             _buildNavItem(Icons.inventory_2_outlined, 'Shipments'),
-            const SizedBox(
-              width: 64,
-            ), // Increased to accommodate the lowered FAB and label
+            const SizedBox(width: 64),
             _buildNavItem(Icons.gavel, 'Bids'),
             _buildNavItem(Icons.location_on_outlined, 'Tracking'),
           ],
@@ -1183,12 +1177,4 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   }
 }
 
-// Dummy Main App to run the screen directly
-void main() {
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: DriverHomeScreen(),
-    ),
-  );
-}
+// Use your project's existing main.dart to launch the app.
