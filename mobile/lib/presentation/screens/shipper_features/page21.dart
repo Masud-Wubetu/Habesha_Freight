@@ -11,6 +11,8 @@ import '../../widgets/shipper_escrow/shipper_escrow_header.dart';
 import '../../widgets/shipper_escrow/active_escrow_hero_card.dart';
 import '../../widgets/shipper_escrow/escrow_status_filter_tabs.dart';
 import '../../widgets/shipper_escrow/consignment_escrow_card.dart';
+import '../../widgets/shipper_escrow/multi_consignment_batch_card.dart';
+import '../../widgets/shipper_escrow/pod_otp_release_modal.dart';
 
 class ShipperEscrowVaultScreen extends StatefulWidget {
   const ShipperEscrowVaultScreen({super.key});
@@ -23,6 +25,8 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
   final CorridorService _corridorService = CorridorService();
   String _selectedLanguage = 'EN';
   int _activeTabIndex = 0; // 0: Active Escrow, 1: Invoices, 2: Disputes
+  double _activeLockedAmount = 150000.0;
+  double _releasedThisMonth = 890000.0;
 
   final List<ConsignmentEscrowItem> _consignments = [
     const ConsignmentEscrowItem(
@@ -197,10 +201,112 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
   }
 
   void _handleEnterPodOtp(ConsignmentEscrowItem item) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening POD OTP verification for consignment ${item.id}...'),
-        backgroundColor: AppColors.gold,
+    PodOtpReleaseModal.show(
+      context,
+      item: item,
+      onConfirmedRelease: (otpCode) {
+        setState(() {
+          final idx = _consignments.indexWhere((c) => c.id == item.id);
+          if (idx != -1) {
+            _consignments[idx] = ConsignmentEscrowItem(
+              id: item.id,
+              escrowProvider: item.escrowProvider,
+              amountEtb: item.amountEtb,
+              status: EscrowCardStatus.settled,
+              origin: item.origin,
+              destination: item.destination,
+              carrierName: item.carrierName,
+              telemetryText: 'POD Verified with OTP ($otpCode) · Settled to Carrier',
+              cargoDetails: item.cargoDetails,
+              taxInvoiceNo: 'INV-2026-NBE-${item.id.replaceAll('#HF-', '')}',
+            );
+            _activeLockedAmount = (_activeLockedAmount - item.amountEtb).clamp(0.0, double.infinity);
+            _releasedThisMonth += item.amountEtb;
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${item.amountEtb.toStringAsFixed(0)} ETB released to ${item.carrierName} via ${item.escrowProvider}!'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleBatchFundTap() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.layers_rounded, color: AppColors.gold, size: 24),
+                  const SizedBox(width: 10),
+                  Text('Batch Fund Corridor Convoy', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Lock multi-consignments for 3 heavy-haul rigs running the Addis Ababa ➔ Djibouti corridor.',
+                style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF94A3B8)),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF070D18),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF1E2E48)),
+                ),
+                child: Column(
+                  children: [
+                    _invoiceRow('Convoy Rigs', '3 Multi-axle Semi-Trailers'),
+                    const SizedBox(height: 8),
+                    _invoiceRow('Total Bulk Escrow', '228,000 ETB', isBold: true, valueColor: AppColors.gold),
+                    const SizedBox(height: 8),
+                    _invoiceRow('Vault Payout Channel', 'Telebirr Business Tier 1'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _activeLockedAmount += 228000.0;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Convoy Batch of 228,000 ETB vaulted in Escrow successfully!'),
+                        backgroundColor: AppColors.gold,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: const Color(0xFF0F172A),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: Text('Confirm Batch Escrow Lock', style: GoogleFonts.inter(fontWeight: FontWeight.w800)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -463,18 +569,18 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
 
               // Active Escrow Locked Hero Card
               ActiveEscrowHeroCard(
-                activeLockedAmount: 150000.0,
-                releasedThisMonth: 890000.0,
-                activeConsignmentsCount: 2,
+                activeLockedAmount: _activeLockedAmount,
+                releasedThisMonth: _releasedThisMonth,
+                activeConsignmentsCount: _consignments.where((c) => c.status != EscrowCardStatus.settled).length,
                 onManageVaults: _handleManageVaults,
               ),
               const SizedBox(height: 16),
 
-              // Status Filter Tabs (Active Escrow: 2, Invoices: 45, Disputes: 0)
+              // Status Filter Tabs (Active Escrow, Invoices, Disputes)
               EscrowStatusFilterTabs(
                 selectedIndex: _activeTabIndex,
                 onTabSelected: _onTabSelected,
-                activeEscrowCount: 2,
+                activeEscrowCount: _consignments.where((c) => c.status != EscrowCardStatus.settled).length,
                 invoicesCount: 45,
                 disputesCount: 0,
               ),
@@ -482,6 +588,12 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
 
               // Consignment Escrow Cards list
               _buildConsignmentsList(),
+              const SizedBox(height: 16),
+
+              // Multi-Consignment Batch Fund Banner
+              MultiConsignmentBatchCard(
+                onBatchFundTap: _handleBatchFundTap,
+              ),
               const SizedBox(height: 100), // Spacing for bottom bar
             ],
           ),
