@@ -7,6 +7,7 @@ import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/post_cargo/cargo_classification_selector.dart';
 import '../../widgets/post_cargo/corridor_waypoints_card.dart';
+import '../../widgets/post_cargo/dispatch_mode_selector.dart';
 import '../../widgets/post_cargo/post_cargo_step_header.dart';
 import '../../widgets/post_cargo/weight_and_transit_seal_row.dart';
 
@@ -25,6 +26,8 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
   int _distanceKm = 452;
   int _weightTons = 24;
   bool _isGpsMonitored = true;
+  DispatchMode _dispatchMode = DispatchMode.openBidding;
+  int _fixedOfferAmount = 52000;
 
   final List<Map<String, dynamic>> _corridorHubs = const [
     {'name': 'Addis Ababa (Kality Port)', 'region': 'Sheger / Central', 'km': 0},
@@ -278,6 +281,13 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
                 onWeightChanged: (w) => setState(() => _weightTons = w),
                 isGpsMonitored: _isGpsMonitored,
                 onTransitSealToggle: (val) => setState(() => _isGpsMonitored = val),
+              ),
+              const SizedBox(height: 16),
+              DispatchModeSelector(
+                selectedMode: _dispatchMode,
+                onModeChanged: (mode) => setState(() => _dispatchMode = mode),
+                fixedOfferAmount: _fixedOfferAmount,
+                onFixedOfferChanged: (amt) => setState(() => _fixedOfferAmount = amt),
               ),
               const SizedBox(height: 16),
               const SizedBox(height: 100),
