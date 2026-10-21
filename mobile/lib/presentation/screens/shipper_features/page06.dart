@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/routing/app_routes.dart';
-import '../../../core/services/corridor_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
-import '../../widgets/post_load/post_load_sheet.dart';
 import '../../widgets/shipper_hub/shipper_hub_header.dart';
 import '../../widgets/shipper_hub/shipper_profile_card.dart';
 import '../../widgets/shipper_hub/operations_metrics_grid.dart';
@@ -21,7 +19,6 @@ class ShipperActiveHubScreen extends StatefulWidget {
 }
 
 class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
-  final CorridorService _corridorService = CorridorService();
   String _selectedLanguage = 'EN';
 
   void _handleLanguageTap(String lang) {
@@ -411,25 +408,6 @@ class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
     );
   }
 
-  void _openPostLoadSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => PostLoadSheet(
-        corridorService: _corridorService,
-        onPosted: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cargo Request broadcasted across Addis-Djibouti Corridor!'),
-              backgroundColor: AppColors.gold,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -455,7 +433,7 @@ class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
                 company: 'Bole Dry Port Logistics • Enterprise',
                 activeCorridor: 'Addis-Djibouti Corridor Active',
                 onNotificationTap: _handleNotificationTap,
-                onPostCargoTap: _openPostLoadSheet,
+                onPostCargoTap: () => Navigator.pushNamed(context, AppRoutes.page23PostCargo),
               ),
               const SizedBox(height: 14),
 
@@ -531,7 +509,7 @@ class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
         currentIndex: 0, // Home / Operations
         onTap: (idx) {
           if (idx == 2) {
-            _openPostLoadSheet();
+            Navigator.pushNamed(context, AppRoutes.page23PostCargo);
           } else if (idx == 3) {
             Navigator.pushNamed(context, AppRoutes.page05EscrowVault);
           } else if (idx != 0) {

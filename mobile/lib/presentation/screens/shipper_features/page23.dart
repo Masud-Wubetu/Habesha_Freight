@@ -5,10 +5,12 @@ import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
+import '../../widgets/post_cargo/cargo_broadcast_success_sheet.dart';
 import '../../widgets/post_cargo/cargo_classification_selector.dart';
 import '../../widgets/post_cargo/corridor_waypoints_card.dart';
 import '../../widgets/post_cargo/dispatch_mode_selector.dart';
 import '../../widgets/post_cargo/post_cargo_step_header.dart';
+import '../../widgets/post_cargo/publish_cargo_cta.dart';
 import '../../widgets/post_cargo/weight_and_transit_seal_row.dart';
 
 class PostCargoRequestScreen extends StatefulWidget {
@@ -28,6 +30,46 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
   bool _isGpsMonitored = true;
   DispatchMode _dispatchMode = DispatchMode.openBidding;
   int _fixedOfferAmount = 52000;
+  bool _isPublishing = false;
+
+  String get _cargoLabel {
+    switch (_selectedCargoType) {
+      case 'dry_bulk':
+        return 'Dry Bulk';
+      case 'container_40ft':
+        return '40ft Container';
+      case 'cold_chain':
+        return 'Cold Chain';
+      case 'break_bulk':
+        return 'Break Bulk';
+      case 'hazardous':
+        return 'Hazardous (ADR)';
+      default:
+        return 'General Cargo';
+    }
+  }
+
+  Future<void> _handlePublish() async {
+    setState(() => _isPublishing = true);
+    await Future.delayed(const Duration(milliseconds: 350));
+    if (!mounted) return;
+    setState(() => _isPublishing = false);
+
+    final modeLabel = _dispatchMode == DispatchMode.openBidding
+        ? 'Open Bidding (Drivers bidding 48,000–54,000 ETB)'
+        : 'Fixed Offer (${_fixedOfferAmount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} ETB)';
+
+    await CargoBroadcastSuccessSheet.show(
+      context,
+      origin: _origin,
+      destination: _destination,
+      cargoLabel: _cargoLabel,
+      weightTons: _weightTons,
+      dispatchModeTitle: modeLabel,
+      isGpsMonitored: _isGpsMonitored,
+      distanceKm: _distanceKm,
+    );
+  }
 
   final List<Map<String, dynamic>> _corridorHubs = const [
     {'name': 'Addis Ababa (Kality Port)', 'region': 'Sheger / Central', 'km': 0},
@@ -289,7 +331,12 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
                 fixedOfferAmount: _fixedOfferAmount,
                 onFixedOfferChanged: (amt) => setState(() => _fixedOfferAmount = amt),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+              PublishCargoCta(
+                onPublish: _handlePublish,
+                availableTrucksCount: 42,
+                isLoading: _isPublishing,
+              ),
               const SizedBox(height: 100),
             ],
           ),
