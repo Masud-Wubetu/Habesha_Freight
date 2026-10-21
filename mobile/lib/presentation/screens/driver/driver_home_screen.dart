@@ -11,15 +11,12 @@ class DriverHomeScreen extends StatefulWidget {
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
   bool _isAvailable = true;
 
-  // Main theme colors
   static const Color navy = Color(0xFF0F172A);
   static const Color gold = Color(0xFFFFB300);
   static const Color background = Color(0xFF0B1120);
   static const Color muted = Color(0xFF94A3B8);
   static const Color blue = Color(0xFF4385D7);
   static const Color green = Color(0xFF239B70);
-
-  // Dark UI card colors
   static const Color cardColor = Color(0xFF1E293B);
   static const Color textWhite = Colors.white;
 
@@ -36,6 +33,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               _buildHeader(),
               const SizedBox(height: 20),
               _buildAvailabilityCard(),
+              const SizedBox(height: 24),
+              _buildUrgentMatchCard(),
             ],
           ),
         ),
@@ -43,15 +42,14 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 
-  // Dashboard header
   Widget _buildHeader() {
     return Row(
       children: [
-        Expanded(
+        const Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Driver Dashboard',
                 style: TextStyle(
                   color: textWhite,
@@ -59,13 +57,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 6),
-              const Text(
+              SizedBox(height: 6),
+              Text(
                 'Your logistics overview',
-                style: TextStyle(
-                  color: muted,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: muted, fontSize: 14),
               ),
             ],
           ),
@@ -90,7 +85,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 
-  // Driver availability card
   Widget _buildAvailabilityCard() {
     return Container(
       padding: const EdgeInsets.all(18),
@@ -127,10 +121,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               children: [
                 const Text(
                   'Availability Status',
-                  style: TextStyle(
-                    color: muted,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: muted, fontSize: 12),
                 ),
                 const SizedBox(height: 5),
                 Text(
@@ -148,10 +139,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   _isAvailable
                       ? 'Ready to receive delivery requests'
                       : 'You will not receive new requests',
-                  style: const TextStyle(
-                    color: muted,
-                    fontSize: 11,
-                  ),
+                  style: const TextStyle(color: muted, fontSize: 11),
                 ),
               ],
             ),
@@ -165,6 +153,144 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             },
             activeThumbColor: gold,
             activeTrackColor: gold.withValues(alpha: 0.35),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUrgentMatchCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: gold.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: gold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.bolt_rounded,
+                      color: gold,
+                      size: 16,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'URGENT MATCH',
+                      style: TextStyle(
+                        color: gold,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              const Icon(
+                Icons.local_shipping_outlined,
+                color: muted,
+                size: 22,
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            'Addis Ababa → Hawassa',
+            style: TextStyle(
+              color: textWhite,
+              fontSize: 19,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Available freight opportunity',
+            style: TextStyle(color: muted, fontSize: 13),
+          ),
+          const SizedBox(height: 18),
+          const Divider(color: Color(0xFF334155)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(
+                Icons.route_rounded,
+                color: blue,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Approx. 275 km',
+                  style: TextStyle(color: muted, fontSize: 13),
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'ETB 18,500',
+                    style: TextStyle(
+                      color: gold,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    'Proposed load rate',
+                    style: TextStyle(color: muted, fontSize: 11),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Load details will be available in the next step.',
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: gold,
+                foregroundColor: navy,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'View Load Details',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ],
       ),
