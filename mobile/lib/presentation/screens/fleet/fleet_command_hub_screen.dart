@@ -95,16 +95,6 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface,
 
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const FreightHistoryScreen()),
-          );
-        },
-        child: const Icon(Icons.history),
-      ),
-
       body: SafeArea(
         child: Column(
           children: [

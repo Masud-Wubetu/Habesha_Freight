@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:mobile/presentation/screens/shipper/freight_history_screen.dart';
-import 'package:mobile/presentation/screens/shipper/preferred_directory_screen.dart';
+import 'package:mobile/presentation/screens/shipper/preferred_fleet_directory.dart';
 import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
 
 class ShipperShellScreen extends StatefulWidget {
@@ -85,7 +85,7 @@ class _ShipperShellScreenState extends State<ShipperShellScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const PreferredDirectoryScreen(),
+                    builder: (_) => PreferredFleetScreen(),
                   ),
                 );
               },
