@@ -228,6 +228,12 @@ class _AuthGateState extends State<AuthGate> {
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page23PostCargo),
+                icon: const Icon(Icons.post_add_rounded, color: AppColors.gold),
+                label: const Text('Post Cargo Request Wizard (Page 23 / 07)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
                 onPressed: () => CorridorNavigationSheet.show(context),
                 icon: const Icon(Icons.grid_view_rounded),
                 label: const Text('Explore All 16 Corridor Modules'),

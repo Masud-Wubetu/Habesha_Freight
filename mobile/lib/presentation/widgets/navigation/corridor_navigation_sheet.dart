@@ -153,6 +153,15 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'Post Cargo Request (Step 1)',
+                  subtitle: 'Waypoints routing, weight stepper, transit seal & dispatch',
+                  badge: 'Page 07 / 23',
+                  icon: Icons.post_add_rounded,
+                  route: AppRoutes.page07PostCargo,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
                   title: 'Submit Freight Bid Screen',
                   subtitle: 'Dynamic corridor bidding, gate slots, and tariff rates',
                   badge: 'Page 20',
