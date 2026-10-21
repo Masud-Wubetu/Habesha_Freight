@@ -702,7 +702,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                 child: IconButton(
                   onPressed: () {},
                   icon: Icon(
-                    Icons.settings_outlined,
+                    Icons.verified_rounded,
                     color: textMuted,
                     size: 20,
                   ),

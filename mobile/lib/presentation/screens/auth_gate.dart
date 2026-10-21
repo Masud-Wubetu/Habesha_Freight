@@ -8,6 +8,7 @@ import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/presentation/screens/fleet/fleet_shell_screen.dart';
 import 'package:mobile/presentation/screens/login_screen.dart';
 import 'package:mobile/presentation/widgets/navigation/corridor_navigation_sheet.dart';
+import 'package:mobile/presentation/screens/shipper/shipper_shell_screen.dart';
 
 /// Boots into fleet shell when a session exists; otherwise login.
 class AuthGate extends StatefulWidget {
@@ -90,6 +91,12 @@ class _AuthGateState extends State<AuthGate> {
     });
   }
 
+  void _openShipperDemo() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ShipperShellScreen()));
+  }
+
   Future<void> _demoFleetLogin() async {
     setState(() {
       _loading = true;
@@ -111,9 +118,9 @@ class _AuthGateState extends State<AuthGate> {
         _loading = false;
         _status = res.message;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(res.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(res.message)));
     }
   }
 
@@ -130,7 +137,9 @@ class _AuthGateState extends State<AuthGate> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const CircularProgressIndicator(color: AppColors.primaryContainer),
+              const CircularProgressIndicator(
+                color: AppColors.primaryContainer,
+              ),
               const SizedBox(height: 16),
               Text(
                 _status ?? 'Loading…',
@@ -179,13 +188,17 @@ class _AuthGateState extends State<AuthGate> {
                   Icon(
                     _backendUp ? Icons.cloud_done : Icons.cloud_off,
                     size: 16,
-                    color: _backendUp ? AppColors.secondary : AppColors.errorStrong,
+                    color: _backendUp
+                        ? AppColors.secondary
+                        : AppColors.errorStrong,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     _backendUp ? 'API online' : 'API offline',
                     style: TextStyle(
-                      color: _backendUp ? AppColors.secondary : AppColors.errorStrong,
+                      color: _backendUp
+                          ? AppColors.secondary
+                          : AppColors.errorStrong,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -221,23 +234,27 @@ class _AuthGateState extends State<AuthGate> {
                 label: const Text('Explore All 16 Corridor Modules'),
               ),
               const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      ).then((_) => _bootstrap());
-                    },
-                    child: const Text('Sign in manually'),
-                  ),
-                  const Text('•', style: TextStyle(color: AppColors.textMuted)),
-                  TextButton(
-                    onPressed: _bootstrap,
-                    child: const Text('Retry connection'),
-                  ),
-                ],
+              OutlinedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  ).then((_) => _bootstrap());
+                },
+                child: const Text('Sign in manually'),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () {
+                  setState(() => _authenticated = true);
+                },
+                child: const Text(
+                  'Browse UI without API',
+                  style: TextStyle(color: AppColors.primary),
+                ),
+              ),
+              TextButton(
+                onPressed: _bootstrap,
+                child: const Text('Retry connection'),
               ),
             ],
           ),
