@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 
+import 'package:mobile/core/routing/app_routes.dart';
+import 'package:mobile/presentation/widgets/navigation/corridor_navigation_sheet.dart';
+
 /// Stack shell: AppBar with back, title, optional actions — no bottom nav.
 class StackScaffold extends StatelessWidget {
   const StackScaffold({
@@ -41,6 +44,18 @@ class StackScaffold extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.grid_view_rounded, size: 20),
+            color: AppColors.primaryContainer,
+            tooltip: 'All Corridor Modules',
+            onPressed: () => CorridorNavigationSheet.show(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.storefront_outlined, size: 20),
+            color: AppColors.onSurfaceVariant,
+            tooltip: 'Shipper Portal',
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.home),
+          ),
           ...?actions,
           Padding(
             padding: const EdgeInsets.only(right: 12),

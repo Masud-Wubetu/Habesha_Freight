@@ -147,6 +147,42 @@ class AuthService {
     }
   }
 
+  /// Register a new user
+  Future<AuthResponse> register({
+    required String fullName,
+    required String phoneNumber,
+    required String role,
+    String? email,
+    String? password,
+  }) async {
+    try {
+      final customUrl = await StorageService.getBaseUrl();
+      final base = customUrl ?? ApiConfig.baseUrl;
+      final uri = Uri.parse('$base${ApiConfig.register}');
+
+      final cleanPhone = phoneNumber.replaceAll(RegExp(r'\s+'), '');
+      final generatedEmail = email ?? 'user_${cleanPhone.replaceAll('+', '')}@habeshafreight.et';
+      final generatedPass = password ?? 'HabeshaFreight2026!';
+
+      final response = await _client.post(
+        uri,
+        headers: _headers(),
+        body: jsonEncode({
+          'full_name': fullName.trim(),
+          'phone_number': cleanPhone,
+          'email': generatedEmail,
+          'password': generatedPass,
+          'role': role,
+        }),
+      );
+
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      return AuthResponse.fromJson(data);
+    } catch (e) {
+      return AuthResponse.error('Network error during registration: $e');
+    }
+  }
+
   /// Get current user profile
   Future<UserModel?> getMe() async {
     try {

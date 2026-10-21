@@ -48,6 +48,12 @@ class ApiConfig {
   static const String driverBids = '/driver/bids';
   static const String availableLoads = '/driver/loads/available';
 
+  // Freight, Loads & Vehicles
+  static const String loads = '/loads';
+  static const String shipments = '/shipments';
+  static const String vehicles = '/vehicles';
+  static const String bids = '/bids';
+
   // System
   static const String health = '/health';
 }
