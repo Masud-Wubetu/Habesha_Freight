@@ -9,6 +9,7 @@ import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/kpi_tile.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
+import 'package:mobile/core/services/storage_service.dart';
 import 'package:mobile/presentation/widgets/navigation/corridor_navigation_sheet.dart';
 
 /// PAGE 27 — Fleet Operations Command Hub (tab shell).
@@ -121,14 +122,78 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                     color: AppColors.onSurfaceVariant,
                     tooltip: 'Refresh from API',
                   ),
-                  const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppColors.primary,
-                    child: Icon(
-                      Icons.person,
-                      size: 18,
-                      color: AppColors.onPrimary,
+                  PopupMenuButton<String>(
+                    tooltip: 'Fleet Account Options',
+                    icon: const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.primary,
+                      child: Icon(
+                        Icons.person,
+                        size: 18,
+                        color: AppColors.onPrimary,
+                      ),
                     ),
+                    color: AppColors.card,
+                    onSelected: (val) async {
+                      if (val == 'signout') {
+                        await StorageService.clearAuthData();
+                        if (!mounted) return;
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          AppRoutes.login,
+                          (r) => false,
+                        );
+                      } else if (val == 'shipper') {
+                        Navigator.pushNamed(context, AppRoutes.home);
+                      } else if (val == 'driver') {
+                        Navigator.pushNamed(context, AppRoutes.page16DriverHome);
+                      }
+                    },
+                    itemBuilder: (ctx) => [
+                      const PopupMenuItem(
+                        value: 'info',
+                        enabled: false,
+                        child: Text(
+                          'Fleet Owner • Ethio Logistics PLC',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.gold,
+                          ),
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      const PopupMenuItem(
+                        value: 'shipper',
+                        child: Row(
+                          children: [
+                            Icon(Icons.storefront_rounded, size: 16, color: AppColors.gold),
+                            SizedBox(width: 8),
+                            Text('Shipper Dashboard', style: TextStyle(fontSize: 13, color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'driver',
+                        child: Row(
+                          children: [
+                            Icon(Icons.local_shipping_rounded, size: 16, color: Color(0xFF38BDF8)),
+                            SizedBox(width: 8),
+                            Text('Driver Portal', style: TextStyle(fontSize: 13, color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      const PopupMenuItem(
+                        value: 'signout',
+                        child: Row(
+                          children: [
+                            Icon(Icons.logout_rounded, size: 16, color: AppColors.error),
+                            SizedBox(width: 8),
+                            Text('Sign Out', style: TextStyle(fontSize: 13, color: AppColors.error)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(width: 8),
                 ],

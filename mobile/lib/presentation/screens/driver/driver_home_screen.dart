@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/routing/app_routes.dart';
+import 'package:mobile/core/services/storage_service.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -140,10 +142,74 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ),
         ),
         const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: const BoxDecoration(color: gold, shape: BoxShape.circle),
-          child: const Icon(Icons.person, color: Colors.black, size: 20),
+        PopupMenuButton<String>(
+          tooltip: 'Driver Account Options',
+          icon: Container(
+            padding: const EdgeInsets.all(7),
+            decoration: const BoxDecoration(color: gold, shape: BoxShape.circle),
+            child: const Icon(Icons.person, color: Colors.black, size: 18),
+          ),
+          color: cardColor,
+          onSelected: (val) async {
+            if (val == 'signout') {
+              await StorageService.clearAuthData();
+              if (!mounted) return;
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.login,
+                (r) => false,
+              );
+            } else if (val == 'shipper') {
+              Navigator.pushNamed(context, AppRoutes.home);
+            } else if (val == 'fleet') {
+              Navigator.pushNamed(context, AppRoutes.fleetHub);
+            }
+          },
+          itemBuilder: (ctx) => [
+            const PopupMenuItem(
+              value: 'info',
+              enabled: false,
+              child: Text(
+                'Driver • Kebede Tadesse',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: gold,
+                ),
+              ),
+            ),
+            const PopupMenuDivider(),
+            const PopupMenuItem(
+              value: 'shipper',
+              child: Row(
+                children: [
+                  Icon(Icons.storefront_rounded, size: 16, color: gold),
+                  SizedBox(width: 8),
+                  Text('Shipper Dashboard', style: TextStyle(fontSize: 13, color: Colors.white)),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'fleet',
+              child: Row(
+                children: [
+                  Icon(Icons.dashboard_rounded, size: 16, color: Color(0xFF34D399)),
+                  SizedBox(width: 8),
+                  Text('Fleet Command Hub', style: TextStyle(fontSize: 13, color: Colors.white)),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            const PopupMenuItem(
+              value: 'signout',
+              child: Row(
+                children: [
+                  Icon(Icons.logout_rounded, size: 16, color: Colors.redAccent),
+                  SizedBox(width: 8),
+                  Text('Sign Out', style: TextStyle(fontSize: 13, color: Colors.redAccent)),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );

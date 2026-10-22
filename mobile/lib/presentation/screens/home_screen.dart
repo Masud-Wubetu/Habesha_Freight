@@ -249,7 +249,13 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               await StorageService.clearAuthData();
-              if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
+              if (mounted) {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.login,
+                  (r) => false,
+                );
+              }
             },
             child: const Text('Sign Out', style: TextStyle(color: AppColors.error)),
           ),
