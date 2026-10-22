@@ -50,21 +50,31 @@ class DriverBottomNavBar extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        _icons[index],
-                        size: 23,
-                        color: isActive ? _gold : _muted,
+                      TweenAnimationBuilder<Color?>(
+                        tween: ColorTween(
+                          end: isActive ? _gold : _muted,
+                        ),
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeInOut,
+                        builder: (context, color, child) => Transform.scale(
+                          scale: isActive ? 1.08 : 1,
+                          child: Icon(
+                            _icons[index],
+                            size: 23,
+                            color: color,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 5),
-                      Text(
-                        _labels[index],
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeInOut,
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: isActive
-                              ? FontWeight.bold
-                              : FontWeight.normal,
+                          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                           color: isActive ? _gold : _muted,
                         ),
+                        child: Text(_labels[index]),
                       ),
                     ],
                   ),

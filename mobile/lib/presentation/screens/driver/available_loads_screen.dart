@@ -99,14 +99,38 @@ class _AvailableFreightLoadsScreenState
                   children: [
                     _buildFeedStatus(),
                     const SizedBox(height: 10),
-                    const Text(
-                      'Available Loads',
-                      style: TextStyle(
-                        color: _white,
-                        fontSize: 23,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.4,
-                      ),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Available Loads',
+                            style: TextStyle(
+                              color: _white,
+                              fontSize: 23,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _surfaceHigh,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text(
+                            '24 Live',
+                            style: TextStyle(
+                              color: _gold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 3),
                     const Text(
@@ -126,72 +150,79 @@ class _AvailableFreightLoadsScreenState
                     const SizedBox(height: 16),
                     _buildLoadCard(
                       label: 'STANDARD BID',
-                      reference: '#ET-8042',
+                      reference: '#ET-8942',
                       distance: '450 km Expressway',
                       origin: 'Modjo Dry Port',
-                      destination: 'Dire Dawa',
+                      destination: 'Dire Dawa FTZ',
                       routeDescription: '28T Containerized Wheat & Grain',
                       detail: 'Pickup: Tomorrow, 08:30 AM',
+                      cargoNote: 'Since 30T / FAW',
                       category: 'Ethio Agricultural Expo.',
-                      rating: '4.8 (124 trips)',
+                      rating: '4.95 (124 trips)',
+                      statusLabel: 'Telebirr Escrow',
                       price: '65,000',
                       priceCaption: 'Target Budget',
                       trailingCaption: 'Est. Yield',
-                      trailingValue: '114 ETB / km',
+                      trailingValue: '144 ETB / km',
                       actionLabel: 'Place Bid Now',
                       actionIcon: Icons.gavel_rounded,
                       onAction: () =>
-                          _showMessage('Place Bid selected for #ET-8042'),
+                          _showMessage('Place Bid selected for #ET-8942'),
                       secondaryAction: 'Details',
                       onSecondary: () =>
-                          _showMessage('Load details for #ET-8042'),
+                          _showMessage('Load details for #ET-8942'),
                     ),
                     const SizedBox(height: 12),
                     _buildLoadCard(
-                      label: 'EXPRESS LOAD',
-                      reference: '#ET-8051',
-                      distance: '320 km Main Road',
-                      origin: 'Addis Ababa',
-                      destination: 'Hawassa',
-                      routeDescription: '18T Packaged Consumer Goods',
-                      detail: 'Pickup: Today, 02:00 PM',
-                      category: 'Commercial Cargo',
-                      rating: '4.9 (86 trips)',
+                      label: 'INSTANT DISPATCH',
+                      reference: '#ET-7719',
+                      distance: '98 km Rapid Link',
+                      origin: 'Addis (Kaliti)',
+                      destination: 'Adama Hub',
+                      routeDescription: '32T Structural Steel & Rebar',
+                      detail: 'Pickup: Today, 16:00 PM (Urgent)',
+                      cargoNote: 'Flatbed 3-Axle',
+                      category: 'Mugher Cement & Steel',
+                      rating: '4.80 (89 loads)',
+                      statusLabel: 'Funded & Locked',
+                      price: '38,000',
+                      priceCaption: 'Fixed Guaranteed Rate',
+                      trailingCaption: 'Direct Settlement',
+                      trailingValue: 'Immediate on POD',
+                      actionLabel: 'Accept Load Instantly (38,000 ETB)',
+                      actionIcon: Icons.flash_on_rounded,
+                      onAction: () =>
+                          _showMessage('Instant load acceptance selected'),
+                      isInstant: true,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildLoadCard(
+                      label: 'EXPORT GRADE',
+                      reference: '#ET-6204',
+                      distance: '218 km Highway',
+                      origin: 'Hawassa Agro',
+                      destination: 'Modjo Dry Port',
+                      routeDescription: '22T Grade-1 Export Coffee',
+                      detail: 'Pickup: Oct 10, Morning Window',
+                      cargoNote: 'Requires Tarp',
+                      category: 'Sidama Coffee Union',
+                      rating: '4.91 (210 loads)',
+                      statusLabel: '3 Bids Received',
                       price: '42,000',
-                      priceCaption: 'Target Budget',
-                      trailingCaption: 'Est. Yield',
-                      trailingValue: '131 ETB / km',
-                      actionLabel: 'Place Bid Now',
-                      actionIcon: Icons.gavel_rounded,
+                      priceCaption: "Shipper's Baseline",
+                      trailingCaption: 'Market Average',
+                      trailingValue: '192 ETB / km',
+                      actionLabel: 'Submit Bid',
+                      actionIcon: Icons.send_rounded,
                       onAction: () =>
-                          _showMessage('Place Bid selected for #ET-8051'),
-                      secondaryAction: 'Details',
-                      onSecondary: () =>
-                          _showMessage('Load details for #ET-8051'),
+                          _showMessage('Submit Bid selected for #ET-6204'),
+                      secondaryAction: 'Save',
+                      secondaryIcon: Icons.bookmark_border_rounded,
+                      onSecondary: () => _showMessage('Load saved'),
                     ),
                     const SizedBox(height: 12),
-                    _buildLoadCard(
-                      label: 'PRIORITY CARGO',
-                      reference: '#ET-8063',
-                      distance: '520 km Corridor',
-                      origin: 'Adama',
-                      destination: 'Mekelle',
-                      routeDescription: '24T Industrial Materials',
-                      detail: 'Pickup: Tomorrow, 06:00 AM',
-                      category: 'Industrial Shipment',
-                      rating: '4.7 (59 trips)',
-                      price: '78,000',
-                      priceCaption: 'Target Budget',
-                      trailingCaption: 'Est. Yield',
-                      trailingValue: '150 ETB / km',
-                      actionLabel: 'Place Bid Now',
-                      actionIcon: Icons.gavel_rounded,
-                      onAction: () =>
-                          _showMessage('Place Bid selected for #ET-8063'),
-                      secondaryAction: 'Details',
-                      onSecondary: () =>
-                          _showMessage('Load details for #ET-8063'),
-                    ),
+                    _buildAutoBidCard(),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -376,20 +407,24 @@ class _AvailableFreightLoadsScreenState
   }
 
   Widget _buildCorridorFilters() {
-    final corridors = ['All Corridors', 'Addis → Djibouti', 'Modjo →'];
+    final corridors = <MapEntry<String, String>>[
+      const MapEntry('All Corridors', '24'),
+      const MapEntry('Addis → Djibouti', '8'),
+      const MapEntry('Modjo →', '6'),
+    ];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: corridors.map((corridor) {
-          final selected = _selectedCorridor == corridor;
+          final selected = _selectedCorridor == corridor.key;
 
           return Padding(
             padding: const EdgeInsets.only(right: 7),
             child: InkWell(
               onTap: () {
                 setState(() {
-                  _selectedCorridor = corridor;
+                  _selectedCorridor = corridor.key;
                 });
               },
               borderRadius: BorderRadius.circular(20),
@@ -399,19 +434,45 @@ class _AvailableFreightLoadsScreenState
                   vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: selected ? const Color(0xFF5B4218) : _surface,
+                  color: selected ? _gold : _surface,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: selected ? _gold : const Color(0xFF1B3552),
                   ),
                 ),
-                child: Text(
-                  corridor,
-                  style: TextStyle(
-                    color: selected ? _gold : _muted,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      corridor.key,
+                      style: TextStyle(
+                        color: selected ? _background : _muted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? const Color(0xFFD99000)
+                            : _surfaceHigh,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        corridor.value,
+                        style: TextStyle(
+                          color: selected ? _background : _muted,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -480,6 +541,58 @@ class _AvailableFreightLoadsScreenState
     );
   }
 
+  Widget _buildAutoBidCard() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      decoration: BoxDecoration(
+        color: const Color(0xFF09182A),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: _surfaceHigh,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.smart_toy_outlined, color: _gold, size: 18),
+          ),
+          const SizedBox(width: 9),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Auto-Bid Assistant Active',
+                  style: TextStyle(
+                    color: _white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 3),
+                Text(
+                  'Max threshold set to 160 ETB/km',
+                  style: TextStyle(color: _muted, fontSize: 9),
+                ),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: _autoBidEnabled,
+            onChanged: (value) => setState(() => _autoBidEnabled = value),
+            activeThumbColor: _gold,
+            activeTrackColor: const Color(0xFF8A5A00),
+            inactiveThumbColor: _muted,
+            inactiveTrackColor: _surfaceHigh,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLoadCard({
     required String label,
     required String reference,
@@ -497,8 +610,12 @@ class _AvailableFreightLoadsScreenState
     required String actionLabel,
     required IconData actionIcon,
     required VoidCallback onAction,
-    required String secondaryAction,
-    required VoidCallback onSecondary,
+    String? cargoNote,
+    String? statusLabel,
+    bool isInstant = false,
+    String? secondaryAction,
+    IconData secondaryIcon = Icons.visibility_outlined,
+    VoidCallback? onSecondary,
   }) {
     final query = _searchController.text.trim().toLowerCase();
     final searchableText = [
@@ -509,7 +626,9 @@ class _AvailableFreightLoadsScreenState
       destination,
       routeDescription,
       detail,
+      cargoNote ?? '',
       category,
+      statusLabel ?? '',
     ].join(' ').toLowerCase();
 
     if (query.isNotEmpty && !searchableText.contains(query)) {
@@ -517,7 +636,7 @@ class _AvailableFreightLoadsScreenState
     }
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: _surface,
         borderRadius: BorderRadius.circular(14),
@@ -528,191 +647,266 @@ class _AvailableFreightLoadsScreenState
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF5B4218),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: _gold,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF132A44),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isInstant ? _green : _gold,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.3,
+                    ),
                   ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 6),
               Text(
                 reference,
                 style: const TextStyle(
                   color: _muted,
-                  fontSize: 11,
+                  fontSize: 10,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(width: 6),
-              const Icon(Icons.verified_rounded, color: _green, size: 15),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: _RoutePoint(
-                  title: origin,
-                  subtitle: 'PICKUP HUB',
-                  isOrigin: true,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 7),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.arrow_forward_rounded,
-                      color: _gold,
-                      size: 18,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      distance,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: _muted, fontSize: 9),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: _RoutePoint(
-                  title: destination,
-                  subtitle: 'DESTINATION',
-                  isOrigin: false,
+              const Spacer(),
+              const Icon(Icons.location_on_outlined, color: _gold, size: 14),
+              const SizedBox(width: 3),
+              Flexible(
+                child: Text(
+                  distance,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          Text(
-            routeDescription,
-            style: const TextStyle(
-              color: _white,
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+            decoration: const BoxDecoration(color: Color(0xFF122238)),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _RoutePoint(
+                    title: origin,
+                    subtitle: isInstant ? 'PICKUP LOCATION' : 'PICKUP TERMINAL',
+                    isOrigin: true,
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(Icons.arrow_forward_rounded, color: _gold),
+                ),
+                Expanded(
+                  child: _RoutePoint(
+                    title: destination,
+                    subtitle: 'DESTINATION',
+                    isOrigin: false,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              const Icon(Icons.schedule_rounded, color: _muted, size: 13),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  detail,
-                  style: const TextStyle(color: _muted, fontSize: 11),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            width: double.infinity,
+            padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(
               color: _background,
               borderRadius: BorderRadius.circular(9),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.business_rounded, color: _gold, size: 16),
+                Icon(
+                  isInstant
+                      ? Icons.view_week_outlined
+                      : Icons.local_shipping_outlined,
+                  color: isInstant ? _green : _gold,
+                  size: 16,
+                ),
                 const SizedBox(width: 7),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        category,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        routeDescription,
                         style: const TextStyle(
                           color: _white,
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.star_rounded,
-                            color: _gold,
-                            size: 12,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            rating,
-                            style: const TextStyle(color: _muted, fontSize: 10),
-                          ),
-                        ],
+                      Text(
+                        detail,
+                        style: TextStyle(
+                          color: isInstant ? _green : _muted,
+                          fontSize: 10,
+                        ),
                       ),
                     ],
                   ),
                 ),
+                if (cargoNote != null) ...[
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 66,
+                    child: Text(
+                      cargoNote,
+                      style: const TextStyle(color: _muted, fontSize: 9),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 9),
           Row(
             children: [
+              CircleAvatar(
+                radius: 11,
+                backgroundColor: _surfaceHigh,
+                child: Text(
+                  category.trim().substring(0, 1).toUpperCase(),
+                  style: const TextStyle(
+                    color: _gold,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
               Expanded(
-                child: _PriceMetric(caption: priceCaption, value: '$price ETB'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      category,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: _white, fontSize: 10),
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: _gold, size: 11),
+                        const SizedBox(width: 3),
+                        Text(
+                          rating,
+                          style: const TextStyle(color: _muted, fontSize: 9),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (statusLabel != null) ...[
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0D393A),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      statusLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isInstant ? _green : const Color(0xFF54D9C4),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: _PriceMetric(
+                  caption: priceCaption,
+                  value: '$price ETB',
+                  valueColor: isInstant ? _green : _gold,
+                ),
               ),
               Expanded(
                 child: _PriceMetric(
                   caption: trailingCaption,
                   value: trailingValue,
+                  alignEnd: true,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: _primaryButton(
-                  label: actionLabel,
-                  icon: actionIcon,
-                  onPressed: onAction,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 2,
-                child: OutlinedButton(
-                  onPressed: onSecondary,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: _white,
-                    side: const BorderSide(color: _border),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                  ),
-                  child: Text(
-                    secondaryAction,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
+          const SizedBox(height: 10),
+          if (secondaryAction != null && onSecondary != null)
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: OutlinedButton.icon(
+                    onPressed: onSecondary,
+                    icon: Icon(secondaryIcon, size: 15),
+                    label: Text(secondaryAction),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: _surfaceHigh,
+                      foregroundColor: _white,
+                      side: BorderSide.none,
+                      padding: const EdgeInsets.symmetric(vertical: 11),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(9),
+                      ),
                     ),
                   ),
                 ),
+                const SizedBox(width: 7),
+                Expanded(
+                  flex: 3,
+                  child: _primaryButton(
+                    label: actionLabel,
+                    icon: actionIcon,
+                    onPressed: onAction,
+                  ),
+                ),
+              ],
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: _primaryButton(
+                label: actionLabel,
+                icon: actionIcon,
+                onPressed: onAction,
+                isInstant: isInstant,
               ),
-            ],
-          ),
+            ),
         ],
       ),
     );
@@ -722,13 +916,14 @@ class _AvailableFreightLoadsScreenState
     required String label,
     required IconData icon,
     required VoidCallback onPressed,
+    bool isInstant = false,
   }) {
     return ElevatedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 16),
       label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
       style: ElevatedButton.styleFrom(
-        backgroundColor: _gold,
+        backgroundColor: isInstant ? _green : _gold,
         foregroundColor: _background,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         elevation: 0,
@@ -834,7 +1029,7 @@ class _RoutePoint extends StatelessWidget {
           subtitle,
           style: const TextStyle(
             color: Colors.white54,
-            fontSize: 8,
+            fontSize: 9,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.5,
           ),
@@ -847,7 +1042,7 @@ class _RoutePoint extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 13,
+            fontSize: 14,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -857,28 +1052,39 @@ class _RoutePoint extends StatelessWidget {
 }
 
 class _PriceMetric extends StatelessWidget {
-  const _PriceMetric({required this.caption, required this.value});
+  const _PriceMetric({
+    required this.caption,
+    required this.value,
+    this.alignEnd = false,
+    this.valueColor = _PriceMetric.whiteColor,
+  });
 
   final String caption;
   final String value;
+  final bool alignEnd;
+  final Color valueColor;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: alignEnd
+          ? CrossAxisAlignment.end
+          : CrossAxisAlignment.start,
       children: [
         Text(
           caption,
-          style: const TextStyle(color: _PriceMetric.mutedColor, fontSize: 10),
+          textAlign: alignEnd ? TextAlign.end : TextAlign.start,
+          style: const TextStyle(color: _PriceMetric.mutedColor, fontSize: 9),
         ),
         const SizedBox(height: 4),
         Text(
           value,
+          textAlign: alignEnd ? TextAlign.end : TextAlign.start,
           style: const TextStyle(
             color: _PriceMetric.whiteColor,
             fontSize: 15,
             fontWeight: FontWeight.w800,
-          ),
+          ).copyWith(color: valueColor),
         ),
       ],
     );

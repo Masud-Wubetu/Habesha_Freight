@@ -26,8 +26,29 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       case 0: // Load
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => const AvailableFreightLoadsScreen(),
+          PageRouteBuilder<void>(
+            transitionDuration: const Duration(milliseconds: 280),
+            reverseTransitionDuration: const Duration(milliseconds: 240),
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const AvailableFreightLoadsScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+                  final curvedAnimation = CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                    reverseCurve: Curves.easeInCubic,
+                  );
+                  return FadeTransition(
+                    opacity: curvedAnimation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.04, 0),
+                        end: Offset.zero,
+                      ).animate(curvedAnimation),
+                      child: child,
+                    ),
+                  );
+                },
           ),
         );
         break;
