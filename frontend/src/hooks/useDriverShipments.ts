@@ -1,6 +1,6 @@
 /**
  * useDriverShipments – fetches active/past shipments for the logged-in driver.
- * Backend endpoint: GET /api/driver/shipments
+ * Backend endpoint: GET /api/drivers/shipments
  */
 import { useEffect, useState, useCallback } from 'react';
 import { get } from '../services/api';
@@ -37,7 +37,7 @@ export function useDriverShipments() {
     setLoading(true);
     setError(null);
     try {
-      const data = await get<DriverShipment[]>('/driver/shipments');
+      const data = await get<DriverShipment[]>('/drivers/shipments');
       const list = Array.isArray(data) ? data : (data as any)?.data ?? [];
       setShipments(list);
     } catch (e: any) {
