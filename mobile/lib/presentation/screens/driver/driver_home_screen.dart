@@ -64,7 +64,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         alignment: Alignment.topCenter,
         children: [
           _buildBottomNavBar(),
-          Positioned(top: -24, child: _buildCustomFAB()),
+          Positioned(top: -10, child: _buildCustomFAB()),
         ],
       ),
     );
@@ -1163,7 +1163,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             child: const Icon(Icons.add, size: 30, color: Colors.black),
           ),
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: 8),
         const Text(
           'Post Load',
           style: TextStyle(
@@ -1176,5 +1176,3 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 }
-
-// Use your project's existing main.dart to launch the app.
