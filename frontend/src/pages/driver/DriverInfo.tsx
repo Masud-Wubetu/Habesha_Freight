@@ -40,7 +40,7 @@ const DriverInfo: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await get<any>('/driver/profile');
+      const res = await get<any>('/drivers/profile');
       const data = res?.data ?? res;
       setProfile(data);
     } catch (err: any) {
