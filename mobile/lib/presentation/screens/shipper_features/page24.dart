@@ -534,5 +534,7 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
   }
 }
 
-// Aliases for page 24 semantic naming
+// Aliases for page 08 / 24 semantic naming
+typedef Page08Screen = MyShipmentsScreen;
+typedef Page8Screen = MyShipmentsScreen;
 typedef Page24Screen = MyShipmentsScreen;

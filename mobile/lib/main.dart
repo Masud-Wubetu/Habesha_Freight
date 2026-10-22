@@ -56,6 +56,7 @@ class HabeshaFreightApp extends StatelessWidget {
         AppRoutes.page05EscrowVault: (_) => const ShipperEscrowVaultScreen(),
         AppRoutes.page06ShipperHub: (_) => const ShipperActiveHubScreen(),
         AppRoutes.page07PostCargo: (_) => const PostCargoRequestScreen(),
+        AppRoutes.page08MyShipments: (_) => const MyShipmentsScreen(),
         AppRoutes.page23PostCargo: (_) => const PostCargoRequestScreen(),
         AppRoutes.page24MyShipments: (_) => const MyShipmentsScreen(),
         AppRoutes.home: (_) => const HomeScreen(),

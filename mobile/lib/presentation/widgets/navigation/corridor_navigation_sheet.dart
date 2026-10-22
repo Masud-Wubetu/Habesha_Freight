@@ -211,6 +211,16 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'My Shipments & Active Fleet Telemetry',
+                  subtitle:
+                      'Real-time GPS corridor tracking & cargo negotiation hub',
+                  badge: 'Page 08',
+                  icon: Icons.local_shipping_rounded,
+                  route: AppRoutes.page08MyShipments,
+                  color: const Color(0xFF38BDF8),
+                ),
+                _navTile(
+                  context,
                   title: 'Submit Freight Bid Screen',
                   subtitle:
                       'Dynamic corridor bidding, gate slots, and tariff rates',
@@ -224,7 +234,7 @@ class CorridorNavigationSheet extends StatelessWidget {
                   title: 'My Shipments & Active Telemetry',
                   subtitle:
                       'Real-time GPS corridor tracking & cargo negotiation hub',
-                  badge: 'Page 24',
+                  badge: 'Page 08 / 24',
                   icon: Icons.local_shipping_rounded,
                   route: AppRoutes.page24MyShipments,
                   color: const Color(0xFF38BDF8),

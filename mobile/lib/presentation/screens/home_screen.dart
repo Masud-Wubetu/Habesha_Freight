@@ -195,6 +195,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.post_add_rounded, color: AppColors.gold, size: 20),
+              title: const Text('Post Cargo Request (Page 07 / 23)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page07PostCargo);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.local_shipping_rounded, color: Color(0xFF38BDF8), size: 20),
+              title: const Text('My Shipments & Active Fleet (Page 08 / 24)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page08MyShipments);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.grid_view_rounded, color: AppColors.gold, size: 20),
               title: const Text('All 16 Corridor Modules Catalog', style: TextStyle(color: Colors.white, fontSize: 13)),
               onTap: () {

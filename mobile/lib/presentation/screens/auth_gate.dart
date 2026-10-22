@@ -253,9 +253,9 @@ class _AuthGateState extends State<AuthGate> {
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.page24MyShipments),
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page08MyShipments),
                 icon: const Icon(Icons.local_shipping_rounded, color: Color(0xFF38BDF8)),
-                label: const Text('My Shipments & Telemetry (Page 24)'),
+                label: const Text('My Shipments & Telemetry Hub (Page 08 / 24)'),
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
