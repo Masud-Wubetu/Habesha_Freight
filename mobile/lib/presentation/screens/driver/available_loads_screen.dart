@@ -121,6 +121,8 @@ class _AvailableFreightLoadsScreenState
                     _buildSearchField(),
                     const SizedBox(height: 10),
                     _buildCorridorFilters(),
+                    const SizedBox(height: 12),
+                    _buildTelemetryCard(),
                   ],
                 ),
               ),
@@ -286,17 +288,11 @@ class _AvailableFreightLoadsScreenState
           Expanded(
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(
-                color: _white,
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: _white, fontSize: 12),
               cursorColor: _gold,
               decoration: const InputDecoration(
                 hintText: 'Cargo, pickup hub, or tonnage...',
-                hintStyle: TextStyle(
-                  color: _muted,
-                  fontSize: 12,
-                ),
+                hintStyle: TextStyle(color: _muted, fontSize: 12),
                 border: InputBorder.none,
                 isDense: true,
               ),
@@ -373,6 +369,68 @@ class _AvailableFreightLoadsScreenState
       ),
     );
   }
+
+  Widget _buildTelemetryCard() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF152B45)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.alt_route_rounded, color: _gold, size: 15),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  'Toll Corridor Telemetry',
+                  style: TextStyle(
+                    color: _white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const Text(
+                'AI Expressway Clear',
+                style: TextStyle(
+                  color: _green,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 7),
+          const Row(
+            children: [
+              Expanded(
+                child: _TelemetryMetric(
+                  label: 'Average Diesel',
+                  value: '78.4 ETB/L',
+                ),
+              ),
+              Expanded(
+                child: _TelemetryMetric(
+                  label: 'Modjo Gate Wait',
+                  value: '12 min',
+                ),
+              ),
+              Expanded(
+                child: _TelemetryMetric(
+                  label: 'Toll Passes',
+                  value: 'Active',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _StatusPill extends StatelessWidget {
@@ -389,10 +447,7 @@ class _StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: const Color(0xFF0D2033),
         borderRadius: BorderRadius.circular(20),
@@ -414,6 +469,45 @@ class _StatusPill extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TelemetryMetric extends StatelessWidget {
+  const _TelemetryMetric({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 9,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }
