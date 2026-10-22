@@ -513,7 +513,7 @@ class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
           } else if (idx == 2) {
             Navigator.pushNamed(context, AppRoutes.page23PostCargo);
           } else if (idx == 3) {
-            Navigator.pushNamed(context, AppRoutes.page05EscrowVault);
+            Navigator.pushNamed(context, AppRoutes.page08ReviewBids);
           } else if (idx != 0) {
             Navigator.pushReplacementNamed(context, AppRoutes.home);
           }

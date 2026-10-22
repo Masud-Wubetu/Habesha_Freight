@@ -282,7 +282,7 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
   }
 
   void _handleReviewBids(CorridorShipmentItem item) {
-    Navigator.pushNamed(context, AppRoutes.page20SubmitBid);
+    Navigator.pushNamed(context, AppRoutes.page08ReviewBids);
   }
 
   void _handleManifestPass(CorridorShipmentItem item) {
@@ -475,7 +475,7 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
           } else if (idx == 2) {
             Navigator.pushNamed(context, AppRoutes.page23PostCargo);
           } else if (idx == 3) {
-            Navigator.pushNamed(context, AppRoutes.page20SubmitBid);
+            Navigator.pushNamed(context, AppRoutes.page08ReviewBids);
           } else if (idx == 4) {
             Navigator.pushNamed(context, AppRoutes.page06ShipperHub);
           }
