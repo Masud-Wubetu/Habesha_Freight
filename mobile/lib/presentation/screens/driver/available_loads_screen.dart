@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
 
 class AvailableFreightLoadsScreen extends StatefulWidget {
@@ -53,16 +54,14 @@ class _AvailableFreightLoadsScreenState
         if (widget.onNavigate != null) {
           widget.onNavigate!.call('offer');
         } else {
-          _showMessage('Offer screen is not connected yet');
+          Navigator.pushNamed(context, AppRoutes.page18DirectOffers);
         }
         break;
       case 2:
-        if (Navigator.canPop(context)) {
-          Navigator.pop(context);
-        } else if (widget.onNavigate != null) {
+        if (widget.onNavigate != null) {
           widget.onNavigate!.call('home');
         } else {
-          _showMessage('Home screen navigation is not connected yet');
+          Navigator.pushNamed(context, AppRoutes.page16DriverHome);
         }
         break;
       case 3:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/presentation/screens/driver/available_loads_screen.dart';
 import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
 
@@ -53,9 +54,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         );
         break;
       case 1: // Offer
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Offer screen is not connected yet.')),
-        );
+        Navigator.pushNamed(context, AppRoutes.page18DirectOffers);
         break;
       case 2: // Home
         break;
