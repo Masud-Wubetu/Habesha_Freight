@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { useCompanyData } from '../../hooks/useCompanyData';
 
 export default function CompanyDashboard() {
-  const { companyName, vehicles, requests, stats, loading, refresh } = useCompanyData();
+  const { companyName, vehicles, requests, stats, loading, refresh, updateRequestStatus } =
+    useCompanyData();
 
   const totalFleetSize = vehicles.length;
   const availableTrucks = vehicles.filter((v) => v.status === 'AVAILABLE' || v.status === 'Available').length;
@@ -120,7 +121,9 @@ export default function CompanyDashboard() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => {
-                          // Placeholder – real API call would go here
+                          void updateRequestStatus(req.id, 'Accepted').catch((e) =>
+                            alert(e?.message || 'Accept failed'),
+                          );
                         }}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1 rounded-lg text-xs"
                       >
@@ -128,7 +131,9 @@ export default function CompanyDashboard() {
                       </button>
                       <button
                         onClick={() => {
-                          // Placeholder – real API call would go here
+                          void updateRequestStatus(req.id, 'Declined').catch((e) =>
+                            alert(e?.message || 'Decline failed'),
+                          );
                         }}
                         className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-3 py-1 rounded-lg text-xs"
                       >
