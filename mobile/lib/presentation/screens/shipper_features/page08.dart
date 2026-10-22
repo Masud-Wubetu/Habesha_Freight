@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/corridor_bid_item.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
+import '../../widgets/review_bids/active_tender_summary_card.dart';
 import '../../widgets/review_bids/review_bids_header.dart';
 
 class ReviewBidsScreen extends StatefulWidget {
@@ -137,20 +138,14 @@ class _ReviewBidsScreenState extends State<ReviewBidsScreen> {
               const SizedBox(height: 16),
 
               // Placeholder for Tender Summary Card and Bid Cards (Micro-tasks 2, 3, 4)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F1A2D),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF1E293B)),
-                ),
-                child: Center(
-                  child: Text(
-                    'Corridor Tender & Active Bids Loading...',
-                    style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 13),
-                  ),
-                ),
+              ActiveTenderSummaryCard(
+                origin: 'Addis Ababa',
+                destination: 'Dire Dawa',
+                cargoSpec: '28 MT Dry Bulk (Teff & Grain)',
+                distanceKm: 452,
+                bidsCount: _bids.length,
               ),
+              const SizedBox(height: 16),
 
               const SizedBox(height: 100),
             ],
