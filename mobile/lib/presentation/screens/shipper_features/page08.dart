@@ -7,6 +7,8 @@ import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/review_bids/active_tender_summary_card.dart';
 import '../../widgets/review_bids/top_match_bid_card.dart';
+import '../../widgets/review_bids/standard_bid_card.dart';
+import '../../widgets/review_bids/broadcast_tender_card.dart';
 import '../../widgets/review_bids/review_bids_header.dart';
 
 class ReviewBidsScreen extends StatefulWidget {
@@ -161,6 +163,36 @@ class _ReviewBidsScreenState extends State<ReviewBidsScreen> {
                     });
                   },
                 ),
+              const SizedBox(height: 16),
+
+              // Cards 2 & 3: Standard Bid Cards (Lowest Fare & High Capacity)
+              ..._bids.where((b) => !b.isTopMatch).map(
+                    (bid) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: StandardBidCard(
+                        item: bid,
+                        onCounterOfferSubmitted: (counterAmt) {
+                          setState(() {
+                            _bids = _bids
+                                .map((b) => b.id == bid.id
+                                    ? b.copyWith(counterOfferEtb: counterAmt)
+                                    : b)
+                                .toList();
+                          });
+                        },
+                        onAcceptTap: () {
+                          setState(() {
+                            _bids = _bids
+                                .map((b) => b.id == bid.id ? b.copyWith(isAccepted: true) : b)
+                                .toList();
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+
+              // Expansion Banner: Need More Competitive Rates? Broadcast
+              const BroadcastTenderCard(availableTrucksCount: 45),
               const SizedBox(height: 16),
 
               const SizedBox(height: 100),
