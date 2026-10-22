@@ -4,6 +4,7 @@ import {
   clearSession,
   getStoredToken,
   getStoredUser,
+  logoutUser,
   persistSession,
 } from '../services/authService';
 import type { AuthUser } from '../types/person2';
@@ -106,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    void logoutUser().catch(() => undefined);
     clearSession();
     setToken(null);
     setUser(null);
