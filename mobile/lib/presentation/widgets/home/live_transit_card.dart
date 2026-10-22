@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 
 class LiveTransitCard extends StatelessWidget {
@@ -24,10 +25,46 @@ class LiveTransitCard extends StatelessWidget {
         ),
       ]),
       const SizedBox(height: 8),
-      Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.cardBorder)),
-        child: hasShipment ? _shipmentDetails(activeShipment!) : _emptyState(),
+      InkWell(
+        onTap: () => Navigator.pushNamed(context, AppRoutes.page28RigTelemetry),
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: hasShipment
+                  ? AppColors.gold.withValues(alpha: 0.5)
+                  : AppColors.cardBorder,
+            ),
+          ),
+          child: Column(
+            children: [
+              hasShipment ? _shipmentDetails(activeShipment!) : _emptyState(),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    'Open Full Telemetry & CAN-bus',
+                    style: GoogleFonts.inter(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.gold,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 12,
+                    color: AppColors.gold,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     ]);
   }

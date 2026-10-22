@@ -1,7 +1,33 @@
 class AppRoutes {
   static const login = '/login';
+  static const register = '/register';
+  static const page04VerifyOtp = '/auth/verify-otp';
+  static const page05EscrowVault = '/shipper/escrow';
+  static const page06ShipperHub = '/shipper/active-hub';
+  static const page07PostCargo = '/shipper/post-cargo';
+  static const page08MyShipments = '/shipper/shipments';
+  static const page09ReviewBids = '/shipper/review-bids';
+  static const page08ReviewBids = page09ReviewBids;
+  static const page23PostCargo = '/shipper/post-cargo-wizard';
+  static const page24MyShipments = '/shipper/my-shipments';
+  static const home = '/home';
   static const fleetHub = '/fleet';
+  static const page20SubmitBid = '/shipper/bid';
+  static const page21EscrowVault = '/shipper/escrow-vault';
 
+static const String shipperHome = '/shipper/home';
+static const String page11FreightHistory = '/shipper/history';
+static const String page12PreferredFleet = '/shipper/preferred-fleet';
+static const String page13EscrowInvoices = '/shipper/escrow-invoices';
+static const String page14CompanyProfile = '/shipper/company-profile';
+static const String page15RateDriver = '/shipper/rate-driver';
+
+  static const String page16DriverHome = '/driver/home';
+  static const String page17AvailableLoads = '/driver/loads';
+  static const String page18DirectOffers = '/driver/offers';
+  static const String page19RequestDetails = '/driver/request';
+  static const String shipperHub = '/shipper';
+  static const String driverHub = '/driver';
   // Phase 5 — Fleet Enterprise (27–34)
   static const page27FleetCommand = '/fleet/command';
   static const page28RigTelemetry = '/fleet/rigs';

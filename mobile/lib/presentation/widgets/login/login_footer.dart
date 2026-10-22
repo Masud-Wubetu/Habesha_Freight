@@ -13,7 +13,7 @@ class LoginFooter extends StatelessWidget {
       Wrap(alignment: WrapAlignment.center, children: [
         Text("Don't have an account? ", style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
         GestureDetector(
-          onTap: () => onShowInfo('Registration', 'Register as Driver, Fleet Carrier, or Cargo Shipper via ETA regulatory portal.'),
+          onTap: () => Navigator.pushNamed(context, '/register'),
           child: Text('Register Now', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.gold, decoration: TextDecoration.underline)),
         ),
       ]),

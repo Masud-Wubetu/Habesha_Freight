@@ -4,8 +4,11 @@ import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/auth_service.dart';
 import 'package:mobile/core/services/storage_service.dart';
 import 'package:mobile/core/theme/app_colors.dart';
+import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/presentation/screens/fleet/fleet_shell_screen.dart';
 import 'package:mobile/presentation/screens/login_screen.dart';
+import 'package:mobile/presentation/widgets/navigation/corridor_navigation_sheet.dart';
+import 'package:mobile/presentation/screens/shipper/shipper_shell_screen.dart';
 
 /// Boots into fleet shell when a session exists; otherwise login.
 class AuthGate extends StatefulWidget {
@@ -88,6 +91,12 @@ class _AuthGateState extends State<AuthGate> {
     });
   }
 
+  void _openShipperDemo() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ShipperShellScreen()));
+  }
+
   Future<void> _demoFleetLogin() async {
     setState(() {
       _loading = true;
@@ -109,9 +118,9 @@ class _AuthGateState extends State<AuthGate> {
         _loading = false;
         _status = res.message;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(res.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(res.message)));
     }
   }
 
@@ -128,7 +137,9 @@ class _AuthGateState extends State<AuthGate> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const CircularProgressIndicator(color: AppColors.primaryContainer),
+              const CircularProgressIndicator(
+                color: AppColors.primaryContainer,
+              ),
               const SizedBox(height: 16),
               Text(
                 _status ?? 'Loading…',
@@ -143,12 +154,12 @@ class _AuthGateState extends State<AuthGate> {
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Spacer(),
+              const SizedBox(height: 20),
               Icon(
                 Icons.local_shipping,
                 size: 48,
@@ -177,23 +188,86 @@ class _AuthGateState extends State<AuthGate> {
                   Icon(
                     _backendUp ? Icons.cloud_done : Icons.cloud_off,
                     size: 16,
-                    color: _backendUp ? AppColors.secondary : AppColors.errorStrong,
+                    color: _backendUp
+                        ? AppColors.secondary
+                        : AppColors.errorStrong,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     _backendUp ? 'API online' : 'API offline',
                     style: TextStyle(
-                      color: _backendUp ? AppColors.secondary : AppColors.errorStrong,
+                      color: _backendUp
+                          ? AppColors.secondary
+                          : AppColors.errorStrong,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: _backendUp ? _demoFleetLogin : null,
-                child: const Text('Continue as Fleet Owner (demo)'),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _backendUp ? _demoFleetLogin : () => setState(() => _authenticated = true),
+                icon: const Icon(Icons.dashboard_rounded),
+                label: const Text('Fleet Command Hub (Pages 27–34)'),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.home),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.surfaceHigh,
+                  foregroundColor: AppColors.gold,
+                ),
+                icon: const Icon(Icons.local_shipping_outlined),
+                label: const Text('Shipper Dashboard & Loads'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _openShipperDemo,
+                icon: const Icon(Icons.business_center_rounded, color: AppColors.gold),
+                label: const Text('Shipper Enterprise Portal (Pages 11–15)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.register),
+                icon: const Icon(Icons.app_registration_rounded),
+                label: const Text('Multi-Role Registration (Page 03)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page05EscrowVault),
+                icon: const Icon(Icons.shield_rounded, color: AppColors.gold),
+                label: const Text('Shipper Escrow & Settlement (Page 05)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page06ShipperHub),
+                icon: const Icon(Icons.dashboard_rounded, color: Color(0xFF38BDF8)),
+                label: const Text('Shipper Active Hub & Ops (Page 06)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page23PostCargo),
+                icon: const Icon(Icons.post_add_rounded, color: AppColors.gold),
+                label: const Text('Post Cargo Request Wizard (Page 23 / 07)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page08MyShipments),
+                icon: const Icon(Icons.local_shipping_rounded, color: Color(0xFF38BDF8)),
+                label: const Text('My Shipments & Telemetry Hub (Page 08)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page09ReviewBids),
+                icon: const Icon(Icons.gavel_rounded, color: AppColors.gold),
+                label: const Text('Review Cargo Bids & Live Auction (Page 09)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => CorridorNavigationSheet.show(context),
+                icon: const Icon(Icons.grid_view_rounded),
+                label: const Text('Explore All 16 Corridor Modules'),
               ),
               const SizedBox(height: 10),
               OutlinedButton(

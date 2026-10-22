@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/escrow_service.dart';
 import 'package:mobile/core/theme/app_colors.dart';
+import 'package:mobile/presentation/widgets/navigation/corridor_navigation_sheet.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
 
@@ -457,6 +459,18 @@ class _EscrowBatchScreenState extends State<EscrowBatchScreen> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
+          ),
+          IconButton(
+            onPressed: () => CorridorNavigationSheet.show(context),
+            icon: const Icon(Icons.grid_view_rounded, size: 20),
+            color: AppColors.primaryContainer,
+            tooltip: 'All Corridor Modules',
+          ),
+          IconButton(
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.home),
+            icon: const Icon(Icons.storefront_outlined, size: 20),
+            color: AppColors.onSurfaceVariant,
+            tooltip: 'Shipper Portal',
           ),
           IconButton(
             onPressed: _load,

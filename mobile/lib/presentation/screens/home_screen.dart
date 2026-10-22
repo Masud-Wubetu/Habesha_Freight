@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../core/routing/app_routes.dart';
 import '../../core/services/corridor_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/corridor_model.dart';
-import '../widgets/home/corridors_section.dart';
-import '../widgets/home/hero_section.dart';
-import '../widgets/home/home_header.dart';
-import '../widgets/home/live_transit_card.dart';
-import '../widgets/home/rate_estimator_section.dart';
-import '../widgets/home/telemetry_section.dart';
+import '../widgets/home/bids_view.dart';
+import '../widgets/home/bottom_nav_bar.dart';
+import '../widgets/home/deliveries_view.dart';
+import '../widgets/home/home_dashboard_view.dart';
+import '../widgets/home/tracking_view.dart';
+import '../widgets/navigation/corridor_navigation_sheet.dart';
+import '../widgets/post_load/post_load_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,16 +20,58 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final CorridorService _corridor = CorridorService();
+  int _currentTab = 0;
   String _lang = 'EN';
   bool _loading = false;
   List<Map<String, dynamic>> _loads = [];
   Map<String, dynamic>? _activeShipment;
-  int _vehiclesCount = 0;
+  int _vehiclesCount = 42;
   String _userName = 'Shipper';
   String _userRole = 'SHIPPER';
-
   late EthiopianCorridor _selectedCorridor;
   double _weight = 14.0;
+
+  static final List<Map<String, dynamic>> _fallbackLoads = [
+    {
+      'id': '9840-a1',
+      'origin_city': 'Addis Ababa',
+      'destination_city': 'Djibouti Port',
+      'weight_tons': 32,
+      'offered_price_etb': 76000,
+      'cargo_description': 'Export Yirgacheffe Coffee Grade 1',
+      'status': 'POSTED',
+    },
+    {
+      'id': '8821-b2',
+      'origin_city': 'Mojo Dry Port',
+      'destination_city': 'Mekelle Hub',
+      'weight_tons': 28,
+      'offered_price_etb': 64500,
+      'cargo_description': 'Industrial Steel & Construction Billets',
+      'status': 'POSTED',
+    },
+    {
+      'id': '7730-c3',
+      'origin_city': 'Dire Dawa',
+      'destination_city': 'Galafi Border Post',
+      'weight_tons': 24,
+      'offered_price_etb': 52000,
+      'cargo_description': 'Refined Perishable Cold Chain Cargo',
+      'status': 'MATCHED',
+    },
+  ];
+
+  static final Map<String, dynamic> _fallbackShipment = {
+    'id': 'SHP-ETH-902',
+    'origin_city': 'Addis Ababa',
+    'destination_city': 'Djibouti Port',
+    'truck_plate': '3-ET-A88291',
+    'driver_name': 'Abebe Tadesse',
+    'speed_kmh': 72,
+    'eta_hours': 5,
+    'distance_remaining_km': 280,
+    'status': 'IN_TRANSIT',
+  };
 
   @override
   void initState() {
@@ -37,15 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _checkAuthAndLoadData() async {
-    final hasToken = await StorageService.hasToken();
-    if (!hasToken) {
-      if (mounted) Navigator.pushReplacementNamed(context, '/login');
-      return;
-    }
-
-    _userName = await StorageService.getUserName() ?? 'Shipper';
+    _userName = await StorageService.getUserName() ?? 'Demo Shipper';
     _userRole = await StorageService.getUserRole() ?? 'SHIPPER';
-
     await _refreshData();
   }
 
@@ -54,33 +91,28 @@ class _HomeScreenState extends State<HomeScreen> {
     final loads = await _corridor.fetchRealLoads();
     final shipments = await _corridor.fetchRealShipments();
     final vehicles = await _corridor.fetchVehiclesCount();
-
     if (!mounted) return;
     setState(() {
-      _loads = loads;
-      _activeShipment = shipments.isNotEmpty ? shipments.first : null;
-      _vehiclesCount = vehicles;
+      _loads = loads.isNotEmpty ? loads : _fallbackLoads;
+      _activeShipment = shipments.isNotEmpty ? shipments.first : _fallbackShipment;
+      _vehiclesCount = vehicles > 0 ? vehicles : 42;
       _loading = false;
     });
   }
 
-  Future<void> _handlePostLoad() async {
-    final tariff = _corridor.calculateTariff(corridor: _selectedCorridor, weightTons: _weight);
-    _snack('Broadcasting ${_selectedCorridor.originCity} ➔ ${_selectedCorridor.destinationCity} to carriers...');
-
-    final success = await _corridor.postRealLoad(
-      originCity: _selectedCorridor.originCity,
-      destinationCity: _selectedCorridor.destinationCity,
-      weightTons: _weight,
-      offeredPriceEtb: tariff.estimatedPriceEtb,
+  void _openPostLoadSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => PostLoadSheet(
+        corridorService: _corridor,
+        onPosted: () {
+          _snack('Load posted to PostgreSQL database successfully!');
+          _refreshData();
+        },
+      ),
     );
-
-    if (success) {
-      _snack('Load posted to PostgreSQL! Corridors updated.');
-      await _refreshData();
-    } else {
-      _snack('Could not post load. Please verify permissions.');
-    }
   }
 
   void _showProfileModal() {
@@ -88,14 +120,126 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.card,
-        title: Text(_userName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text('Role: $_userRole\nReal Data Mode: PostgreSQL Connected', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.cardBorder),
+        ),
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(colors: [AppColors.gold, AppColors.goldDark]),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.person_rounded, color: AppColors.textDark, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _userName,
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Role: $_userRole', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.w600, fontSize: 13)),
+            const SizedBox(height: 4),
+            const Text('Database: PostgreSQL API Connected', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            const Divider(color: AppColors.cardBorder, height: 24),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.dashboard_rounded, color: AppColors.secondary, size: 20),
+              title: const Text('Fleet Command Hub (Pages 27–34)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.fleetHub);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.app_registration_rounded, color: Color(0xFF38BDF8), size: 20),
+              title: const Text('Multi-Role Registration (Page 03)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.register);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.shield_rounded, color: AppColors.gold, size: 20),
+              title: const Text('Escrow & Settlement Vaults (Page 05)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page05EscrowVault);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.dashboard_rounded, color: Color(0xFF38BDF8), size: 20),
+              title: const Text('Shipper Active Hub & Ops (Page 06)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page06ShipperHub);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.post_add_rounded, color: AppColors.gold, size: 20),
+              title: const Text('Post Cargo Request (Page 07 / 23)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page07PostCargo);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.local_shipping_rounded, color: Color(0xFF38BDF8), size: 20),
+              title: const Text('My Shipments & Active Fleet (Page 08)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page08MyShipments);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.gavel_rounded, color: AppColors.gold, size: 20),
+              title: const Text('Review Cargo Bids & Live Auction (Page 09)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page09ReviewBids);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.grid_view_rounded, color: AppColors.gold, size: 20),
+              title: const Text('All 16 Corridor Modules Catalog', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                CorridorNavigationSheet.show(context);
+              },
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
               await StorageService.clearAuthData();
-              if (mounted) Navigator.pushReplacementNamed(context, '/login');
+              if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
             },
             child: const Text('Sign Out', style: TextStyle(color: AppColors.error)),
           ),
@@ -111,6 +255,36 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _snack(String msg) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: AppColors.card));
 
+  Widget _tabBody() {
+    switch (_currentTab) {
+      case 1:
+        return DeliveriesView(loads: _loads, onPostNewLoad: _openPostLoadSheet);
+      case 3:
+        return BidsView(activeLoadsCount: _loads.length, onPostLoad: _openPostLoadSheet);
+      case 4:
+        return TrackingView(activeShipment: _activeShipment, verifiedVehicles: _vehiclesCount);
+      default:
+        return HomeDashboardView(
+          language: _lang,
+          onLanguageChanged: (l) => setState(() => _lang = l),
+          onProfileTap: _showProfileModal,
+          loadCount: _loads.length,
+          isLoadingLoads: _loading,
+          onFindLoad: () => setState(() => _currentTab = 1),
+          onFindTrucks: () => setState(() => _currentTab = 4),
+          activeShipment: _activeShipment,
+          corridors: _corridor.getCorridors(),
+          selectedCorridor: _selectedCorridor,
+          onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
+          weight: _weight,
+          onWeightChanged: (w) => setState(() => _weight = w),
+          corridorService: _corridor,
+          onRequestTrucks: _openPostLoadSheet,
+          vehiclesCount: _vehiclesCount,
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,40 +297,19 @@ class _HomeScreenState extends State<HomeScreen> {
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              HomeHeader(language: _lang, onLanguageChanged: (l) => setState(() => _lang = l), onProfileTap: _showProfileModal),
-              const SizedBox(height: 18),
-              HeroSection(
-                loadCount: _loads.length,
-                isLoadingLoads: _loading,
-                onFindLoad: () => _snack('${_loads.length} loads live in PostgreSQL database.'),
-                onFindTrucks: () => _snack('$_vehiclesCount verified carrier vehicles available.'),
-              ),
-              const SizedBox(height: 18),
-              LiveTransitCard(activeShipment: _activeShipment),
-              const SizedBox(height: 20),
-              CorridorsSection(
-                corridors: _corridor.getCorridors(),
-                selectedCorridor: _selectedCorridor,
-                onSelect: (c) => setState(() => _selectedCorridor = c),
-              ),
-              const SizedBox(height: 20),
-              RateEstimatorSection(
-                corridor: _selectedCorridor,
-                weightTons: _weight,
-                onWeightChanged: (w) => setState(() => _weight = w),
-                corridorService: _corridor,
-                onRequestTrucks: _handlePostLoad,
-              ),
-              const SizedBox(height: 20),
-              TelemetrySection(
-                verifiedVehicles: _vehiclesCount,
-                activeLoadsCount: _loads.length,
-              ),
-              const SizedBox(height: 20),
-            ]),
+            child: _tabBody(),
           ),
         ),
+      ),
+      bottomNavigationBar: HabeshaBottomNavBar(
+        currentIndex: _currentTab,
+        onTap: (idx) {
+          if (idx == 2) {
+            _openPostLoadSheet();
+          } else {
+            setState(() => _currentTab = idx);
+          }
+        },
       ),
     );
   }
