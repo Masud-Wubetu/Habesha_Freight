@@ -122,37 +122,18 @@ export default function DriverWallet() {
     setWithdrawSuccessMsg(null);
 
     try {
-      // Endpoint call to backend
-      await post('/escrow/withdraw', {
-        amount_etb: amountNum,
-        method: selectedMethod,
-        account_number: accountNumber,
-        account_holder: accountHolder,
-      }).catch(() => null); // Fallback for smooth UX
+      // Escrow withdraw is not a backend endpoint — show earnings-backed message only.
+      await get('/drivers/earnings').catch(() => null);
 
-      // Update balances
-      const newBal = availableBalance - amountNum;
-      setAvailableBalance(newBal);
-
-      const newTx: Transaction = {
-        id: `TX-${Math.floor(1000 + Math.random() * 9000)}`,
-        amount_etb: amountNum,
-        type: 'WITHDRAWAL',
-        method: selectedMethod === 'TELEBIRR' ? 'Telebirr Mobile Wallet' :
-                selectedMethod === 'CBE_BIRR' ? 'CBE Birr Wallet' :
-                selectedMethod === 'CBE_BANK' ? 'CBE Bank Transfer' : 'Awash Bank Direct',
-        account_number: accountNumber,
-        status: 'COMPLETED',
-        created_at: new Date().toISOString(),
-      };
-
-      setTransactions([newTx, ...transactions]);
-      setWithdrawSuccessMsg(`✓ Payout of ETB ${amountNum.toLocaleString()} successfully transferred to ${accountNumber}!`);
+      setWithdrawSuccessMsg(
+        `Payout of ETB ${amountNum.toLocaleString()} to ${selectedMethod} (${accountNumber}) is not enabled on the API yet. ` +
+          'Funds settle when escrow is released after delivery.',
+      );
 
       setTimeout(() => {
         setShowWithdrawModal(false);
         setWithdrawSuccessMsg(null);
-      }, 1800);
+      }, 3200);
     } catch (err: any) {
       alert(err.message || 'Withdrawal processed successfully.');
     } finally {
