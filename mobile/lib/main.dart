@@ -82,7 +82,7 @@ class HabeshaFreightApp extends StatelessWidget {
         AppRoutes.page16DriverHome: (_) => const DriverHomeScreen(),
         AppRoutes.page17AvailableLoads: (_) =>
             const AvailableFreightLoadsScreen(),
-        // AppRoutes.page18DirectOffers: (_) => const DirectOffersScreen(),
+        AppRoutes.page18DirectOffers: (_) => const DirectCargoOffersScreen(),
         // AppRoutes.page19RequestDetails: (_) => const RequestDetailsScreen(),
       },
     );
