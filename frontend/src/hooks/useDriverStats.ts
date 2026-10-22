@@ -1,6 +1,6 @@
 /**
  * useDriverStats – fetches dashboard summary stats for the logged-in driver.
- * Backend endpoint: GET /api/driver/stats
+ * Backend endpoint: GET /api/drivers/stats
  */
 import { useEffect, useState, useCallback } from 'react';
 import { get } from '../services/api';
@@ -22,7 +22,7 @@ export function useDriverStats() {
     setLoading(true);
     setError(null);
     try {
-      const data = await get<DriverStats>('/driver/stats');
+      const data = await get<DriverStats>('/drivers/stats');
       setStats(data);
     } catch (e: any) {
       console.error('useDriverStats error:', e);

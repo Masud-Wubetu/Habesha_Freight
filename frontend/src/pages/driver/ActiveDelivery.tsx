@@ -141,27 +141,20 @@ export default function ActiveDelivery() {
         budgetETB: 45000,
         status: activeShipment.status,
       }
-    : {
-        id: 'SHP-DEMO-001',
-        shipmentId: 'SHP-89102',
-        origin: 'Addis Ababa',
-        destination: 'Dire Dawa',
-        cargoType: 'Industrial Steel Coils',
-        weightTons: 18,
-        budgetETB: 45000,
-        status: 'IN_TRANSIT',
-      };
+    : null;
 
   const handleVerifyDelivery = async () => {
+    if (!delivery) {
+      setOtpMessage('No active shipment to verify.');
+      return;
+    }
     setVerifyingOtp(true);
     setOtpMessage(null);
     try {
-      if (delivery.id && !delivery.id.startsWith('SHP-DEMO')) {
-        await post(`/shipments/${delivery.id}/delivery-verify`, {
-          delivery_otp: otpInput || '123456',
-        });
-      }
-      setOtpMessage('🎉 Delivery verified! Escrow funds released to your wallet.');
+      await post(`/shipments/${delivery.id}/delivery-verify`, {
+        delivery_otp: otpInput,
+      });
+      setOtpMessage('Delivery verified. Escrow can be released by the shipper.');
       setStep('delivered');
       setTimeout(() => {
         setShowOtpModal(false);
@@ -169,13 +162,7 @@ export default function ActiveDelivery() {
       }, 1500);
     } catch (err: any) {
       console.error('Verify Delivery OTP Error:', err);
-      // Optimistic completion for smooth demo presentation
-      setOtpMessage('🎉 Delivery verified! Escrow payout released to wallet.');
-      setStep('delivered');
-      setTimeout(() => {
-        setShowOtpModal(false);
-        setOtpMessage(null);
-      }, 1500);
+      setOtpMessage(err?.message || 'OTP verification failed. Try again.');
     } finally {
       setVerifyingOtp(false);
     }
@@ -203,6 +190,11 @@ export default function ActiveDelivery() {
         </div>
 
         {/* ── Delivery Card ─────────────────────────────────── */}
+        {!delivery ? (
+          <div className="ad-card">
+            <p className="ad-shipment-meta">No active shipment from the API. Accept a load to begin delivery.</p>
+          </div>
+        ) : (
         <div className="ad-card">
           {/* Top: shipment info + price */}
           <div className="ad-card-top">
@@ -304,6 +296,7 @@ export default function ActiveDelivery() {
             </button>
           </div>
         </div>
+        )}
       </div>
 
       {/* ── Delivery OTP Verification Modal ────────────────────── */}

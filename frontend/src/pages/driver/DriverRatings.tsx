@@ -75,7 +75,7 @@ const DriverRatings: React.FC = () => {
   const fetchRatings = async () => {
     setLoading(true);
     try {
-      const res = await get<any>('/driver/ratings');
+      const res = await get<any>('/drivers/ratings');
       const payload = res?.data ?? res;
       setData(payload);
     } catch (err) {

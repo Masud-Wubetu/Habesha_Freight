@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { get } from '../services/api';
+import { get, patch } from '../services/api';
 
 export interface Vehicle {
   id?: string;
@@ -36,6 +36,7 @@ interface CompanyDataHook {
   stats: CompanyStats;
   loading: boolean;
   refresh: () => void;
+  updateRequestStatus: (id: string, status: 'Accepted' | 'Declined') => Promise<void>;
 }
 
 export function useCompanyData(): CompanyDataHook {
@@ -82,8 +83,8 @@ export function useCompanyData(): CompanyDataHook {
       const loadList = Array.isArray(loadsData) ? loadsData : loadsData?.data || loadsData?.requests || [];
       setRequests(
         loadList.map((l: any, idx: number) => ({
-          id: l.id ? `REQ-${l.id.slice(0, 6).toUpperCase()}` : `FR-00${idx + 1}`,
-          customer: l.cargo_description || 'Commercial Freight',
+          id: String(l.id || `FR-00${idx + 1}`),
+          customer: l.shipper_name || l.cargo_description || 'Commercial Freight',
           date: new Date(l.created_at || Date.now()).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -96,12 +97,14 @@ export function useCompanyData(): CompanyDataHook {
             ? `ETB ${Number(l.offered_price_etb).toLocaleString()}`
             : '-',
           status:
-            l.status === 'MATCHED' || l.status === 'ASSIGNED'
+            l.status === 'MATCHED' || l.status === 'ASSIGNED' || l.status === 'DISPATCHED'
               ? 'Accepted'
               : l.status === 'IN_TRANSIT'
               ? 'In Progress'
               : l.status === 'DELIVERED'
               ? 'Completed'
+              : l.status === 'CANCELLED'
+              ? 'Declined'
               : 'Pending',
         }))
       );
@@ -112,9 +115,31 @@ export function useCompanyData(): CompanyDataHook {
     }
   }, []);
 
+  const updateRequestStatus = useCallback(
+    async (id: string, newStatus: 'Accepted' | 'Declined') => {
+      const endpoint =
+        newStatus === 'Accepted'
+          ? `/company/fleet-requests/${id}/accept`
+          : `/company/fleet-requests/${id}/decline`;
+      await patch(endpoint);
+      setRequests((prev) =>
+        prev.map((req) => (req.id === id ? { ...req, status: newStatus } : req)),
+      );
+    },
+    [],
+  );
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  return { companyName, vehicles, requests, stats, loading, refresh: fetchData };
+  return {
+    companyName,
+    vehicles,
+    requests,
+    stats,
+    loading,
+    refresh: fetchData,
+    updateRequestStatus,
+  };
 }

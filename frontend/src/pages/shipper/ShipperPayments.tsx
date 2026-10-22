@@ -47,47 +47,18 @@ export default function ShipperPayments() {
     try {
       const res = await get<any>('/escrow/ledger/all');
       const data = res?.data || res;
-      if (data?.items) {
-        setEscrows(data.items);
-        setTotalLocked(data.totalLocked || 0);
-        setTotalReleased(data.totalReleased || 0);
-        setTotalRefunded(data.totalRefunded || 0);
-      } else {
-        // Fallback mockup data if database is fresh
-        const mock: EscrowRecord[] = [
-          {
-            id: 'ESC-8921',
-            shipment_id: 'SHP-001',
-            amount_etb: 45000,
-            status: 'LOCKED',
-            gateway_reference: 'TELEBIRR-89201482',
-            cargo_description: 'Industrial Steel Coils (18 Tons)',
-            origin_city: 'Addis Ababa',
-            destination_city: 'Dire Dawa',
-            carrier_name: 'Tewodros Alemu (Heavy Truck)',
-            created_at: new Date().toISOString(),
-          },
-          {
-            id: 'ESC-8842',
-            shipment_id: 'SHP-002',
-            amount_etb: 32000,
-            status: 'RELEASED',
-            gateway_reference: 'CHAPA-77192048',
-            cargo_description: 'Agricultural Produce (12 Tons)',
-            origin_city: 'Hawassa',
-            destination_city: 'Addis Ababa',
-            carrier_name: 'Habesha Logistics Fleet',
-            created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
-          },
-        ];
-        setEscrows(mock);
-        setTotalLocked(45000);
-        setTotalReleased(32000);
-        setTotalRefunded(0);
-      }
+      const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+      setEscrows(items);
+      setTotalLocked(data?.totalLocked || 0);
+      setTotalReleased(data?.totalReleased || 0);
+      setTotalRefunded(data?.totalRefunded || 0);
     } catch (err: any) {
       console.error('Error fetching escrow ledger:', err);
-      setError('Loaded financial ledger preview.');
+      setEscrows([]);
+      setTotalLocked(0);
+      setTotalReleased(0);
+      setTotalRefunded(0);
+      setError(err?.message || 'Unable to load escrow ledger from API.');
     } finally {
       setLoading(false);
     }

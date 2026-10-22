@@ -1,10 +1,17 @@
 import { useState, useRef, useEffect, KeyboardEvent, ClipboardEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../services/api';
 
+type VerifyLocationState = {
+  email?: string;
+  demoOtp?: string;
+};
+
 export default function VerifyOTP() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const navState = (location.state || {}) as VerifyLocationState;
   const { verifyOtp } = useAuth();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [otpError, setOtpError] = useState('');
@@ -13,15 +20,26 @@ export default function VerifyOTP() {
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [resendMessage, setResendMessage] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(
+    () => navState.email || localStorage.getItem('registrationEmail') || ''
+  );
+  const [demoOtpHint, setDemoOtpHint] = useState(
+    () => navState.demoOtp || localStorage.getItem('registrationDemoOtp') || ''
+  );
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem('registrationEmail');
-    if (savedEmail) {
-      setEmail(savedEmail);
+    const fromNav = navState.demoOtp || '';
+    const fromStorage = localStorage.getItem('registrationDemoOtp') || '';
+    const code = fromNav || fromStorage;
+    if (code) {
+      setDemoOtpHint(code);
+      localStorage.setItem('registrationDemoOtp', code);
+      console.log(`🔑 Dev OTP (from registration): ${code}`);
     }
-  }, []);
+    const mail = navState.email || localStorage.getItem('registrationEmail') || '';
+    if (mail) setEmail(mail);
+  }, [navState.demoOtp, navState.email]);
 
   useEffect(() => {
     if (resendTimer > 0) {
@@ -115,12 +133,21 @@ export default function VerifyOTP() {
     }
     try {
       setResendMessage('Sending new OTP code...');
-      await api.post('/auth/resend-otp', { email: email.trim() });
+      const data = await api.post<{ demo_otp?: string }>('/auth/resend-otp', {
+        email: email.trim(),
+      });
       setOtp(['', '', '', '', '', '']);
       setOtpError('');
       setResendTimer(60);
       setCanResend(false);
-      setResendMessage('New OTP sent to your email!');
+      if (data?.demo_otp) {
+        localStorage.setItem('registrationDemoOtp', data.demo_otp);
+        setDemoOtpHint(data.demo_otp);
+        console.log(`🔑 Dev OTP (resend): ${data.demo_otp}`);
+        setResendMessage(`New OTP sent — dev code: ${data.demo_otp}`);
+      } else {
+        setResendMessage('New OTP sent to your email! Check the backend console.');
+      }
     } catch (err: any) {
       setOtpError(err.message || 'Failed to resend OTP.');
       setResendMessage('');
@@ -153,6 +180,26 @@ export default function VerifyOTP() {
           <p className="register-subtitle">
             Enter the 6-digit verification code for your account:
           </p>
+
+          {demoOtpHint && (
+            <div
+              role="status"
+              style={{
+                marginBottom: 16,
+                padding: '12px 14px',
+                borderRadius: 8,
+                background: 'rgba(37, 99, 235, 0.1)',
+                border: '1px solid rgba(37, 99, 235, 0.35)',
+                color: '#1e40af',
+                fontSize: 13,
+                fontWeight: 600,
+                textAlign: 'left',
+              }}
+            >
+              Dev mode — OTP (also printed in the backend terminal):{' '}
+              <span style={{ letterSpacing: 4, fontSize: 18 }}>{demoOtpHint}</span>
+            </div>
+          )}
 
           <div className="form-group" style={{ marginBottom: '16px', textAlign: 'left' }}>
             <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>

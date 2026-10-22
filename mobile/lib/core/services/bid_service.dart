@@ -42,8 +42,8 @@ class BidService {
       final customUrl = await StorageService.getBaseUrl();
       final base = customUrl ?? ApiConfig.baseUrl;
 
-      // Try driver route first, fallback to general bids route
-      final uri = Uri.parse('$base${ApiConfig.driverBids}');
+      // Prefer canonical POST /bids; fall back to /drivers/bids if needed.
+      final uri = Uri.parse('$base${ApiConfig.bids}');
 
       final payload = {
         'load_id': loadId,
@@ -70,8 +70,7 @@ class BidService {
           data: body['data'] as Map<String, dynamic>?,
         );
       } else {
-        // If driver route returns 404 or auth issue, try standard /bids endpoint
-        final fallbackUri = Uri.parse('$base${ApiConfig.bids}');
+        final fallbackUri = Uri.parse('$base${ApiConfig.driverBids}');
         final fallbackResponse = await _client
             .post(
               fallbackUri,

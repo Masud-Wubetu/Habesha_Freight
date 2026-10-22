@@ -1,7 +1,7 @@
 // src/pages/shipper/ShipperShipments.tsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { get, patch } from '../../services/api';
+import { get, patch, post } from '../../services/api';
 import { getStoredUser } from '../../services/authService';
 import ChatModal from '../../components/ChatModal';
 
@@ -137,10 +137,21 @@ export default function ShipperShipments() {
     setShowCounterModal(true);
   };
 
-  const submitCounterOffer = () => {
-    // Mocking counter offer for premium feeling
-    alert(`Counter offer of ETB ${Number(counterPrice).toLocaleString()} submitted to driver!`);
-    setShowCounterModal(false);
+  const submitCounterOffer = async () => {
+    if (!selectedLoad || !activeBidId || !counterPrice) {
+      alert('Select a bid and enter a counter amount.');
+      return;
+    }
+    try {
+      await post(`/shipper/requests/${selectedLoad.id}/bids/${activeBidId}/counter`, {
+        counter_amount_etb: Number(counterPrice),
+      });
+      alert(`Counter offer of ETB ${Number(counterPrice).toLocaleString()} submitted.`);
+      setShowCounterModal(false);
+      fetchLoads();
+    } catch (err: any) {
+      alert(err?.message || 'Failed to submit counter offer.');
+    }
   };
 
   const formatVehicleType = (type?: string) => {

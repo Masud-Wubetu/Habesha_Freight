@@ -86,6 +86,39 @@ class EscrowService {
       items: items,
     );
   }
+
+  /// Release is shipper/admin-only on the backend; fleet UI surfaces the error if denied.
+  Future<Map<String, dynamic>> release(String shipmentId) async {
+    final res = await _api.post(ApiConfig.escrowRelease(shipmentId));
+    return (res['data'] as Map?)?.cast<String, dynamic>() ??
+        (res.cast<String, dynamic>());
+  }
+
+  Future<Map<String, dynamic>> refund(String shipmentId) async {
+    final res = await _api.post(ApiConfig.escrowRefund(shipmentId));
+    return (res['data'] as Map?)?.cast<String, dynamic>() ??
+        (res.cast<String, dynamic>());
+  }
+
+  Future<Map<String, dynamic>> deposit({
+    required String shipmentId,
+    required num amountEtb,
+  }) async {
+    final res = await _api.post(
+      ApiConfig.escrowDeposit,
+      body: {
+        'shipment_id': shipmentId,
+        'amount_etb': amountEtb,
+      },
+    );
+    return (res['data'] as Map?)?.cast<String, dynamic>() ??
+        (res.cast<String, dynamic>());
+  }
+
+  Future<Map<String, dynamic>> status(String shipmentId) async {
+    final res = await _api.get(ApiConfig.escrowStatus(shipmentId));
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? {};
+  }
 }
 
 double _num(dynamic v) {

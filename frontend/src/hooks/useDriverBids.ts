@@ -1,6 +1,6 @@
 /**
  * useDriverBids – fetches all bids placed by the logged-in driver.
- * Backend endpoint: GET /api/driver/bids
+ * Backend endpoint: GET /api/drivers/bids
  */
 import { useEffect, useState, useCallback } from 'react';
 import { get } from '../services/api';
@@ -29,7 +29,7 @@ export function useDriverBids() {
     setLoading(true);
     setError(null);
     try {
-      const data = await get<DriverBid[]>('/driver/bids');
+      const data = await get<DriverBid[]>('/drivers/bids');
       const list = Array.isArray(data) ? data : (data as any)?.data ?? [];
       setBids(list);
     } catch (e: any) {

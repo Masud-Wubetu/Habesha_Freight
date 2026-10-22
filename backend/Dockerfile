@@ -3,11 +3,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm ci
 
-# Copy source code and build
 COPY tsconfig.json ./
 COPY knexfile.ts ./
 COPY src ./src
@@ -18,22 +16,27 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm ci
+RUN apk add --no-cache wget
 
-# Copy compiled JS, source code, and knexfile for CLI migrations
+COPY package*.json ./
+# Keep tsx available for Knex TS migrations/seeds
+RUN npm ci --omit=dev && npm install tsx@4.23.12 --omit=dev
+
 COPY knexfile.ts ./
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
 COPY --from=builder /app/dist ./dist
+# Seeds/migrations are TypeScript and import shared utils
 COPY --from=builder /app/src ./src
 
-ENV NODE_ENV=production
+RUN chmod +x ./docker-entrypoint.sh \
+  && mkdir -p uploads
 
-# Expose server port
+ENV NODE_ENV=production
+ENV PORT=5000
+
 EXPOSE 5000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=5 \
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:5000/health || exit 1
 
-CMD ["sh", "-c", "npx tsx node_modules/knex/bin/cli.js migrate:latest --knexfile knexfile.ts && node dist/server.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

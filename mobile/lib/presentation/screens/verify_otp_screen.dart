@@ -106,37 +106,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       return;
     }
 
-    // Dev fallback if user enters the demo OTP or 123456 when backend is mock/offline
-    if (code == _demoOtp || code == '123456') {
-      final mockUser = UserModel(
-        id: 'usr-dev-9941',
-        fullName: widget.fullName ?? 'Dawit Bekele',
-        phoneNumber: widget.phone,
-        role: widget.role ?? 'SHIPPER',
-        isVerified: true,
-      );
-      setState(() => _loading = false);
-      if (widget.onVerified != null) {
-        widget.onVerified!(mockUser, 'mock-jwt-token-verified');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Transit account authorized (verified)!'),
-            backgroundColor: AppColors.card,
-          ),
-        );
-        if (widget.role == 'FLEET_ENTERPRISE') {
-          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.fleetHub, (r) => false);
-        } else {
-          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (r) => false);
-        }
-      }
-      return;
-    }
-
+    // Only allow demo-OTP auto-fill when the backend returned a demo_otp;
+    // never invent a mock JWT when verification failed.
     setState(() {
       _loading = false;
-      _error = res.message.isNotEmpty ? res.message : 'Invalid verification code. Please check SMS.';
+      _error = res.message.isNotEmpty
+          ? res.message
+          : 'Invalid verification code. Please check SMS.';
     });
   }
 
