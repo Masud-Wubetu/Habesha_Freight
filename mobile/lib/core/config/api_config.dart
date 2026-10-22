@@ -14,8 +14,6 @@ class ApiConfig {
       return 'http://localhost:5000/api';
     }
     try {
-      // Android emulator → host machine. Physical Android: set StorageService base URL
-      // or use your LAN IP (e.g. http://10.240.71.57:5000/api).
       if (Platform.isAndroid) return 'http://10.0.2.2:5000/api';
     } catch (_) {}
     return 'http://localhost:5000/api';
@@ -32,8 +30,9 @@ class ApiConfig {
   static const String telebirr = '/auth/telebirr';
   static const String me = '/auth/me';
   static const String logout = '/auth/logout';
+  static const String profile = '/auth/profile';
 
-  // Company (FLEET_OWNER) — pages 27–34
+  // Company (FLEET_OWNER)
   static const String companyProfile = '/company/profile';
   static const String companyStats = '/company/stats';
   static const String companyVehicles = '/company/vehicles';
@@ -48,28 +47,48 @@ class ApiConfig {
   static String companyFleetRequestAssign(String id) =>
       '/company/fleet-requests/$id/assign';
 
-  // Marketplace (corridor / home / bids)
+  // Marketplace
   static const String loads = '/loads';
   static const String shipments = '/shipments';
   static const String vehicles = '/vehicles';
   static const String bids = '/bids';
 
-  // Escrow / driver
+  // Shipper
+  static const String shipperProfile = '/shipper/profile';
+  static const String shipperCompanies = '/shipper/companies';
+  static const String shipperRequests = '/shipper/requests';
+  static const String shipperFleetRequests = '/shipper/fleet-requests';
+  static const String shipperRatings = '/shipper/ratings/driver';
+  static String shipperAcceptBid(String requestId, String bidId) =>
+      '/shipper/requests/$requestId/bids/$bidId/accept';
+  static String shipperCounterBid(String requestId, String bidId) =>
+      '/shipper/requests/$requestId/bids/$bidId/counter';
+  static String shipperRejectBid(String requestId, String bidId) =>
+      '/shipper/requests/$requestId/bids/$bidId/reject';
+
+  // Escrow
   static const String escrowLedger = '/escrow/ledger/all';
+  static const String escrowDeposit = '/escrow/deposit';
   static String escrowRelease(String shipmentId) =>
       '/escrow/$shipmentId/release';
   static String escrowRefund(String shipmentId) =>
       '/escrow/$shipmentId/refund';
-  static const String driverStats = '/driver/stats';
-  static const String driverShipments = '/driver/shipments';
-  static const String driverBids = '/driver/bids';
-  static const String availableLoads = '/driver/loads/available';
+  static String escrowStatus(String shipmentId) =>
+      '/escrow/$shipmentId/status';
 
-  // Freight, Loads & Vehicles
-  static const String loads = '/loads';
-  static const String shipments = '/shipments';
-  static const String vehicles = '/vehicles';
-  static const String bids = '/bids';
+  // Driver (canonical /drivers; backend also aliases /driver)
+  static const String driverStats = '/drivers/stats';
+  static const String driverShipments = '/drivers/shipments';
+  static const String driverBids = '/drivers/bids';
+  static const String driverEarnings = '/drivers/earnings';
+  static const String driverProfile = '/drivers/profile';
+  static const String availableLoads = '/drivers/loads/available';
+  static const String driverLocation = '/drivers/location';
+
+  // Tracking / messages
+  static String tracking(String shipmentId) => '/tracking/$shipmentId';
+  static const String trackingLocation = '/tracking/location';
+  static const String messages = '/messages';
 
   // System
   static const String health = '/health';
