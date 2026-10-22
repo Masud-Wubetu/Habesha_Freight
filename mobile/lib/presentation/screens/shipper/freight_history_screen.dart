@@ -12,43 +12,43 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'Last 30 Days';
 
-  final List<Map<String, dynamic>> _shipments = [
-    {
-      'id': 'WB-89410',
-      'date': 'Oct 4, 2026',
-      'routeFrom': 'Modjo Dry Port',
-      'routeTo': 'Mekelle IP',
-      'cargo': '28T Industrial Rebar',
-      'amount': '85,000',
-      'status': 'Delivered & Released',
-      'driverName': 'Kassahun Berhanu',
-      'truckInfo': 'Sinotruk 30T • Plate 3-52419 ET',
-      'rating': '4.9',
-    },
-    {
-      'id': 'WB-89204',
-      'date': 'Sep 28, 2026',
-      'routeFrom': 'Addis Ababa',
-      'routeTo': 'Dire Dawa FTZ',
-      'cargo': '32T Wheat Flour',
-      'amount': '54,000',
-      'status': 'Delivered',
-      'driverName': 'Solomon Tekle',
-      'truckInfo': 'FAW J6P • Plate 3-84091 ET',
-      'rating': '5.0',
-    },
-    {
-      'id': 'WB-88912',
-      'date': 'Sep 15, 2026',
-      'routeFrom': 'Hawassa',
-      'routeTo': 'Modjo Hub',
-      'cargo': '22T Export Grade Coffee',
-      'amount': '42,000',
-      'status': 'Delivered',
-      'driverName': 'Girma Tadesse',
-      'truckInfo': 'Sinotruk • Plate 3-10294 ET',
-      'rating': '4.8',
-    },
+  static const List<_ShipmentHistoryEntry> _shipments = [
+    _ShipmentHistoryEntry(
+      id: 'WB-89410',
+      date: 'Oct 4, 2026',
+      routeFrom: 'Modjo Dry Port',
+      routeTo: 'Mekelle IP',
+      cargo: '28T Industrial Rebar',
+      amount: '85,000',
+      status: 'Delivered & Released',
+      driverName: 'Kassahun Berhanu',
+      truckInfo: 'Sinotruk 30T • Plate 3-52419 ET',
+      rating: '4.9',
+    ),
+    _ShipmentHistoryEntry(
+      id: 'WB-89204',
+      date: 'Sep 28, 2026',
+      routeFrom: 'Addis Ababa',
+      routeTo: 'Dire Dawa FTZ',
+      cargo: '32T Wheat Flour',
+      amount: '54,000',
+      status: 'Delivered',
+      driverName: 'Solomon Tekle',
+      truckInfo: 'FAW J6P • Plate 3-84091 ET',
+      rating: '5.0',
+    ),
+    _ShipmentHistoryEntry(
+      id: 'WB-88912',
+      date: 'Sep 15, 2026',
+      routeFrom: 'Hawassa',
+      routeTo: 'Modjo Hub',
+      cargo: '22T Export Grade Coffee',
+      amount: '42,000',
+      status: 'Delivered',
+      driverName: 'Girma Tadesse',
+      truckInfo: 'Sinotruk • Plate 3-10294 ET',
+      rating: '4.8',
+    ),
   ];
 
   @override
@@ -70,10 +70,10 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
     final filteredShipments = _shipments.where((shipment) {
       final query = _searchController.text.toLowerCase();
 
-      return shipment['id'].toString().toLowerCase().contains(query) ||
-          shipment['routeFrom'].toString().toLowerCase().contains(query) ||
-          shipment['routeTo'].toString().toLowerCase().contains(query) ||
-          shipment['cargo'].toString().toLowerCase().contains(query);
+      return shipment.id.toLowerCase().contains(query) ||
+          shipment.routeFrom.toLowerCase().contains(query) ||
+          shipment.routeTo.toLowerCase().contains(query) ||
+          shipment.cargo.toLowerCase().contains(query);
     }).toList();
 
     return Scaffold(
@@ -439,7 +439,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
   }
 
   Widget _buildShipmentCard(
-    Map<String, dynamic> shipment,
+    _ShipmentHistoryEntry shipment,
     Color cardColor,
     Color innerCardColor,
     Color primaryYellow,
@@ -465,7 +465,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                   children: [
                     Flexible(
                       child: Text(
-                        shipment['id'].toString(),
+                        shipment.id,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.white,
@@ -486,7 +486,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        shipment['date'].toString(),
+                        shipment.date,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: textMuted, fontSize: 11),
                       ),
@@ -514,7 +514,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      shipment['status'].toString(),
+                      shipment.status,
                       style: TextStyle(
                         color: greenAccent,
                         fontSize: 10,
@@ -540,7 +540,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                       children: [
                         Flexible(
                           child: Text(
-                            shipment['routeFrom'].toString(),
+                            shipment.routeFrom,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: Colors.white,
@@ -560,7 +560,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                       ],
                     ),
                     Text(
-                      shipment['routeTo'].toString(),
+                      shipment.routeTo,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
@@ -576,7 +576,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    shipment['amount'].toString(),
+                    shipment.amount,
                     style: TextStyle(
                       color: primaryYellow,
                       fontSize: 16,
@@ -600,7 +600,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  shipment['cargo'].toString(),
+                  shipment.cargo,
                   style: TextStyle(color: textMuted, fontSize: 12),
                 ),
               ),
@@ -635,7 +635,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        shipment['driverName'].toString(),
+                        shipment.driverName,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 13,
@@ -644,7 +644,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        shipment['truckInfo'].toString(),
+                        shipment.truckInfo,
                         style: TextStyle(color: textMuted, fontSize: 11),
                       ),
                     ],
@@ -653,7 +653,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                 Icon(Icons.star, color: primaryYellow, size: 16),
                 const SizedBox(width: 4),
                 Text(
-                  shipment['rating'].toString(),
+                  shipment.rating,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 13,
@@ -702,7 +702,7 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                 child: IconButton(
                   onPressed: () {},
                   icon: Icon(
-                    Icons.settings_outlined,
+                    Icons.verified_rounded,
                     color: textMuted,
                     size: 20,
                   ),
@@ -714,4 +714,30 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
       ),
     );
   }
+}
+
+class _ShipmentHistoryEntry {
+  const _ShipmentHistoryEntry({
+    required this.id,
+    required this.date,
+    required this.routeFrom,
+    required this.routeTo,
+    required this.cargo,
+    required this.amount,
+    required this.status,
+    required this.driverName,
+    required this.truckInfo,
+    required this.rating,
+  });
+
+  final String id;
+  final String date;
+  final String routeFrom;
+  final String routeTo;
+  final String cargo;
+  final String amount;
+  final String status;
+  final String driverName;
+  final String truckInfo;
+  final String rating;
 }
