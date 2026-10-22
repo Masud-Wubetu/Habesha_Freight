@@ -32,9 +32,16 @@ import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
 
 /// Fleet / ops mobile shell: pages 27–40 catalog + bottom tabs.
 class FleetShellScreen extends StatefulWidget {
-  const FleetShellScreen({super.key, this.initialTab = 0});
+  const FleetShellScreen({
+    super.key,
+    this.initialTab = 0,
+    this.onLogout,
+    this.userLabel,
+  });
 
   final int initialTab;
+  final VoidCallback? onLogout;
+  final String? userLabel;
 
   @override
   State<FleetShellScreen> createState() => _FleetShellScreenState();
@@ -66,7 +73,11 @@ class _FleetShellScreenState extends State<FleetShellScreen> {
         children: [
           const FleetCommandHubScreen(),
           const DriverRosterScreen(),
-          _MoreCatalog(onOpen: _open),
+          _MoreCatalog(
+            onOpen: _open,
+            onLogout: widget.onLogout,
+            userLabel: widget.userLabel,
+          ),
           const EscrowBatchScreen(),
           _OpsCatalog(onOpen: _open),
         ],
@@ -167,8 +178,14 @@ class _TabSpec {
 }
 
 class _MoreCatalog extends StatelessWidget {
-  const _MoreCatalog({required this.onOpen});
+  const _MoreCatalog({
+    required this.onOpen,
+    this.onLogout,
+    this.userLabel,
+  });
   final void Function(String route) onOpen;
+  final VoidCallback? onLogout;
+  final String? userLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -196,6 +213,30 @@ class _MoreCatalog extends StatelessWidget {
       heading: 'Fleet & Shipper modules',
       items: items,
       onOpen: onOpen,
+      footer: onLogout == null
+          ? null
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 8),
+                if (userLabel != null && userLabel!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      userLabel!,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                OutlinedButton.icon(
+                  onPressed: onLogout,
+                  icon: const Icon(Icons.logout, size: 18),
+                  label: const Text('Sign out'),
+                ),
+              ],
+            ),
     );
   }
 }
@@ -242,6 +283,7 @@ class _CatalogScaffold extends StatelessWidget {
     required this.heading,
     required this.items,
     required this.onOpen,
+    this.footer,
   });
 
   final String ribbonPage;
@@ -250,6 +292,7 @@ class _CatalogScaffold extends StatelessWidget {
   final String heading;
   final List<_CatalogItem> items;
   final void Function(String route) onOpen;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -319,6 +362,7 @@ class _CatalogScaffold extends StatelessWidget {
               ),
             ),
           ),
+          if (footer != null) footer!,
         ],
       ),
     );
