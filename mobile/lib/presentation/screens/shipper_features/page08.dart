@@ -6,6 +6,7 @@ import '../../../data/models/corridor_bid_item.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/review_bids/active_tender_summary_card.dart';
+import '../../widgets/review_bids/top_match_bid_card.dart';
 import '../../widgets/review_bids/review_bids_header.dart';
 
 class ReviewBidsScreen extends StatefulWidget {
@@ -145,6 +146,21 @@ class _ReviewBidsScreenState extends State<ReviewBidsScreen> {
                 distanceKm: 452,
                 bidsCount: _bids.length,
               ),
+              const SizedBox(height: 16),
+
+              // Card 1: Top Match Verified Pro Bid Card
+              if (_bids.any((b) => b.isTopMatch))
+                TopMatchBidCard(
+                  item: _bids.firstWhere((b) => b.isTopMatch),
+                  onAcceptTap: () {
+                    final topId = _bids.firstWhere((b) => b.isTopMatch).id;
+                    setState(() {
+                      _bids = _bids
+                          .map((b) => b.id == topId ? b.copyWith(isAccepted: true) : b)
+                          .toList();
+                    });
+                  },
+                ),
               const SizedBox(height: 16),
 
               const SizedBox(height: 100),
