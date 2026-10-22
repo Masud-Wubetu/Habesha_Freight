@@ -145,15 +145,7 @@ class CorridorNavigationSheet extends StatelessWidget {
                   route: AppRoutes.page13EscrowInvoices,
                   color: AppColors.gold,
                 ),
-                _navTile(
-                  context,
-                  title: 'Rate Driver',
-                  subtitle: 'Rate your driver and share feedback',
-                  badge: 'Page 15',
-                  icon: Icons.star_rate,
-                  route: AppRoutes.page15RateDriver,
-                  color: AppColors.gold,
-                ),
+
                 _navTile(
                   context,
                   title: 'Company Profile',
@@ -161,6 +153,15 @@ class CorridorNavigationSheet extends StatelessWidget {
                   badge: 'Page 14',
                   icon: Icons.domain,
                   route: AppRoutes.page14CompanyProfile,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
+                  title: 'Rate Driver',
+                  subtitle: 'Rate your driver and share feedback',
+                  badge: 'Page 15',
+                  icon: Icons.star_rate,
+                  route: AppRoutes.page15RateDriver,
                   color: AppColors.gold,
                 ),
                 _navTile(
@@ -229,8 +230,25 @@ class CorridorNavigationSheet extends StatelessWidget {
                   color: AppColors.textSecondary,
                 ),
                 const SizedBox(height: 16),
+                //SeCTION 2:  Driver Portals (PAGES 16)
+                _sectionHeader(
+                  title: ' Driver Portals',
+                  subtitle: 'Pages 16-19 ',
+                  color: const Color(0xFF9FD1FF),
+                  icon: Icons.business_center_outlined,
+                ),
+                _navTile(
+                  context,
+                  title: 'Driver Home Dashboard',
+                  subtitle: 'Available loads, active deliveries & earnings',
+                  badge: 'Page 16',
+                  icon: Icons.dashboard,
+                  route: AppRoutes.page16DriverHome,
+                  color: const Color(0xFF9FD1FF),
+                ),
 
-                // SECTION 2: FLEET ENTERPRISE (PAGES 27–34)
+                const SizedBox(height: 16),
+                // SECTION 3: FLEET ENTERPRISE (PAGES 27–34)
                 _sectionHeader(
                   title: 'FLEET ENTERPRISE MODULES',
                   subtitle:
@@ -313,7 +331,7 @@ class CorridorNavigationSheet extends StatelessWidget {
 
                 const SizedBox(height: 16),
 
-                // SECTION 3: CUSTOMS & INTERMODAL (PAGES 35–40)
+                // SECTION 4: CUSTOMS & INTERMODAL (PAGES 35–40)
                 _sectionHeader(
                   title: 'CUSTOMS, CROSS-BORDER & INTERMODAL',
                   subtitle: 'Pages 35–40 · Trade gates & checkpoint telemetry',
