@@ -1,2 +1,2 @@
-// Export Page 8 Review Cargo Bids & Live Auction Screen
+// Export Page 8 My Shipments & Active Fleet Telemetry Screen
 export 'page08.dart';

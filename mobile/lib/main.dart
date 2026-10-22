@@ -19,6 +19,7 @@ import 'presentation/screens/shipper_features/submit_bid_screen.dart';
 import 'presentation/screens/shipper_features/escrow_vault_screen.dart';
 import 'presentation/screens/shipper_features/page06.dart';
 import 'presentation/screens/shipper_features/page08.dart';
+import 'presentation/screens/shipper_features/page09.dart';
 import 'presentation/screens/shipper_features/my_shipments_screen.dart';
 import 'presentation/screens/shipper_features/page23.dart';
 import 'presentation/screens/shipper_features/page24.dart';
@@ -60,7 +61,7 @@ class HabeshaFreightApp extends StatelessWidget {
         AppRoutes.page06ShipperHub: (_) => const ShipperActiveHubScreen(),
         AppRoutes.page07PostCargo: (_) => const PostCargoRequestScreen(),
         AppRoutes.page08MyShipments: (_) => const MyShipmentsScreen(),
-        AppRoutes.page08ReviewBids: (_) => const ReviewBidsScreen(),
+        AppRoutes.page09ReviewBids: (_) => const ReviewBidsScreen(),
         AppRoutes.page23PostCargo: (_) => const PostCargoRequestScreen(),
         AppRoutes.page24MyShipments: (_) => const MyShipmentsScreen(),
         AppRoutes.home: (_) => const HomeScreen(),

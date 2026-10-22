@@ -212,12 +212,22 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'My Shipments & Active Telemetry',
+                  subtitle:
+                      'Real-time GPS corridor tracking & cargo negotiation hub',
+                  badge: 'Page 08',
+                  icon: Icons.local_shipping_rounded,
+                  route: AppRoutes.page08MyShipments,
+                  color: const Color(0xFF38BDF8),
+                ),
+                _navTile(
+                  context,
                   title: 'Review Cargo Bids & Live Auction',
                   subtitle:
                       'Live corridor tender, driver bids, counter-offer & escrow award',
-                  badge: 'Page 08',
+                  badge: 'Page 09',
                   icon: Icons.gavel_rounded,
-                  route: AppRoutes.page08ReviewBids,
+                  route: AppRoutes.page09ReviewBids,
                   color: AppColors.gold,
                 ),
                 _navTile(
@@ -232,11 +242,11 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
-                  title: 'My Shipments & Active Telemetry',
+                  title: 'E-POD Signature & Handover',
                   subtitle:
-                      'Real-time GPS corridor tracking & cargo negotiation hub',
-                  badge: 'Page 08 / 24',
-                  icon: Icons.local_shipping_rounded,
+                      'Receiver QR verification & digital waypoint sign-off',
+                  badge: 'Page 24',
+                  icon: Icons.draw_rounded,
                   route: AppRoutes.page24MyShipments,
                   color: const Color(0xFF38BDF8),
                 ),
