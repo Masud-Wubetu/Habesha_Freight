@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:mobile/presentation/screens/shipper/freight_history_screen.dart';
 import 'package:mobile/presentation/screens/shipper/preferred_fleet_directory.dart';
+import 'package:mobile/presentation/screens/shipper_features/my_shipments_screen.dart';
+import 'package:mobile/presentation/screens/shipper_features/page09.dart';
+import 'package:mobile/presentation/screens/shipper_features/page23.dart';
 import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
 
 class ShipperShellScreen extends StatefulWidget {
@@ -128,56 +131,9 @@ class _ShipperShellScreenState extends State<ShipperShellScreen> {
     );
   }
 
-  Widget _buildPostLoadPage() {
-    return _placeholderPage(
-      'Post Load',
-      'Create a new freight request.',
-      Icons.add_box_outlined,
-    );
-  }
+  Widget _buildPostLoadPage() => const PostCargoRequestScreen();
 
-  Widget _buildBidsPage() {
-    return _placeholderPage(
-      'Bids',
-      'Review offers from transport providers.',
-      Icons.gavel,
-    );
-  }
+  Widget _buildBidsPage() => const ReviewBidsScreen();
 
-  Widget _buildTrackingPage() {
-    return _placeholderPage(
-      'Tracking',
-      'Track your active shipments.',
-      Icons.location_on_outlined,
-    );
-  }
-
-  Widget _placeholderPage(String title, String description, IconData icon) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A111F),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0A111F),
-        title: Text(title, style: const TextStyle(color: Colors.white)),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: const Color(0xFFFFB300), size: 48),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(description, style: const TextStyle(color: Colors.white70)),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _buildTrackingPage() => const MyShipmentsScreen();
 }
