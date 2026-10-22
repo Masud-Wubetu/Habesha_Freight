@@ -604,6 +604,8 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
         onTap: (idx) {
           if (idx == 0) {
             Navigator.pushReplacementNamed(context, AppRoutes.home);
+          } else if (idx == 1) {
+            Navigator.pushNamed(context, AppRoutes.page24MyShipments);
           } else if (idx == 2) {
             _openPostLoadSheet();
           } else if (idx != 3) {

@@ -18,7 +18,12 @@ import 'presentation/screens/verify_otp_screen.dart';
 import 'presentation/screens/shipper_features/submit_bid_screen.dart';
 import 'presentation/screens/shipper_features/escrow_vault_screen.dart';
 import 'presentation/screens/shipper_features/page06.dart';
+import 'presentation/screens/shipper_features/page08.dart';
+import 'presentation/screens/shipper_features/page09.dart';
+import 'presentation/screens/shipper_features/my_shipments_screen.dart';
 import 'presentation/screens/shipper_features/page23.dart';
+import 'presentation/screens/shipper_features/page24.dart';
+import 'presentation/screens/driver/driver_home_screen.dart';
 import 'presentation/screens/ops/border_pass_screen.dart';
 import 'presentation/screens/ops/cold_chain_screen.dart';
 import 'presentation/screens/ops/compliance_audit_screen.dart';
@@ -26,9 +31,11 @@ import 'presentation/screens/ops/customs_hub_screen.dart';
 import 'presentation/screens/ops/intermodal_hub_screen.dart';
 import 'presentation/screens/ops/weighbridge_screen.dart';
 
+import 'presentation/screens/shipper/company_profile_screen.dart';
 import 'presentation/screens/shipper/escrow_invoices_screen.dart';
 import 'presentation/screens/shipper/freight_history_screen.dart';
 import 'presentation/screens/shipper/preferred_fleet_directory.dart';
+import 'presentation/screens/shipper/rate_driver_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +60,10 @@ class HabeshaFreightApp extends StatelessWidget {
         AppRoutes.page05EscrowVault: (_) => const ShipperEscrowVaultScreen(),
         AppRoutes.page06ShipperHub: (_) => const ShipperActiveHubScreen(),
         AppRoutes.page07PostCargo: (_) => const PostCargoRequestScreen(),
+        AppRoutes.page08MyShipments: (_) => const MyShipmentsScreen(),
+        AppRoutes.page09ReviewBids: (_) => const ReviewBidsScreen(),
         AppRoutes.page23PostCargo: (_) => const PostCargoRequestScreen(),
+        AppRoutes.page24MyShipments: (_) => const MyShipmentsScreen(),
         AppRoutes.home: (_) => const HomeScreen(),
         AppRoutes.page20SubmitBid: (_) => const SubmitFreightBidScreen(),
         AppRoutes.page21EscrowVault: (_) => const ShipperEscrowVaultScreen(),

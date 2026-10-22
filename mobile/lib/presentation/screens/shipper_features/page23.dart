@@ -351,8 +351,10 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
         onTap: (idx) {
           if (idx == 0) {
             Navigator.pushReplacementNamed(context, AppRoutes.home);
+          } else if (idx == 1) {
+            Navigator.pushNamed(context, AppRoutes.page24MyShipments);
           } else if (idx == 3) {
-            Navigator.pushNamed(context, AppRoutes.page05EscrowVault);
+            Navigator.pushNamed(context, AppRoutes.page08ReviewBids);
           } else if (idx != 2) {
             Navigator.pushReplacementNamed(context, AppRoutes.home);
           }

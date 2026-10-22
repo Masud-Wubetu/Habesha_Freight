@@ -22,7 +22,7 @@ class HabeshaBottomNavBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _navItem(0, Icons.home_filled, 'Home'),
-            _navItem(1, Icons.inventory_2_outlined, 'Deliveries'),
+            _navItem(1, Icons.inventory_2_outlined, 'Shipments'),
             _postLoadCenterButton(),
             _navItem(3, Icons.gavel_outlined, 'Bids'),
             _navItem(4, Icons.navigation_outlined, 'Tracking'),
