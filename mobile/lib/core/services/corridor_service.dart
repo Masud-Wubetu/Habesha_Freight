@@ -42,6 +42,7 @@ class CorridorService {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         if (data is List) return List<Map<String, dynamic>>.from(data);
+        if (data is Map && data['data'] is List) return List<Map<String, dynamic>>.from(data['data']);
         if (data is Map && data['loads'] is List) return List<Map<String, dynamic>>.from(data['loads']);
       }
       return [];
@@ -73,6 +74,7 @@ class CorridorService {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         if (data is List) return data.length;
+        if (data is Map && data['count'] is num) return (data['count'] as num).toInt();
         if (data is Map && data['data'] is List) return (data['data'] as List).length;
       }
       return 0;

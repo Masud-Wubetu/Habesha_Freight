@@ -11,6 +11,20 @@ class DriverHomeScreen extends StatefulWidget {
 
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
   bool _isAvailable = true;
+  String _driverName = 'Kebede Tadesse';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final name = await StorageService.getUserName();
+    if (mounted && name != null && name.isNotEmpty) {
+      setState(() => _driverName = name);
+    }
+  }
 
   // EXACT COLORS FROM YOUR PROVIDED CODE
   static const Color navy = Color(0xFF0F172A);
@@ -165,12 +179,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             }
           },
           itemBuilder: (ctx) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'info',
               enabled: false,
               child: Text(
-                'Driver • Kebede Tadesse',
-                style: TextStyle(
+                'Driver • $_driverName',
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: gold,
@@ -255,9 +269,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               children: [
                 Row(
                   children: [
-                    const Text(
-                      'Selam, Solomo...',
-                      style: TextStyle(
+                    Text(
+                      'Selam, ${_driverName.split(' ').first}',
+                      style: const TextStyle(
                         color: textWhite,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
