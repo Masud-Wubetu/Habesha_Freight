@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/presentation/screens/driver/available_loads_screen.dart';
+import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -10,17 +12,46 @@ class DriverHomeScreen extends StatefulWidget {
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
   bool _isAvailable = true;
 
-  // EXACT COLORS FROM YOUR PROVIDED CODE
   static const Color navy = Color(0xFF0F172A);
   static const Color gold = Color(0xFFFFB300);
   static const Color background = Color(0xFF0B1120);
   static const Color muted = Color(0xFF94A3B8);
   static const Color blue = Color(0xFF4385D7);
   static const Color green = Color(0xFF239B70);
-
-  // NEW COLORS FOR DARK UI
   static const Color cardColor = Color(0xFF1E293B);
   static const Color textWhite = Colors.white;
+
+  void _handleDriverNavigation(int index) {
+    switch (index) {
+      case 0: // Load
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const AvailableFreightLoadsScreen(),
+          ),
+        );
+        break;
+      case 1: // Offer
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Offer screen is not connected yet.')),
+        );
+        break;
+      case 2: // Home
+        break;
+      case 3: // Bids
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bids screen is not connected yet.')),
+        );
+        break;
+      case 4: // Tracking
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tracking screen is not connected yet.'),
+          ),
+        );
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +89,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ],
         ),
       ),
-      // Bottom navigation with custom floating action button
-      // Bottom navigation
-      bottomNavigationBar: _buildBottomNavBar(),
+      bottomNavigationBar: DriverBottomNavBar(
+        currentIndex: 2,
+        onTap: _handleDriverNavigation,
+      ),
     );
   }
 
@@ -183,12 +215,15 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               children: [
                 Row(
                   children: [
-                    const Text(
-                      'Selam, Solomo...',
-                      style: TextStyle(
-                        color: textWhite,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    const Flexible(
+                      child: Text(
+                        'Selam, Solomo...',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: textWhite,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -257,23 +292,28 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.local_fire_department,
-                              size: 14,
-                              color: gold,
-                            ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'CORRIDOR URGENT MATCH',
-                              style: TextStyle(
+                        const Flexible(
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.local_fire_department,
+                                size: 14,
                                 color: gold,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
                               ),
-                            ),
-                          ],
+                              SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  'CORRIDOR URGENT MATCH',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: gold,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -470,6 +510,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     required Widget subWidget,
   }) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: cardColor,
@@ -481,13 +522,16 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: muted,
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+              Expanded(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: muted,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
               Icon(icon, size: 14, color: muted),
@@ -546,26 +590,24 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: green,
-                      shape: BoxShape.circle,
+              const Flexible(
+                child: Row(
+                  children: [
+                    Icon(Icons.circle, size: 8, color: green),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'ACTIVE TRIP: #HF-9012',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: textWhite,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'ACTIVE TRIP: #HF-9012',
-                    style: TextStyle(
-                      color: textWhite,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -582,19 +624,15 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ),
           const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
+              const Expanded(
                 flex: 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'ORIGIN',
-                      style: TextStyle(color: muted, fontSize: 9),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
+                    Text('ORIGIN', style: TextStyle(color: muted, fontSize: 9)),
+                    SizedBox(height: 4),
+                    Text(
                       'Addis Ababa',
                       style: TextStyle(
                         color: textWhite,
@@ -602,38 +640,34 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    const Text(
+                    SizedBox(height: 2),
+                    Text(
                       'Kality Freight Depot',
                       style: TextStyle(color: muted, fontSize: 10),
                     ),
                   ],
                 ),
               ),
-              Expanded(
-                flex: 1,
+              const Expanded(
                 child: Column(
                   children: [
-                    const Icon(Icons.arrow_forward, color: gold, size: 18),
-                    const SizedBox(height: 4),
-                    const Text(
-                      '452 km',
-                      style: TextStyle(color: muted, fontSize: 9),
-                    ),
+                    Icon(Icons.arrow_forward, color: gold, size: 18),
+                    SizedBox(height: 4),
+                    Text('452 km', style: TextStyle(color: muted, fontSize: 9)),
                   ],
                 ),
               ),
-              Expanded(
+              const Expanded(
                 flex: 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
+                    Text(
                       'DESTINATION',
                       style: TextStyle(color: muted, fontSize: 9),
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
+                    SizedBox(height: 4),
+                    Text(
                       'Dire Dawa',
                       style: TextStyle(
                         color: textWhite,
@@ -641,8 +675,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    const Text(
+                    SizedBox(height: 2),
+                    Text(
                       'Industrial Free Zone',
                       style: TextStyle(color: muted, fontSize: 10),
                     ),
@@ -652,10 +686,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
                   Icon(Icons.speed, size: 14, color: green),
                   SizedBox(width: 4),
@@ -665,7 +699,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   ),
                 ],
               ),
-              const Row(
+              Row(
                 children: [
                   Icon(Icons.inventory_2_outlined, size: 14, color: gold),
                   SizedBox(width: 4),
@@ -678,7 +712,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          // Map Simulation
           Container(
             height: 120,
             decoration: BoxDecoration(
@@ -838,7 +871,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
   Widget _buildQuickActions() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildActionButton(
           icon: Icons.list_alt,
@@ -993,10 +1025,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Flexible(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1086,46 +1117,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               ],
             ),
           ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBottomNavBar() {
-    return BottomAppBar(
-      color: navy,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8.0,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.local_shipping_rounded, 'Load'),
-            _buildNavItem(Icons.local_offer_outlined, 'Offer'),
-            _buildNavItem(Icons.dashboard_outlined, 'Home', isActive: true),
-            _buildNavItem(Icons.gavel, 'Bids'),
-            _buildNavItem(Icons.location_on_outlined, 'Tracking'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, {bool isActive = false}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: isActive ? gold : muted, size: 22),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: isActive ? gold : muted,
-            fontSize: 9,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          ),
         ),
       ],
     );
