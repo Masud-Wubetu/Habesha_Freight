@@ -212,13 +212,13 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
-                  title: 'My Shipments & Active Fleet Telemetry',
+                  title: 'Review Cargo Bids & Live Auction',
                   subtitle:
-                      'Real-time GPS corridor tracking & cargo negotiation hub',
+                      'Live corridor tender, driver bids, counter-offer & escrow award',
                   badge: 'Page 08',
-                  icon: Icons.local_shipping_rounded,
-                  route: AppRoutes.page08MyShipments,
-                  color: const Color(0xFF38BDF8),
+                  icon: Icons.gavel_rounded,
+                  route: AppRoutes.page08ReviewBids,
+                  color: AppColors.gold,
                 ),
                 _navTile(
                   context,

@@ -205,8 +205,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.gavel_rounded, color: AppColors.gold, size: 20),
+              title: const Text('Review Cargo Bids & Auction (Page 08)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page08ReviewBids);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.local_shipping_rounded, color: Color(0xFF38BDF8), size: 20),
-              title: const Text('My Shipments & Active Fleet (Page 08 / 24)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              title: const Text('My Shipments & Active Fleet (Page 24)', style: TextStyle(color: Colors.white, fontSize: 13)),
               onTap: () {
                 Navigator.pop(ctx);
                 Navigator.pushNamed(context, AppRoutes.page08MyShipments);

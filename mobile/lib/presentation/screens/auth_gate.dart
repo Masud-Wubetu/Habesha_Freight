@@ -253,9 +253,15 @@ class _AuthGateState extends State<AuthGate> {
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page08ReviewBids),
+                icon: const Icon(Icons.gavel_rounded, color: AppColors.gold),
+                label: const Text('Review Cargo Bids & Auction (Page 08)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
                 onPressed: () => Navigator.pushNamed(context, AppRoutes.page08MyShipments),
                 icon: const Icon(Icons.local_shipping_rounded, color: Color(0xFF38BDF8)),
-                label: const Text('My Shipments & Telemetry Hub (Page 08 / 24)'),
+                label: const Text('My Shipments & Telemetry Hub (Page 24)'),
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(

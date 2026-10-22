@@ -164,7 +164,7 @@ class _MoreCatalog extends StatelessWidget {
       _CatalogItem('05', 'Escrow Vaults', 'NBE & Telebirr locked funds', AppRoutes.page05EscrowVault, Icons.shield_rounded),
       _CatalogItem('06', 'Active Hub & Ops', 'Live transit & telematics', AppRoutes.page06ShipperHub, Icons.dashboard_rounded),
       _CatalogItem('07', 'Post Cargo Wizard', 'Step 1: Cargo & route dispatch', AppRoutes.page23PostCargo, Icons.post_add_rounded),
-      _CatalogItem('08', 'My Shipments & Radar', 'Active fleet & GPS telemetry', AppRoutes.page08MyShipments, Icons.local_shipping_rounded),
+      _CatalogItem('08', 'Review Cargo Bids', 'Live auction & driver offers', AppRoutes.page08ReviewBids, Icons.gavel_rounded),
       _CatalogItem('20', 'Submit Freight Bid', 'Dynamic corridor bidding', AppRoutes.page20SubmitBid, Icons.gavel_rounded),
       _CatalogItem('24', 'My Shipments (Fleet)', 'Live corridor tracking & negotiation', AppRoutes.page24MyShipments, Icons.local_shipping_rounded),
       _CatalogItem('28', 'Rig Telemetry', 'CAN-bus & immobilizer', AppRoutes.page28RigTelemetry, Icons.sensors),
