@@ -6,12 +6,21 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/user_model.dart';
 
 class OtpSheet extends StatefulWidget {
-  final String phone;
+  final String? phone;
+  final String? email;
   final String? demoOtp;
   final AuthService auth;
   final void Function(UserModel user, String token) onDone;
 
-  const OtpSheet({super.key, required this.phone, this.demoOtp, required this.auth, required this.onDone});
+  const OtpSheet({
+    super.key,
+    this.phone,
+    this.email,
+    this.demoOtp,
+    required this.auth,
+    required this.onDone,
+  });
+
   @override
   State<OtpSheet> createState() => _OtpSheetState();
 }
@@ -23,10 +32,12 @@ class _OtpSheetState extends State<OtpSheet> {
   Timer? _t;
   bool _verifying = false;
   String? _err;
+  String? _demoOtp;
 
   @override
   void initState() {
     super.initState();
+    _demoOtp = widget.demoOtp;
     _t = Timer.periodic(const Duration(seconds: 1), (t) {
       if (_timer > 0) {
         setState(() => _timer--);
@@ -39,79 +50,203 @@ class _OtpSheetState extends State<OtpSheet> {
   @override
   void dispose() {
     _t?.cancel();
-    for (final c in _ctrls) { c.dispose(); }
-    for (final n in _nodes) { n.dispose(); }
+    for (final c in _ctrls) {
+      c.dispose();
+    }
+    for (final n in _nodes) {
+      n.dispose();
+    }
     super.dispose();
+  }
+
+  String get _destination {
+    if (widget.email != null && widget.email!.isNotEmpty) return widget.email!;
+    return widget.phone ?? '';
   }
 
   Future<void> _verify([String? code]) async {
     final otp = code ?? _ctrls.map((c) => c.text).join();
     if (otp.length != 6) return setState(() => _err = 'Enter 6 digits');
-    setState(() { _verifying = true; _err = null; });
-    final res = await widget.auth.verifyOtp(phoneNumber: widget.phone, otpCode: otp);
+    setState(() {
+      _verifying = true;
+      _err = null;
+    });
+    final res = await widget.auth.verifyOtp(
+      phoneNumber: widget.phone,
+      email: widget.email,
+      otpCode: otp,
+    );
     if (!mounted) return;
     setState(() => _verifying = false);
-    if (res.success && res.user != null) {
+    if (res.success && res.user != null && res.token != null) {
       Navigator.pop(context);
       widget.onDone(res.user!, res.token!);
     } else {
-      setState(() => _err = res.message.isNotEmpty ? res.message : 'Invalid OTP');
+      setState(() =>
+          _err = res.message.isNotEmpty ? res.message : 'Invalid OTP');
+    }
+  }
+
+  Future<void> _resend() async {
+    final res = await widget.auth.resendOtp(
+      phoneNumber: widget.phone,
+      email: widget.email,
+    );
+    if (!mounted) return;
+    setState(() {
+      _timer = 60;
+      _demoOtp = res.demoOtp ?? _demoOtp;
+      _t?.cancel();
+      _t = Timer.periodic(const Duration(seconds: 1), (t) {
+        if (_timer > 0) {
+          setState(() => _timer--);
+        } else {
+          t.cancel();
+        }
+      });
+    });
+    if (!res.success) {
+      setState(() => _err = res.message);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 16, left: 16, right: 16, top: 16),
-      decoration: const BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text('Verify SMS Code', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
-        const SizedBox(height: 4),
-        Text('Sent to ${widget.phone}', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
-        if (widget.demoOtp != null) ...[
-          const SizedBox(height: 10),
-          ActionChip(
-            label: Text('Fill Dev OTP: ${widget.demoOtp}', style: GoogleFonts.inter(fontSize: 11, color: AppColors.gold)),
-            backgroundColor: AppColors.badgeAmberBg,
-            side: const BorderSide(color: AppColors.badgeAmberBorder),
-            onPressed: () {
-              for (int i = 0; i < 6 && i < widget.demoOtp!.length; i++) {
-                _ctrls[i].text = widget.demoOtp![i];
-              }
-              _verify(widget.demoOtp);
-            },
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        left: 16,
+        right: 16,
+        top: 16,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            widget.email != null ? 'Verify Email Code' : 'Verify SMS Code',
+            style: GoogleFonts.outfit(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Sent to $_destination',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          if (_demoOtp != null) ...[
+            const SizedBox(height: 10),
+            ActionChip(
+              label: Text(
+                'Fill Dev OTP: $_demoOtp',
+                style: GoogleFonts.inter(fontSize: 11, color: AppColors.gold),
+              ),
+              backgroundColor: AppColors.badgeAmberBg,
+              side: const BorderSide(color: AppColors.badgeAmberBorder),
+              onPressed: () {
+                for (int i = 0; i < 6 && i < _demoOtp!.length; i++) {
+                  _ctrls[i].text = _demoOtp![i];
+                }
+                _verify(_demoOtp);
+              },
+            ),
+          ],
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(
+              6,
+              (i) => SizedBox(
+                width: 42,
+                height: 46,
+                child: TextField(
+                  controller: _ctrls[i],
+                  focusNode: _nodes[i],
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  maxLength: 1,
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    filled: true,
+                    fillColor: AppColors.inputBackground,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onChanged: (v) {
+                    if (v.isNotEmpty && i < 5) _nodes[i + 1].requestFocus();
+                    if (v.isEmpty && i > 0) _nodes[i - 1].requestFocus();
+                    if (_ctrls.map((c) => c.text).join().length == 6) {
+                      _verify();
+                    }
+                  },
+                ),
+              ),
+            ),
+          ),
+          if (_err != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _err!,
+              style: GoogleFonts.inter(fontSize: 12, color: AppColors.error),
+            ),
+          ],
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton(
+              onPressed: _verifying ? null : () => _verify(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.textDark,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: _verifying
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.textDark,
+                      ),
+                    )
+                  : Text(
+                      'Verify & Continue',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+            ),
+          ),
+          TextButton(
+            onPressed: _timer == 0 ? _resend : null,
+            child: Text(
+              _timer > 0 ? 'Resend in ${_timer}s' : 'Resend Code',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: _timer > 0 ? AppColors.textMuted : AppColors.gold,
+              ),
+            ),
           ),
         ],
-        const SizedBox(height: 14),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: List.generate(6, (i) => SizedBox(
-          width: 42, height: 46,
-          child: TextField(
-            controller: _ctrls[i], focusNode: _nodes[i], keyboardType: TextInputType.number, textAlign: TextAlign.center, maxLength: 1,
-            style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
-            decoration: InputDecoration(counterText: '', filled: true, fillColor: AppColors.inputBackground, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8))),
-            onChanged: (v) {
-              if (v.isNotEmpty && i < 5) _nodes[i + 1].requestFocus();
-              if (v.isEmpty && i > 0) _nodes[i - 1].requestFocus();
-              if (_ctrls.map((c) => c.text).join().length == 6) _verify();
-            },
-          ),
-        ))),
-        if (_err != null) ...[const SizedBox(height: 8), Text(_err!, style: GoogleFonts.inter(fontSize: 12, color: AppColors.error))],
-        const SizedBox(height: 14),
-        SizedBox(
-          width: double.infinity, height: 46,
-          child: ElevatedButton(
-            onPressed: _verifying ? null : () => _verify(),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: AppColors.textDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-            child: _verifying ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textDark))
-                : Text('Verify & Continue', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700)),
-          ),
-        ),
-        TextButton(
-          onPressed: _timer == 0 ? () => widget.auth.sendOtp(phoneNumber: widget.phone) : null,
-          child: Text(_timer > 0 ? 'Resend in ${_timer}s' : 'Resend Code', style: GoogleFonts.inter(fontSize: 12, color: _timer > 0 ? AppColors.textMuted : AppColors.gold)),
-        ),
-      ]),
+      ),
     );
   }
 }
