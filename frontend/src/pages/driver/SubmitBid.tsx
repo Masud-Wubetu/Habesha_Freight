@@ -26,7 +26,7 @@ export default function SubmitBid() {
     }
     setSubmitting(true);
     try {
-      await post('/driver/bids', {
+      await post('/drivers/bids', {
         load_id: requestId,
         bid_amount_etb: Number(amount),
         note: note || undefined,
