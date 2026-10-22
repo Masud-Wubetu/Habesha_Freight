@@ -165,6 +165,7 @@ class _MoreCatalog extends StatelessWidget {
       _CatalogItem('06', 'Active Hub & Ops', 'Live transit & telematics', AppRoutes.page06ShipperHub, Icons.dashboard_rounded),
       _CatalogItem('07', 'Post Cargo Wizard', 'Step 1: Cargo & route dispatch', AppRoutes.page23PostCargo, Icons.post_add_rounded),
       _CatalogItem('20', 'Submit Freight Bid', 'Dynamic corridor bidding', AppRoutes.page20SubmitBid, Icons.gavel_rounded),
+      _CatalogItem('24', 'My Shipments & Radar', 'Live corridor tracking & negotiation', AppRoutes.page24MyShipments, Icons.local_shipping_rounded),
       _CatalogItem('28', 'Rig Telemetry', 'CAN-bus & immobilizer', AppRoutes.page28RigTelemetry, Icons.sensors),
       _CatalogItem('30', 'Dispatch Matrix', 'Assign empty trucks', AppRoutes.page30DispatchMatrix, Icons.route),
       _CatalogItem('32', 'Fuel & Toll Pass', 'QR vouchers & RFID', AppRoutes.page32FuelToll, Icons.local_gas_station),

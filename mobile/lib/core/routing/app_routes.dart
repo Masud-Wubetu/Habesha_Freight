@@ -6,6 +6,7 @@ class AppRoutes {
   static const page06ShipperHub = '/shipper/active-hub';
   static const page07PostCargo = '/shipper/post-cargo';
   static const page23PostCargo = '/shipper/post-cargo-wizard';
+  static const page24MyShipments = '/shipper/my-shipments';
   static const home = '/home';
   static const fleetHub = '/fleet';
   static const page20SubmitBid = '/shipper/bid';

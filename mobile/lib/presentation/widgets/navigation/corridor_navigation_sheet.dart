@@ -221,6 +221,16 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'My Shipments & Active Telemetry',
+                  subtitle:
+                      'Real-time GPS corridor tracking & cargo negotiation hub',
+                  badge: 'Page 24',
+                  icon: Icons.local_shipping_rounded,
+                  route: AppRoutes.page24MyShipments,
+                  color: const Color(0xFF38BDF8),
+                ),
+                _navTile(
+                  context,
                   title: 'Carrier & Shipper Sign In',
                   subtitle: 'SMS OTP verification, Telebirr & passwords',
                   badge: 'Auth',
