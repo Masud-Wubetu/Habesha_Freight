@@ -508,7 +508,9 @@ class _ShipperActiveHubScreenState extends State<ShipperActiveHubScreen> {
       bottomNavigationBar: HabeshaBottomNavBar(
         currentIndex: 0, // Home / Operations
         onTap: (idx) {
-          if (idx == 2) {
+          if (idx == 1) {
+            Navigator.pushNamed(context, AppRoutes.page24MyShipments);
+          } else if (idx == 2) {
             Navigator.pushNamed(context, AppRoutes.page23PostCargo);
           } else if (idx == 3) {
             Navigator.pushNamed(context, AppRoutes.page05EscrowVault);
