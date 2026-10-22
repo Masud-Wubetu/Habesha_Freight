@@ -48,7 +48,6 @@ class _AvailableFreightLoadsScreenState
   void _handleDriverNavigation(int index) {
     switch (index) {
       case 0:
-        // Already on Available Loads.
         break;
       case 1:
         if (widget.onNavigate != null) {
@@ -118,6 +117,10 @@ class _AvailableFreightLoadsScreenState
                         height: 1.35,
                       ),
                     ),
+                    const SizedBox(height: 14),
+                    _buildSearchField(),
+                    const SizedBox(height: 10),
+                    _buildCorridorFilters(),
                   ],
                 ),
               ),
@@ -264,6 +267,110 @@ class _AvailableFreightLoadsScreenState
           icon: Icons.bolt_rounded,
         ),
       ],
+    );
+  }
+
+  Widget _buildSearchField() {
+    return Container(
+      height: 43,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF152B45)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search_rounded, color: _muted, size: 19),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              style: const TextStyle(
+                color: _white,
+                fontSize: 12,
+              ),
+              cursorColor: _gold,
+              decoration: const InputDecoration(
+                hintText: 'Cargo, pickup hub, or tonnage...',
+                hintStyle: TextStyle(
+                  color: _muted,
+                  fontSize: 12,
+                ),
+                border: InputBorder.none,
+                isDense: true,
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
+          ),
+          IconButton(
+            onPressed: () => _showMessage('Advanced filters selected'),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 28,
+              minHeight: 28,
+            ),
+            icon: const Icon(
+              Icons.tune_rounded,
+              color: _gold,
+              size: 18,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCorridorFilters() {
+    final corridors = [
+      'All Corridors',
+      'Addis → Djibouti',
+      'Modjo →',
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: corridors.map((corridor) {
+          final selected = _selectedCorridor == corridor;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 7),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedCorridor = corridor;
+                });
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? const Color(0xFF5B4218)
+                      : _surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: selected ? _gold : const Color(0xFF1B3552),
+                  ),
+                ),
+                child: Text(
+                  corridor,
+                  style: TextStyle(
+                    color: selected ? _gold : _muted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }
