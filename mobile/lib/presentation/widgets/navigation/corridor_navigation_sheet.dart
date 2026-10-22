@@ -232,6 +232,16 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'Live Telemetry & GPS Tracking',
+                  subtitle:
+                      'Real-time vehicle radar, Awash corridor speed & IoT e-seal',
+                  badge: 'Page 10',
+                  icon: Icons.share_location_rounded,
+                  route: AppRoutes.page10LiveTracking,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
                   title: 'Submit Freight Bid Screen',
                   subtitle:
                       'Dynamic corridor bidding, gate slots, and tariff rates',

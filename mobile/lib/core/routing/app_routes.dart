@@ -8,6 +8,7 @@ class AppRoutes {
   static const page08MyShipments = '/shipper/shipments';
   static const page09ReviewBids = '/shipper/review-bids';
   static const page08ReviewBids = page09ReviewBids;
+  static const page10LiveTracking = '/shipper/live-tracking';
   static const page23PostCargo = '/shipper/post-cargo-wizard';
   static const page24MyShipments = '/shipper/my-shipments';
   static const home = '/home';

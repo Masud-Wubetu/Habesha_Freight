@@ -265,6 +265,12 @@ class _AuthGateState extends State<AuthGate> {
               ),
               const SizedBox(height: 10),
               OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.page10LiveTracking),
+                icon: const Icon(Icons.share_location_rounded, color: AppColors.gold),
+                label: const Text('Live Telemetry & GPS Tracking (Page 10)'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
                 onPressed: () => CorridorNavigationSheet.show(context),
                 icon: const Icon(Icons.grid_view_rounded),
                 label: const Text('Explore All 16 Corridor Modules'),
