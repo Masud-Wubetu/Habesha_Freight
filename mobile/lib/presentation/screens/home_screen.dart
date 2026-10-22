@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentTab = 0;
   String _lang = 'EN';
   bool _loading = false;
+  bool _usingDemoFallback = false;
   List<Map<String, dynamic>> _loads = [];
   Map<String, dynamic>? _activeShipment;
   int _vehiclesCount = 42;
@@ -96,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _loads = loads.isNotEmpty ? loads : _fallbackLoads;
       _activeShipment = shipments.isNotEmpty ? shipments.first : _fallbackShipment;
       _vehiclesCount = vehicles > 0 ? vehicles : 42;
+      _usingDemoFallback = loads.isEmpty || shipments.isEmpty;
       _loading = false;
     });
   }
@@ -264,23 +266,44 @@ class _HomeScreenState extends State<HomeScreen> {
       case 4:
         return TrackingView(activeShipment: _activeShipment, verifiedVehicles: _vehiclesCount);
       default:
-        return HomeDashboardView(
-          language: _lang,
-          onLanguageChanged: (l) => setState(() => _lang = l),
-          onProfileTap: _showProfileModal,
-          loadCount: _loads.length,
-          isLoadingLoads: _loading,
-          onFindLoad: () => setState(() => _currentTab = 1),
-          onFindTrucks: () => setState(() => _currentTab = 4),
-          activeShipment: _activeShipment,
-          corridors: _corridor.getCorridors(),
-          selectedCorridor: _selectedCorridor,
-          onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
-          weight: _weight,
-          onWeightChanged: (w) => setState(() => _weight = w),
-          corridorService: _corridor,
-          onRequestTrucks: _openPostLoadSheet,
-          vehiclesCount: _vehiclesCount,
+        return Column(
+          children: [
+            if (_usingDemoFallback)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: const Text(
+                  'Showing demo corridor samples — live /loads or /shipments returned empty.',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+              ),
+            Expanded(
+              child: HomeDashboardView(
+                language: _lang,
+                onLanguageChanged: (l) => setState(() => _lang = l),
+                onProfileTap: _showProfileModal,
+                loadCount: _loads.length,
+                isLoadingLoads: _loading,
+                onFindLoad: () => setState(() => _currentTab = 1),
+                onFindTrucks: () => setState(() => _currentTab = 4),
+                activeShipment: _activeShipment,
+                corridors: _corridor.getCorridors(),
+                selectedCorridor: _selectedCorridor,
+                onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
+                weight: _weight,
+                onWeightChanged: (w) => setState(() => _weight = w),
+                corridorService: _corridor,
+                onRequestTrucks: _openPostLoadSheet,
+                vehiclesCount: _vehiclesCount,
+              ),
+            ),
+          ],
         );
     }
   }
