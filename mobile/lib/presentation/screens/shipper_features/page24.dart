@@ -5,6 +5,7 @@ import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
+import '../../widgets/shipments/corridor_telemetry_radar_card.dart';
 import '../../widgets/shipments/shipments_header.dart';
 import '../../widgets/shipments/shipments_search_and_filter_bar.dart';
 
@@ -108,6 +109,90 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showLiveRadarModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.radar_rounded, color: Color(0xFF10B981), size: 22),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Live Corridor Telemetry Radar',
+                        style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8)),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF070D18),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF1E293B)),
+                ),
+                child: Column(
+                  children: [
+                    _radarStatRow('Active Corridors Monitored', 'Expressway A1 · Hawassa A7'),
+                    const Divider(color: Color(0xFF1E293B), height: 16),
+                    _radarStatRow('Active Rigs with Live GPS', '12 Carriers (100% Lock)'),
+                    const Divider(color: Color(0xFF1E293B), height: 16),
+                    _radarStatRow('Average Gate Clearance', '3.8 min at Modjo Smart Bay'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pushNamed(context, AppRoutes.page06ShipperHub);
+                  },
+                  icon: const Icon(Icons.dashboard_rounded, color: Color(0xFF0F172A), size: 18),
+                  label: Text('Open Full Operations Radar (Page 06)', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: const Color(0xFF0F172A))),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _radarStatRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 12)),
+        Text(value, style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+      ],
     );
   }
 
@@ -222,6 +307,18 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
                 activeCount: 3,
                 biddingCount: 5,
                 deliveredCount: 4,
+              ),
+              const SizedBox(height: 16),
+              CorridorTelemetryRadarCard(
+                onTap: _showLiveRadarModal,
+                originHub: 'Addis Ababa Hub (A)',
+                destinationHub: 'Dire Dawa (B)',
+                departureTime: '05:30 AM',
+                arrivalTime: '02:45 PM',
+                remainingKm: 112,
+                currentLat: '9.020',
+                currentLng: '39.800',
+                progress: 0.65,
               ),
               const SizedBox(height: 16),
 
