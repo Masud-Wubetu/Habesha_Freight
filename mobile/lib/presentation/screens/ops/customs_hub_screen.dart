@@ -30,6 +30,7 @@ class CustomsHubScreen extends StatelessWidget {
                 child: PageRibbon(
                   page: '35',
                   title: 'Customs & Manifest Declaration',
+                  status: 'Design preview · no API yet',
                 ),
               ),
               Container(
