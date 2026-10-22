@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/shipments/shipments_header.dart';
+import '../../widgets/shipments/shipments_search_and_filter_bar.dart';
 
 class MyShipmentsScreen extends StatefulWidget {
   const MyShipmentsScreen({super.key});
@@ -16,11 +17,98 @@ class MyShipmentsScreen extends StatefulWidget {
 
 class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
   String _selectedLanguage = 'EN';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  int _selectedFilterTab = 0; // 0: All, 1: Active, 2: Bidding, 3: Delivered
+  String _selectedCorridor = 'All Corridors';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   void _handleLanguageTap(String lang) {
     setState(() {
       _selectedLanguage = lang;
     });
+  }
+
+  void _handleFilterSettings() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Corridor & Telemetry Filters',
+                    style: GoogleFonts.outfit(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8)),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'ACTIVE FREIGHT CORRIDORS',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.1,
+                  color: const Color(0xFF94A3B8),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  'All Corridors',
+                  'Expressway A1',
+                  'Awash Route',
+                  'Hawassa A7',
+                  'Northern Line',
+                ].map((corridor) {
+                  final isSelected = _selectedCorridor == corridor;
+                  return ChoiceChip(
+                    label: Text(corridor),
+                    selected: isSelected,
+                    onSelected: (val) {
+                      setState(() => _selectedCorridor = corridor);
+                      Navigator.pop(ctx);
+                    },
+                    selectedColor: AppColors.gold,
+                    backgroundColor: const Color(0xFF1E293B),
+                    labelStyle: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected ? const Color(0xFF0F172A) : Colors.white,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _handleProfileTap() {
@@ -124,6 +212,18 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
                 liveEnRouteCount: 3,
               ),
               const SizedBox(height: 16),
+              ShipmentsSearchAndFilterBar(
+                searchController: _searchController,
+                onSearchChanged: (val) => setState(() => _searchQuery = val),
+                onFilterSettingsTap: _handleFilterSettings,
+                selectedTabIndex: _selectedFilterTab,
+                onTabSelected: (idx) => setState(() => _selectedFilterTab = idx),
+                allCount: 12,
+                activeCount: 3,
+                biddingCount: 5,
+                deliveredCount: 4,
+              ),
+              const SizedBox(height: 16),
 
               // Placeholder for Search & Filter Bar, Radar Card, and Shipments List (Micro-tasks 2-5)
               Container(
@@ -140,7 +240,9 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Active Fleet Telemetry & Shipments loading...',
+                        _searchQuery.isEmpty
+                            ? 'Active Fleet Telemetry & Shipments loading...'
+                            : 'Filtering shipments by: "$_searchQuery"...',
                         style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
                       ),
                     ),
