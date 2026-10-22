@@ -59,14 +59,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         ),
       ),
       // Bottom navigation with custom floating action button
-      bottomNavigationBar: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.topCenter,
-        children: [
-          _buildBottomNavBar(),
-          Positioned(top: -10, child: _buildCustomFAB()),
-        ],
-      ),
+      // Bottom navigation
+      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
@@ -1107,9 +1101,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
+            _buildNavItem(Icons.local_shipping_rounded, 'Load'),
+            _buildNavItem(Icons.local_offer_outlined, 'Offer'),
             _buildNavItem(Icons.dashboard_outlined, 'Home', isActive: true),
-            _buildNavItem(Icons.inventory_2_outlined, 'Shipments'),
-            const SizedBox(width: 64),
             _buildNavItem(Icons.gavel, 'Bids'),
             _buildNavItem(Icons.location_on_outlined, 'Tracking'),
           ],
@@ -1131,45 +1125,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             color: isActive ? gold : muted,
             fontSize: 9,
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Custom FAB Widget with Label
-  Widget _buildCustomFAB() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: () {
-            // Handle Post Load action
-          },
-          child: Container(
-            height: 54,
-            width: 54,
-            decoration: BoxDecoration(
-              color: gold,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.add, size: 30, color: Colors.black),
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Post Load',
-          style: TextStyle(
-            color: gold,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
           ),
         ),
       ],
