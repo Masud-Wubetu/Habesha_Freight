@@ -24,33 +24,28 @@ export default function CompanyDeliveries() {
         ? res.data
         : [];
 
-      if (loadList.length > 0) {
-        setDeliveries(
-          loadList.map((l: any, idx: number) => ({
-            id: l.id ? `DEL-${l.id.slice(0, 8).toUpperCase()}` : `DEL-00${idx + 1}`,
-            shipper: l.cargo_description || 'Commercial Freight',
-            route: `${l.origin_city || 'Addis Ababa'} → ${l.destination_city || 'Regional Center'}`,
-            trucks: 1,
-            status: l.status === 'DELIVERED' ? 'Completed' : l.status === 'IN_TRANSIT' ? 'In Progress' : 'Accepted',
-            amount: l.offered_price_etb ? `ETB ${Number(l.offered_price_etb).toLocaleString()}` : 'ETB 45,000',
-          }))
-        );
-      } else {
-        setDeliveries([
-          { id: 'DEL-9901', shipper: 'Ethiopia Coffee Exporters Union', route: 'Addis Ababa → Djibouti Port', trucks: 3, status: 'In Progress', amount: 'ETB 145,000' },
-          { id: 'DEL-9902', shipper: 'Habesha Breweries S.C.', route: 'Debre Birhan → Hawassa', trucks: 2, status: 'Completed', amount: 'ETB 68,000' },
-          { id: 'DEL-9903', shipper: 'East Africa Pharmaceutical', route: 'Kality → Mekelle Hub', trucks: 1, status: 'Accepted', amount: 'ETB 52,000' },
-          { id: 'DEL-9904', shipper: 'National Cement Corporation', route: 'Dire Dawa → Adama', trucks: 4, status: 'In Progress', amount: 'ETB 195,000' },
-        ]);
-      }
+      setDeliveries(
+        loadList.map((l: any, idx: number) => ({
+          id: String(l.id || `DEL-00${idx + 1}`),
+          shipper: l.shipper_name || l.cargo_description || 'Commercial Freight',
+          route: `${l.origin_city || '—'} → ${l.destination_city || '—'}`,
+          trucks: 1,
+          status:
+            l.status === 'DELIVERED'
+              ? 'Completed'
+              : l.status === 'IN_TRANSIT'
+                ? 'In Progress'
+                : l.status === 'ASSIGNED' || l.status === 'DISPATCHED'
+                  ? 'Accepted'
+                  : 'Pending',
+          amount: l.offered_price_etb
+            ? `ETB ${Number(l.offered_price_etb).toLocaleString()}`
+            : '—',
+        }))
+      );
     } catch (err) {
       console.error('Error fetching company deliveries:', err);
-      setDeliveries([
-        { id: 'DEL-9901', shipper: 'Ethiopia Coffee Exporters Union', route: 'Addis Ababa → Djibouti Port', trucks: 3, status: 'In Progress', amount: 'ETB 145,000' },
-        { id: 'DEL-9902', shipper: 'Habesha Breweries S.C.', route: 'Debre Birhan → Hawassa', trucks: 2, status: 'Completed', amount: 'ETB 68,000' },
-        { id: 'DEL-9903', shipper: 'East Africa Pharmaceutical', route: 'Kality → Mekelle Hub', trucks: 1, status: 'Accepted', amount: 'ETB 52,000' },
-        { id: 'DEL-9904', shipper: 'National Cement Corporation', route: 'Dire Dawa → Adama', trucks: 4, status: 'In Progress', amount: 'ETB 195,000' },
-      ]);
+      setDeliveries([]);
     } finally {
       setLoading(false);
     }
