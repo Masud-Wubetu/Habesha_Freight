@@ -73,8 +73,7 @@ class ApiConfig {
       '/escrow/$shipmentId/release';
   static String escrowRefund(String shipmentId) =>
       '/escrow/$shipmentId/refund';
-  static String escrowStatus(String shipmentId) =>
-      '/escrow/$shipmentId/status';
+  static String escrowStatus(String shipmentId) => '/escrow/$shipmentId';
 
   // Driver (canonical /drivers; backend also aliases /driver)
   static const String driverStats = '/drivers/stats';
