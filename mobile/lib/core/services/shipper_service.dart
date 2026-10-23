@@ -36,7 +36,7 @@ class ShipperService {
     required String requestId,
     required String bidId,
   }) async {
-    final res = await _api.post(ApiConfig.shipperAcceptBid(requestId, bidId));
+    final res = await _api.patch(ApiConfig.shipperAcceptBid(requestId, bidId));
     return (res['data'] as Map?)?.cast<String, dynamic>() ?? res;
   }
 
@@ -56,7 +56,22 @@ class ShipperService {
     required String requestId,
     required String bidId,
   }) async {
-    final res = await _api.post(ApiConfig.shipperRejectBid(requestId, bidId));
+    final res = await _api.patch(ApiConfig.shipperRejectBid(requestId, bidId));
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? res;
+  }
+
+  Future<List<Map<String, dynamic>>> listBids() async {
+    final res = await _api.get('/shipper/bids');
+    return _asList(res['data']);
+  }
+
+  Future<Map<String, dynamic>> createFleetRequest(Map<String, dynamic> body) async {
+    final res = await _api.post(ApiConfig.shipperFleetRequests, body: body);
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? res;
+  }
+
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> body) async {
+    final res = await _api.patch(ApiConfig.shipperProfile, body: body);
     return (res['data'] as Map?)?.cast<String, dynamic>() ?? res;
   }
 
