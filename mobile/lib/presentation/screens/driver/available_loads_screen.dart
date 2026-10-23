@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/routing/app_routes.dart';
+import 'package:mobile/presentation/screens/driver/request_details_screen.dart';
 import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
 
 class AvailableFreightLoadsScreen extends StatefulWidget {
@@ -168,8 +169,27 @@ class _AvailableFreightLoadsScreenState
                       onAction: () =>
                           _showMessage('Place Bid selected for #ET-8942'),
                       secondaryAction: 'Details',
-                      onSecondary: () =>
-                          _showMessage('Load details for #ET-8942'),
+                      onSecondary: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                            builder: (context) => const RequestDetailsScreen(
+                              reference: '#ET-8942',
+                              origin: 'Modjo Dry Port',
+                              destination: 'Dire Dawa FTZ',
+                              cargo: '28T Containerized Wheat & Grain',
+                              pickup: 'Tomorrow, 08:30 AM',
+                              shipper: 'Ethio Agricultural Expo.',
+                              rating: '4.95 (124 trips)',
+                              price: '65,000 ETB',
+                              priceCaption: 'Target Budget',
+                              distance: '450 km Expressway',
+                              cargoNote: 'Since 30T / FAW',
+                              status: 'Telebirr Escrow',
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     _buildLoadCard(
