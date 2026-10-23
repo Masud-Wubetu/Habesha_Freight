@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/shipper_service.dart';
 
 typedef CompanyProfileScreen = ShipperCompanyProfileScreen;
 
@@ -12,10 +14,21 @@ class ShipperCompanyProfileScreen extends StatefulWidget {
 
 class _ShipperCompanyProfileScreenState
     extends State<ShipperCompanyProfileScreen> {
+  final ShipperService _shipperService = ShipperService();
+
   // Local state for toggles
   bool _corridorNotifications = true;
   bool _smsAlerts = true;
   bool _escrowAutoReceipts = false;
+  bool _loading = true;
+  bool _saving = false;
+
+  String _fullName = '';
+  String _email = '';
+  String _phone = '';
+  String _companyLabel = 'Shipper Account';
+  int _totalLoads = 0;
+  bool _isVerified = false;
 
   // Define colors locally to match the dark theme in the screenshot
   final Color _bgDark = const Color(0xFF0F172A);
@@ -28,33 +41,187 @@ class _ShipperCompanyProfileScreenState
   final Color _borderColor = const Color(0xFF334155);
 
   @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final profile = await _shipperService.getProfile();
+      if (!mounted) return;
+      final stats = profile['stats'];
+      setState(() {
+        _fullName = profile['full_name']?.toString() ?? '';
+        _email = profile['email']?.toString() ?? '';
+        _phone = profile['phone_number']?.toString() ?? '';
+        _isVerified = profile['is_verified'] == true ||
+            profile['kyc_status']?.toString().toUpperCase() == 'APPROVED';
+        _companyLabel = _fullName.isNotEmpty
+            ? _fullName
+            : (profile['company_name']?.toString() ?? 'Shipper Account');
+        if (stats is Map) {
+          _totalLoads = int.tryParse(stats['total_loads']?.toString() ?? '') ??
+              (stats['total_loads'] is num
+                  ? (stats['total_loads'] as num).toInt()
+                  : 0);
+        }
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: const Color(0xFFEF4444)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to load company profile'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    final nameController = TextEditingController(text: _fullName);
+    final emailController = TextEditingController(text: _email);
+    final phoneController = TextEditingController(text: _phone);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _bgCard,
+        title: Text('Edit Company Profile', style: TextStyle(color: _textMain)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              style: TextStyle(color: _textMain),
+              decoration: InputDecoration(
+                labelText: 'Full name / Company',
+                labelStyle: TextStyle(color: _textMuted),
+              ),
+            ),
+            TextField(
+              controller: emailController,
+              style: TextStyle(color: _textMain),
+              decoration: InputDecoration(
+                labelText: 'Email',
+                labelStyle: TextStyle(color: _textMuted),
+              ),
+            ),
+            TextField(
+              controller: phoneController,
+              style: TextStyle(color: _textMain),
+              decoration: InputDecoration(
+                labelText: 'Phone',
+                labelStyle: TextStyle(color: _textMuted),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: _accentGold),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) {
+      nameController.dispose();
+      emailController.dispose();
+      phoneController.dispose();
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      final updated = await _shipperService.updateProfile({
+        'full_name': nameController.text.trim(),
+        'email': emailController.text.trim(),
+        'phone_number': phoneController.text.trim(),
+      });
+      if (!mounted) return;
+      setState(() {
+        _fullName = updated['full_name']?.toString() ?? nameController.text.trim();
+        _email = updated['email']?.toString() ?? emailController.text.trim();
+        _phone =
+            updated['phone_number']?.toString() ?? phoneController.text.trim();
+        _companyLabel = _fullName.isNotEmpty ? _fullName : _companyLabel;
+        _saving = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Profile updated'),
+          backgroundColor: _accentGreen,
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: const Color(0xFFEF4444)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update profile'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+    } finally {
+      nameController.dispose();
+      emailController.dispose();
+      phoneController.dispose();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bgDark,
       body: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 20),
-              _buildHeroProfileCard(),
-              const SizedBox(height: 20),
-              _buildCorridorPerformance(),
-              const SizedBox(height: 20),
-              _buildLegalRegister(),
-              const SizedBox(height: 24),
-              _buildDocumentsSection(),
-              const SizedBox(height: 24),
-              _buildPreferencesSection(),
-              const SizedBox(height: 24),
-              _buildActionButtons(),
-              const SizedBox(height: 40), // Padding for bottom nav
-            ],
-          ),
-        ),
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFFFBBF24)))
+            : SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 20),
+                    _buildHeroProfileCard(),
+                    const SizedBox(height: 20),
+                    _buildCorridorPerformance(),
+                    const SizedBox(height: 20),
+                    _buildLegalRegister(),
+                    const SizedBox(height: 24),
+                    _buildDocumentsSection(),
+                    const SizedBox(height: 24),
+                    _buildPreferencesSection(),
+                    const SizedBox(height: 24),
+                    _buildActionButtons(),
+                    const SizedBox(height: 40), // Padding for bottom nav
+                  ],
+                ),
+              ),
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
@@ -228,7 +395,7 @@ class _ShipperCompanyProfileScreenState
           ),
           const SizedBox(height: 16),
           Text(
-            'Ethio Agricultural Exports Ltd',
+            _companyLabel.isNotEmpty ? _companyLabel : 'Shipper Account',
             style: TextStyle(
               color: _textMain,
               fontSize: 20,
@@ -240,12 +407,23 @@ class _ShipperCompanyProfileScreenState
             children: [
               Icon(Icons.verified_user_outlined, color: _textMuted, size: 14),
               const SizedBox(width: 6),
-              Text(
-                'Bole Dry Port Logistics • Enterprise Shipper',
-                style: TextStyle(color: _textMuted, fontSize: 12),
+              Expanded(
+                child: Text(
+                  _isVerified
+                      ? 'Verified Enterprise Shipper'
+                      : 'Shipper account',
+                  style: TextStyle(color: _textMuted, fontSize: 12),
+                ),
               ),
             ],
           ),
+          if (_email.isNotEmpty || _phone.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              [_email, _phone].where((s) => s.isNotEmpty).join(' · '),
+              style: TextStyle(color: _textMuted, fontSize: 12),
+            ),
+          ],
           const SizedBox(height: 20),
           Row(
             children: [
@@ -272,7 +450,7 @@ class _ShipperCompanyProfileScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '4.95',
+                            _isVerified ? 'Verified' : 'Pending',
                             style: TextStyle(
                               color: _textMain,
                               fontSize: 16,
@@ -280,7 +458,7 @@ class _ShipperCompanyProfileScreenState
                             ),
                           ),
                           Text(
-                            'Partner Rating',
+                            'KYC Status',
                             style: TextStyle(color: _textMuted, fontSize: 10),
                           ),
                         ],
@@ -317,7 +495,7 @@ class _ShipperCompanyProfileScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '45 Loads',
+                            '$_totalLoads Loads',
                             style: TextStyle(
                               color: _textMain,
                               fontSize: 16,
@@ -325,7 +503,7 @@ class _ShipperCompanyProfileScreenState
                             ),
                           ),
                           Text(
-                            'Djibouti Corri...',
+                            'Total posted',
                             style: TextStyle(color: _textMuted, fontSize: 10),
                           ),
                         ],
@@ -513,7 +691,7 @@ class _ShipperCompanyProfileScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Selamawit Tadesse',
+                        _fullName.isNotEmpty ? _fullName : 'Shipper contact',
                         style: TextStyle(
                           color: _textMain,
                           fontSize: 13,
@@ -521,7 +699,7 @@ class _ShipperCompanyProfileScreenState
                         ),
                       ),
                       Text(
-                        'Dispatch Director',
+                        _phone.isNotEmpty ? _phone : 'Primary contact',
                         style: TextStyle(color: _textMuted, fontSize: 11),
                       ),
                     ],
@@ -818,7 +996,9 @@ class _ShipperCompanyProfileScreenState
       children: [
         ElevatedButton(
           onPressed: () {
-            // Action for Add Sub-Account
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Sub-account invites coming soon')),
+            );
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: _accentGold,
@@ -842,9 +1022,7 @@ class _ShipperCompanyProfileScreenState
         ),
         const SizedBox(height: 12),
         OutlinedButton(
-          onPressed: () {
-            // Action for Edit Company Profile
-          },
+          onPressed: _saving ? null : _saveProfile,
           style: OutlinedButton.styleFrom(
             foregroundColor: _textMain,
             side: BorderSide(color: _borderColor),
@@ -854,17 +1032,24 @@ class _ShipperCompanyProfileScreenState
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.edit_outlined, size: 20),
-              SizedBox(width: 8),
-              Text(
-                'Edit Company Profile',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-            ],
-          ),
+          child: _saving
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.edit_outlined, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Edit Company Profile',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ],
+                ),
         ),
       ],
     );
