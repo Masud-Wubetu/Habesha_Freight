@@ -53,14 +53,14 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
         if (widget.onNavigate != null) {
           widget.onNavigate!.call('bids');
         } else {
-          _showMessage('Bids screen is not connected yet.');
+          Navigator.pushNamed(context, AppRoutes.page17AvailableLoads);
         }
         break;
       case 4:
         if (widget.onNavigate != null) {
           widget.onNavigate!.call('tracking');
         } else {
-          _showMessage('Tracking screen is not connected yet.');
+          Navigator.pushNamed(context, AppRoutes.page16DriverHome);
         }
         break;
     }
