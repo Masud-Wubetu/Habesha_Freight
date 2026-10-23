@@ -61,18 +61,6 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   ];
 
-  static final Map<String, dynamic> _fallbackShipment = {
-    'id': 'SHP-ETH-902',
-    'origin_city': 'Addis Ababa',
-    'destination_city': 'Djibouti Port',
-    'truck_plate': '3-ET-A88291',
-    'driver_name': 'Abebe Tadesse',
-    'speed_kmh': 72,
-    'eta_hours': 5,
-    'distance_remaining_km': 280,
-    'status': 'IN_TRANSIT',
-  };
-
   @override
   void initState() {
     super.initState();
@@ -94,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     setState(() {
       _loads = loads.isNotEmpty ? loads : _fallbackLoads;
-      _activeShipment = shipments.isNotEmpty ? shipments.first : _fallbackShipment;
+      _activeShipment = shipments.isNotEmpty ? shipments.first : null;
       _vehiclesCount = vehicles > 0 ? vehicles : 42;
       _loading = false;
     });
@@ -284,6 +272,7 @@ class _HomeScreenState extends State<HomeScreen> {
           language: _lang,
           onLanguageChanged: (l) => setState(() => _lang = l),
           onProfileTap: _showProfileModal,
+          userName: _userName,
           loadCount: _loads.length,
           isLoadingLoads: _loading,
           onFindLoad: () => setState(() => _currentTab = 1),

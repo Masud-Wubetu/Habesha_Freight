@@ -7,12 +7,14 @@ class HomeHeader extends StatelessWidget {
   final String language;
   final ValueChanged<String> onLanguageChanged;
   final VoidCallback onProfileTap;
+  final String userName;
 
   const HomeHeader({
     super.key,
     required this.language,
     required this.onLanguageChanged,
     required this.onProfileTap,
+    this.userName = 'Shipper',
   });
 
   @override
@@ -137,32 +139,34 @@ class HomeHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => CorridorNavigationSheet.show(context),
+            InkWell(
+              onTap: onProfileTap,
+              borderRadius: BorderRadius.circular(16),
               child: Container(
                 height: 30,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.15),
+                  color: AppColors.card,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppColors.gold.withValues(alpha: 0.4),
+                    color: AppColors.gold.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.grid_view_rounded,
-                      size: 14,
-                      color: AppColors.gold,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Modules',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.gold,
+                    const Icon(Icons.person, color: AppColors.gold, size: 14),
+                    const SizedBox(width: 4),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 75),
+                      child: Text(
+                        userName.split(' ').first,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

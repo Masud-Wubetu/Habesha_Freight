@@ -25,6 +25,7 @@ class HomeDashboardView extends StatelessWidget {
   final CorridorService corridorService;
   final VoidCallback onRequestTrucks;
   final int vehiclesCount;
+  final String userName;
 
   const HomeDashboardView({
     super.key,
@@ -44,6 +45,7 @@ class HomeDashboardView extends StatelessWidget {
     required this.corridorService,
     required this.onRequestTrucks,
     required this.vehiclesCount,
+    this.userName = 'Shipper',
   });
 
   @override
@@ -51,13 +53,28 @@ class HomeDashboardView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        HomeHeader(language: language, onLanguageChanged: onLanguageChanged, onProfileTap: onProfileTap),
+        HomeHeader(
+          language: language,
+          onLanguageChanged: onLanguageChanged,
+          onProfileTap: onProfileTap,
+          userName: userName,
+        ),
         const SizedBox(height: 18),
-        HeroSection(loadCount: loadCount, isLoadingLoads: isLoadingLoads, onFindLoad: onFindLoad, onFindTrucks: onFindTrucks),
+        HeroSection(
+          loadCount: loadCount,
+          isLoadingLoads: isLoadingLoads,
+          onFindLoad: onFindLoad,
+          onFindTrucks: onFindTrucks,
+          userName: userName,
+        ),
         const SizedBox(height: 18),
         LiveTransitCard(activeShipment: activeShipment),
         const SizedBox(height: 20),
-        CorridorsSection(corridors: corridors, selectedCorridor: selectedCorridor, onSelect: onSelectCorridor),
+        CorridorsSection(
+          corridors: corridors,
+          selectedCorridor: selectedCorridor,
+          onSelect: onSelectCorridor,
+        ),
         const SizedBox(height: 20),
         RateEstimatorSection(
           corridor: selectedCorridor,
@@ -67,7 +84,10 @@ class HomeDashboardView extends StatelessWidget {
           onRequestTrucks: onRequestTrucks,
         ),
         const SizedBox(height: 20),
-        TelemetrySection(verifiedVehicles: vehiclesCount, activeLoadsCount: loadCount),
+        TelemetrySection(
+          verifiedVehicles: vehiclesCount,
+          activeLoadsCount: loadCount,
+        ),
         const SizedBox(height: 24),
       ],
     );
