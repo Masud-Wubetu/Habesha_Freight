@@ -12,7 +12,6 @@ import '../widgets/login/otp_sheet.dart';
 import '../widgets/login/password_auth_view.dart';
 import '../widgets/login/phone_auth_view.dart';
 import '../widgets/login/telebirr_button.dart';
-import '../widgets/navigation/corridor_navigation_sheet.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,12 +23,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _auth = AuthService();
   AuthTab _tab = AuthTab.password;
 
-  final _phoneCtrl = TextEditingController(text: '91 112 3456');
-  final _passIdCtrl = TextEditingController(text: 'shipper@habeshafreight.et');
-  final _passCtrl = TextEditingController(text: 'Password123!');
+  final _phoneCtrl = TextEditingController();
+  final _passIdCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
   bool _obscurePass = true, _loading = false;
   String? _error;
-  String? _selectedDemoRole = 'SHIPPER';
+  String? _selectedDemoRole;
 
   String? _activeSessionRole;
   String? _activeSessionName;
@@ -467,7 +466,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Carrier & Shipper Portal',
+                          'Welcome Back',
                           style: GoogleFonts.outfit(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -476,7 +475,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Sign in to coordinate loads and track fleet telemetry.',
+                          'Sign in to your Habesha Freight account.',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppColors.textSecondary,
@@ -572,24 +571,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  TextButton.icon(
-                    onPressed: () => CorridorNavigationSheet.show(context),
-                    icon: const Icon(
-                      Icons.grid_view_rounded,
-                      size: 15,
-                      color: AppColors.gold,
-                    ),
-                    label: const Text(
-                      'Browse UI without API (All 16 Modules)',
-                      style: TextStyle(
-                        color: AppColors.gold,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   LoginFooter(onShowInfo: _showInfo),
                 ],
               ),
