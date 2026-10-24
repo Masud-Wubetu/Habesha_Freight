@@ -26,9 +26,12 @@ export default function ActiveDelivery() {
   const [step, setStep] = useState<Step>('pending');
 
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [showPickupModal, setShowPickupModal] = useState(false);
   const [otpInput, setOtpInput] = useState('');
+  const [pickupOtp, setPickupOtp] = useState('');
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [otpMessage, setOtpMessage] = useState<string | null>(null);
+  const [pickupMessage, setPickupMessage] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
 
   const stepDone = (s: Step) => {
@@ -69,6 +72,35 @@ export default function ActiveDelivery() {
         ),
       }
     : null;
+
+  const handleVerifyPickup = async () => {
+    if (!delivery) {
+      setPickupMessage('No active shipment.');
+      return;
+    }
+    if (!pickupOtp.trim()) {
+      setPickupMessage('Enter the pickup OTP.');
+      return;
+    }
+    setVerifyingOtp(true);
+    setPickupMessage(null);
+    try {
+      await post(`/shipments/${delivery.id}/pickup-verify`, {
+        pickup_otp: pickupOtp.trim(),
+      });
+      setPickupMessage('Pickup verified. Shipment is in transit.');
+      setStep('loaded');
+      setTimeout(() => {
+        setShowPickupModal(false);
+        setPickupMessage(null);
+        setPickupOtp('');
+      }, 1200);
+    } catch (err: any) {
+      setPickupMessage(err?.message || 'Pickup OTP verification failed.');
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
 
   const handleVerifyDelivery = async () => {
     if (!delivery) {
@@ -154,7 +186,9 @@ export default function ActiveDelivery() {
           <div className="ad-actions-list">
             <div
               className={`ad-action-row ${stepDone('pending') || step === 'loaded' || step === 'checkpoint' || step === 'delivered' ? 'ad-action-row--done' : ''}`}
-              onClick={() => setStep('loaded')}
+              onClick={() => {
+                if (step === 'pending') setShowPickupModal(true);
+              }}
               role="button"
               tabIndex={0}
             >
@@ -162,14 +196,16 @@ export default function ActiveDelivery() {
                 <span className="ad-action-icon">
                   {step === 'loaded' || step === 'checkpoint' || step === 'delivered' ? '✅' : '📦'}
                 </span>
-                Mark as Loaded
+                Mark as Loaded (Pickup OTP)
               </span>
               <span className="ad-action-arrow">→</span>
             </div>
 
             <div
               className={`ad-action-row ${step === 'checkpoint' || step === 'delivered' ? 'ad-action-row--done' : ''}`}
-              onClick={() => setStep('checkpoint')}
+              onClick={() => {
+                if (step === 'loaded' || step === 'checkpoint') setStep('checkpoint');
+              }}
               role="button"
               tabIndex={0}
             >
@@ -226,6 +262,58 @@ export default function ActiveDelivery() {
         </div>
         )}
       </div>
+
+      {showPickupModal && (
+        <div className="fixed inset-0 z-[1100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-6 max-w-md w-full text-white shadow-2xl animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">📦</span>
+                <h3 className="text-lg font-bold text-white">Pickup OTP Verification</h3>
+              </div>
+              <button
+                onClick={() => setShowPickupModal(false)}
+                className="text-white/60 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm text-slate-300 mb-4">
+              Enter the pickup OTP from the shipper to mark cargo loaded and start transit.
+            </p>
+            {pickupMessage && (
+              <div className="p-3 mb-4 rounded-lg bg-emerald-500/20 border border-emerald-500 text-emerald-300 text-sm font-semibold">
+                {pickupMessage}
+              </div>
+            )}
+            <div className="mb-5">
+              <label className="block text-xs font-semibold text-amber-400 mb-1">Pickup OTP</label>
+              <input
+                type="text"
+                placeholder="Enter pickup OTP"
+                value={pickupOtp}
+                onChange={(e) => setPickupOtp(e.target.value)}
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center text-xl tracking-widest font-mono text-white focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowPickupModal(false)}
+                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-semibold transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleVerifyPickup}
+                disabled={verifyingOtp}
+                className="flex-1 py-3 bg-[#C8933A] hover:bg-[#b07e2e] rounded-xl text-sm font-bold transition-colors cursor-pointer"
+              >
+                {verifyingOtp ? 'Verifying…' : 'Verify Pickup'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showOtpModal && (
         <div className="fixed inset-0 z-[1100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
