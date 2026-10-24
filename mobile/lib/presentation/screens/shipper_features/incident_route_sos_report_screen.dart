@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/config/api_config.dart';
+import '../../../core/services/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 
 void main() {
@@ -37,11 +39,13 @@ enum IncidentClassificationType {
 class IncidentRouteSosReportScreen extends StatefulWidget {
   final String initialLanguage;
   final bool enableAnimation;
+  final String? shipmentId;
 
   const IncidentRouteSosReportScreen({
     super.key,
     this.initialLanguage = 'EN',
     this.enableAnimation = true,
+    this.shipmentId,
   });
 
   @override
@@ -53,6 +57,7 @@ class _IncidentRouteSosReportScreenState
     extends State<IncidentRouteSosReportScreen>
     with SingleTickerProviderStateMixin {
   late String _selectedLanguage;
+  final ApiClient _api = ApiClient();
 
   // Selected Classification Factor
   IncidentClassificationType _selectedClassification =
@@ -78,6 +83,34 @@ class _IncidentRouteSosReportScreenState
   bool _isTransmitting = false;
 
   String _t(String en, String am) => _selectedLanguage == 'አማ' ? am : en;
+
+  String? get _resolvedShipmentId {
+    if (widget.shipmentId != null && widget.shipmentId!.trim().isNotEmpty) {
+      return widget.shipmentId!.trim();
+    }
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is String && args.trim().isNotEmpty) return args.trim();
+    if (args is Map) {
+      final id = args['shipmentId'] ?? args['shipment_id'] ?? args['id'];
+      if (id != null && id.toString().trim().isNotEmpty) {
+        return id.toString().trim();
+      }
+    }
+    return null;
+  }
+
+  String get _disputeCategory {
+    switch (_selectedClassification) {
+      case IncidentClassificationType.mechanicalBreakdown:
+        return 'OTHER';
+      case IncidentClassificationType.customsDelay:
+        return 'DELAY';
+      case IncidentClassificationType.roadBlockage:
+        return 'DELAY';
+      case IncidentClassificationType.cargoMinorHit:
+        return 'DAMAGE';
+    }
+  }
 
   @override
   void initState() {
@@ -181,19 +214,80 @@ class _IncidentRouteSosReportScreenState
     );
   }
 
-  void _handleTransmitReport() async {
-    setState(() {
-      _isTransmitting = true;
-    });
+  Future<void> _handleTransmitReport() async {
+    final shipmentId = _resolvedShipmentId;
+    if (shipmentId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            _t(
+              'Missing shipment id — open this screen with a shipment to file a dispute.',
+              'የጭነት መለያ የለም።',
+            ),
+            style: GoogleFonts.inter(color: Colors.white),
+          ),
+        ),
+      );
+      return;
+    }
 
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
+    final reason = _descriptionController.text.trim();
+    if (reason.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            _t('Describe the incident before transmitting.', 'ክስተቱን ይግለጹ።'),
+            style: GoogleFonts.inter(color: Colors.white),
+          ),
+        ),
+      );
+      return;
+    }
 
-    setState(() {
-      _isTransmitting = false;
-    });
-
-    _showTransmissionSuccessModal();
+    setState(() => _isTransmitting = true);
+    try {
+      await _api.post(
+        ApiConfig.shipperDisputes,
+        body: {
+          'shipment_id': shipmentId,
+          'category': _disputeCategory,
+          'reason':
+              '${_selectedClassification.name}: $reason'
+              '${_deployRoadsideHeavyRecovery ? ' [recovery requested]' : ''}'
+              '${_notifyShipperAndInsurer ? ' [insurer notified]' : ''}',
+        },
+      );
+      if (!mounted) return;
+      setState(() => _isTransmitting = false);
+      _showTransmissionSuccessModal();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isTransmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(e.message, style: GoogleFonts.inter(color: Colors.white)),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isTransmitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            _t('Failed to open dispute.', 'ክርክር መክፈት አልተሳካም።'),
+            style: GoogleFonts.inter(color: Colors.white),
+          ),
+        ),
+      );
+    }
   }
 
   void _showTransmissionSuccessModal() {
