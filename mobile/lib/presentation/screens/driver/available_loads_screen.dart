@@ -358,6 +358,7 @@ class _AvailableFreightLoadsScreenState
                                     distance: '$origin → $dest',
                                     cargoNote: weight != null ? '${weight}T' : '',
                                     status: 'Open for bids',
+                                    loadId: rawId,
                                   ),
                                 ),
                               );
