@@ -88,6 +88,16 @@ class ApiConfig {
   static String tracking(String shipmentId) => '/tracking/$shipmentId';
   static const String trackingLocation = '/tracking/location';
   static const String messages = '/messages';
+  static const String messagesConversations = '/messages/conversations';
+  static String messagesThread(String threadId) => '/messages/thread/$threadId';
+  static const String messagesSend = '/messages/send';
+
+  // Delivery / disputes
+  static String shipmentDeliveryVerify(String shipmentId) =>
+      '/shipments/$shipmentId/delivery-verify';
+  static String shipperConfirmDelivery(String deliveryId) =>
+      '/shipper/deliveries/$deliveryId/confirm';
+  static const String shipperDisputes = '/shipper/disputes';
 
   // System
   static const String health = '/health';
