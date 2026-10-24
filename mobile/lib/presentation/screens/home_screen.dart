@@ -266,12 +266,15 @@ class _HomeScreenState extends State<HomeScreen> {
       case 4:
         return TrackingView(activeShipment: _activeShipment, verifiedVehicles: _vehiclesCount);
       default:
+        // Parent is a SingleChildScrollView (unbounded height) — no Expanded here.
         return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_usingDemoFallback)
               Container(
                 width: double.infinity,
-                margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                margin: const EdgeInsets.fromLTRB(0, 0, 0, 8),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: AppColors.card,
@@ -283,25 +286,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
               ),
-            Expanded(
-              child: HomeDashboardView(
-                language: _lang,
-                onLanguageChanged: (l) => setState(() => _lang = l),
-                onProfileTap: _showProfileModal,
-                loadCount: _loads.length,
-                isLoadingLoads: _loading,
-                onFindLoad: () => setState(() => _currentTab = 1),
-                onFindTrucks: () => setState(() => _currentTab = 4),
-                activeShipment: _activeShipment,
-                corridors: _corridor.getCorridors(),
-                selectedCorridor: _selectedCorridor,
-                onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
-                weight: _weight,
-                onWeightChanged: (w) => setState(() => _weight = w),
-                corridorService: _corridor,
-                onRequestTrucks: _openPostLoadSheet,
-                vehiclesCount: _vehiclesCount,
-              ),
+            HomeDashboardView(
+              language: _lang,
+              onLanguageChanged: (l) => setState(() => _lang = l),
+              onProfileTap: _showProfileModal,
+              loadCount: _loads.length,
+              isLoadingLoads: _loading,
+              onFindLoad: () => setState(() => _currentTab = 1),
+              onFindTrucks: () => setState(() => _currentTab = 4),
+              activeShipment: _activeShipment,
+              corridors: _corridor.getCorridors(),
+              selectedCorridor: _selectedCorridor,
+              onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
+              weight: _weight,
+              onWeightChanged: (w) => setState(() => _weight = w),
+              corridorService: _corridor,
+              onRequestTrucks: _openPostLoadSheet,
+              vehiclesCount: _vehiclesCount,
             ),
           ],
         );
