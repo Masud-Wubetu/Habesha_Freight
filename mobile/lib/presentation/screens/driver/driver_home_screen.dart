@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/driver_service.dart';
+import 'package:mobile/core/services/message_service.dart';
 import 'package:mobile/presentation/screens/driver/available_loads_screen.dart';
 import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
 
@@ -14,7 +15,9 @@ class DriverHomeScreen extends StatefulWidget {
 
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
   final DriverService _driverService = DriverService();
+  final MessageService _messageService = MessageService();
   bool _loading = true;
+  int _conversationCount = 0;
 
   Map<String, dynamic> _stats = {};
   List<Map<String, dynamic>> _shipments = [];
@@ -44,6 +47,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         _driverService.listBids(),
         _driverService.listAvailableLoads(),
       ]);
+      await _refreshConversationBadge();
       final stats = results[0] as Map<String, dynamic>;
       final shipments = results[1] as List<Map<String, dynamic>>;
       final bids = results[2] as List<Map<String, dynamic>>;
@@ -92,6 +96,43 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Unable to load driver home')),
+      );
+    }
+  }
+
+  /// Stub entry for messaging: fetches conversations for badge/count snackbar.
+  Future<void> _refreshConversationBadge() async {
+    try {
+      final conversations = await _messageService.listConversations();
+      if (!mounted) return;
+      setState(() => _conversationCount = conversations.length);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _conversationCount = 0);
+    }
+  }
+
+  Future<void> _showConversationsStub() async {
+    try {
+      final conversations = await _messageService.listConversations();
+      if (!mounted) return;
+      setState(() => _conversationCount = conversations.length);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            conversations.isEmpty
+                ? 'No conversations yet'
+                : '${conversations.length} conversations',
+          ),
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to load conversations')),
       );
     }
   }
@@ -262,6 +303,15 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+        IconButton(
+          tooltip: 'Messages',
+          onPressed: _showConversationsStub,
+          icon: Badge(
+            isLabelVisible: _conversationCount > 0,
+            label: Text('$_conversationCount'),
+            child: const Icon(Icons.chat_outlined, color: muted),
           ),
         ),
         Container(
