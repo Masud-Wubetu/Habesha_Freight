@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/config/api_config.dart';
+import '../../../core/services/api_client.dart';
+import '../../../core/services/escrow_service.dart';
 import '../../../core/theme/app_theme.dart';
 
 void main() {
@@ -29,11 +32,13 @@ typedef Page24Screen = EPodSignatureScreen;
 class EPodSignatureScreen extends StatefulWidget {
   final String initialLanguage;
   final bool enableAnimation;
+  final String? shipmentId;
 
   const EPodSignatureScreen({
     super.key,
     this.initialLanguage = 'EN',
     this.enableAnimation = true,
+    this.shipmentId,
   });
 
   @override
@@ -43,6 +48,9 @@ class EPodSignatureScreen extends StatefulWidget {
 class _EPodSignatureScreenState extends State<EPodSignatureScreen>
     with SingleTickerProviderStateMixin {
   late String _selectedLanguage;
+  final ApiClient _api = ApiClient();
+  final EscrowService _escrow = EscrowService();
+  bool _submitting = false;
 
   // Remarks TextEditingController
   late final TextEditingController _remarksController;
@@ -59,6 +67,21 @@ class _EPodSignatureScreenState extends State<EPodSignatureScreen>
   late Animation<double> _pulseAnimation;
 
   String _t(String en, String am) => _selectedLanguage == 'አማ' ? am : en;
+
+  String? get _resolvedShipmentId {
+    if (widget.shipmentId != null && widget.shipmentId!.trim().isNotEmpty) {
+      return widget.shipmentId!.trim();
+    }
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is String && args.trim().isNotEmpty) return args.trim();
+    if (args is Map) {
+      final id = args['shipmentId'] ?? args['shipment_id'] ?? args['id'];
+      if (id != null && id.toString().trim().isNotEmpty) {
+        return id.toString().trim();
+      }
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -1399,6 +1422,81 @@ class _EPodSignatureScreenState extends State<EPodSignatureScreen>
   // ---------------------------------------------------------------------------
   // Interactive Modals & Dialogs
   // ---------------------------------------------------------------------------
+  Future<void> _confirmAndReleaseEscrow() async {
+    final shipmentId = _resolvedShipmentId;
+    if (shipmentId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            _t(
+              'Missing shipment id — cannot confirm delivery or release escrow.',
+              'የጭነት መለያ የለም።',
+            ),
+            style: GoogleFonts.inter(color: Colors.white),
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _submitting = true);
+    try {
+      await _api.patch(ApiConfig.shipperConfirmDelivery(shipmentId));
+      try {
+        await _escrow.release(shipmentId);
+      } on ApiException {
+        // Confirm succeeded; release may already be done via OTP verify.
+      }
+      if (!mounted) return;
+      setState(() {
+        _escrowSubmitted = true;
+        _submitting = false;
+      });
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF064E3B),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            _t(
+              'Delivery confirmed and escrow release requested.',
+              'ማድረስ ተረጋገጠ፤ እስክሮው መልቀቅ ተጠይቋል።',
+            ),
+            style: GoogleFonts.inter(
+              color: const Color(0xFF34D399),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(e.message, style: GoogleFonts.inter(color: Colors.white)),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            _t('Failed to confirm delivery / release escrow.', 'አልተሳካም።'),
+            style: GoogleFonts.inter(color: Colors.white),
+          ),
+        ),
+      );
+    }
+  }
+
   void _showEscrowAuthorizationModal() {
     showDialog(
       context: context,
@@ -1434,8 +1532,8 @@ class _EPodSignatureScreenState extends State<EPodSignatureScreen>
             children: [
               Text(
                 _t(
-                  'Are you ready to authorize the release of freight escrow for Order REQ-9840 to Dawit Haile?',
-                  'ለትዕዛዝ REQ-9840 የተያዘውን የጭነት ክፍያ ለዳዊት ኃይሌ ለመልቀቅ ዝግጁ ኖት?',
+                  'Confirm delivery and release freight escrow for shipment ${_resolvedShipmentId ?? '(missing id)'}?',
+                  'ማድረስን አረጋግጠው የጭነት እስክሮውን ይልቀቁ?',
                 ),
                 style: GoogleFonts.inter(
                   color: const Color(0xFFCBD5E1),
@@ -1510,30 +1608,11 @@ class _EPodSignatureScreenState extends State<EPodSignatureScreen>
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              onPressed: () {
-                setState(() {
-                  _escrowSubmitted = true;
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: const Color(0xFF064E3B),
-                    behavior: SnackBarBehavior.floating,
-                    content: Text(
-                      _t(
-                        'Escrow Payout of 45,000 ETB Released & e-POD Stamped.',
-                        'የ 45,000 ብር እስክሮው ተለቋል፤ e-POD ማህተም ተደርጓል።',
-                      ),
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFF34D399),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                );
-              },
+              onPressed: _submitting ? null : () => _confirmAndReleaseEscrow(),
               child: Text(
-                _t('Confirm & Release', 'አረጋግጥና ልቀቅ'),
+                _submitting
+                    ? _t('Submitting…', 'በመላክ ላይ…')
+                    : _t('Confirm & Release', 'አረጋግጥና ልቀቅ'),
                 style: GoogleFonts.inter(fontWeight: FontWeight.w800),
               ),
             ),
