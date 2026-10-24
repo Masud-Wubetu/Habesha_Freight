@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/services/api_client.dart';
+import '../../../core/services/escrow_service.dart';
+
 /// Available payout disbursement channels
 enum DisbursementChannelType {
   telebirr,
@@ -48,27 +51,29 @@ class DisbursementChannelInfo {
 /// - Bilingual localization support (English & Amharic)
 /// - Fully responsive design with desktop centering and mobile adaptation
 class InstantEscrowPayoutSettlementScreen extends StatefulWidget {
-  final String tripId;
-  final String originCity;
-  final String destinationCity;
-  final int distanceKm;
-  final double grossFareEtb;
+  final String? tripId;
+  final String? originCity;
+  final String? destinationCity;
+  final int? distanceKm;
+  final double? grossFareEtb;
   final double platformFeePercent;
   final double withholdingTaxPercent;
-  final String smartEscrowLockId;
-  final String morTaxClearanceId;
+  final String? smartEscrowLockId;
+  final String? morTaxClearanceId;
+  final String? shipmentId;
 
   const InstantEscrowPayoutSettlementScreen({
     super.key,
-    this.tripId = 'REQ-9840',
-    this.originCity = 'Addis Ababa',
-    this.destinationCity = 'Mekelle',
-    this.distanceKm = 780,
-    this.grossFareEtb = 76000.00,
+    this.tripId,
+    this.originCity,
+    this.destinationCity,
+    this.distanceKm,
+    this.grossFareEtb,
     this.platformFeePercent = 2.5,
     this.withholdingTaxPercent = 2.0,
-    this.smartEscrowLockId = 'ESCROW-ET-883921-CBE',
-    this.morTaxClearanceId = '#TR-99402',
+    this.smartEscrowLockId,
+    this.morTaxClearanceId,
+    this.shipmentId,
     this.enableAnimation = true,
   });
 
@@ -86,6 +91,7 @@ class _InstantEscrowPayoutSettlementScreenState
     extends State<InstantEscrowPayoutSettlementScreen>
     with SingleTickerProviderStateMixin {
   final NumberFormat _currencyFormat = NumberFormat('#,##0.00');
+  final EscrowService _escrow = EscrowService();
 
   // Selected disbursement channel
   DisbursementChannelType _selectedChannel = DisbursementChannelType.telebirr;
@@ -96,6 +102,10 @@ class _InstantEscrowPayoutSettlementScreenState
   // Transfer execution state
   bool _isProcessingTransfer = false;
   bool _isTransferCompleted = false;
+  bool _loadingLedger = true;
+  String? _ledgerError;
+  EscrowItem? _activeEscrow;
+  EscrowLedgerSummary? _ledger;
 
   // Bottom navigation tab state
   int _currentNavIndex = 3; // 'Payouts' tab active
@@ -103,6 +113,35 @@ class _InstantEscrowPayoutSettlementScreenState
   // Pulsing animation for the active status dot
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
+
+  String get _tripId {
+    final fromEscrow = _activeEscrow?.shipmentId;
+    if (fromEscrow != null && fromEscrow.isNotEmpty) {
+      return fromEscrow.length > 8
+          ? fromEscrow.substring(0, 8).toUpperCase()
+          : fromEscrow.toUpperCase();
+    }
+    return widget.tripId?.isNotEmpty == true ? widget.tripId! : '—';
+  }
+
+  String get _shipmentId {
+    if (widget.shipmentId != null && widget.shipmentId!.trim().isNotEmpty) {
+      return widget.shipmentId!.trim();
+    }
+    return _activeEscrow?.shipmentId ?? '';
+  }
+
+  String get _originCity =>
+      widget.originCity ?? _activeEscrow?.origin ?? '—';
+  String get _destinationCity =>
+      widget.destinationCity ?? _activeEscrow?.destination ?? '—';
+  double get _grossFareEtb =>
+      widget.grossFareEtb ?? _activeEscrow?.grossAmount ?? 0;
+  String get _smartEscrowLockId =>
+      widget.smartEscrowLockId ??
+      _activeEscrow?.gatewayReference ??
+      _activeEscrow?.id ??
+      '—';
 
   @override
   void initState() {
@@ -117,6 +156,71 @@ class _InstantEscrowPayoutSettlementScreenState
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.25).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+    _loadEscrow();
+  }
+
+  Future<void> _loadEscrow() async {
+    setState(() {
+      _loadingLedger = true;
+      _ledgerError = null;
+    });
+    try {
+      final ledger = await _escrow.getLedger();
+      EscrowItem? active;
+      final preferred = _shipmentId;
+      if (preferred.isNotEmpty) {
+        for (final item in ledger.items) {
+          if (item.shipmentId == preferred) {
+            active = item;
+            break;
+          }
+        }
+        if (active == null) {
+          try {
+            final status = await _escrow.status(preferred);
+            active = EscrowItem.fromJson({
+              ...status,
+              'shipment_id': preferred,
+              'id': status['id'] ?? preferred,
+            });
+          } catch (_) {}
+        }
+      }
+      if (active == null) {
+        for (final item in ledger.items) {
+          if (item.status == 'LOCKED' || item.status == 'PENDING') {
+            active = item;
+            break;
+          }
+        }
+        active ??= ledger.items.isNotEmpty ? ledger.items.first : null;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _ledger = ledger;
+        _activeEscrow = active;
+        _loadingLedger = false;
+        if (active != null &&
+            (active.status == 'RELEASED' || active.status == 'REFUNDED')) {
+          _isTransferCompleted = active.status == 'RELEASED';
+        }
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _ledgerError = e.message;
+        _loadingLedger = false;
+        _activeEscrow = null;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _ledgerError = 'Unable to load escrow ledger';
+        _loadingLedger = false;
+        _activeEscrow = null;
+      });
+    }
   }
 
   @override
@@ -127,11 +231,15 @@ class _InstantEscrowPayoutSettlementScreenState
 
   // Calculated ledger values
   double get _platformFee =>
-      widget.grossFareEtb * (widget.platformFeePercent / 100);
+      _grossFareEtb * (widget.platformFeePercent / 100);
   double get _withholdingTax =>
-      widget.grossFareEtb * (widget.withholdingTaxPercent / 100);
-  double get _netSettlementAmount =>
-      widget.grossFareEtb - _platformFee - _withholdingTax;
+      _grossFareEtb * (widget.withholdingTaxPercent / 100);
+  double get _netSettlementAmount {
+    if (_activeEscrow != null && _activeEscrow!.netPayout > 0) {
+      return _activeEscrow!.netPayout;
+    }
+    return _grossFareEtb - _platformFee - _withholdingTax;
+  }
 
   String _t(String en, String am) => _isAmharic ? am : en;
 
@@ -169,26 +277,61 @@ class _InstantEscrowPayoutSettlementScreenState
         ),
       ];
 
-  void _handleTransferNow() async {
+  Future<void> _handleTransferNow() async {
     if (_isProcessingTransfer) return;
 
-    setState(() {
-      _isProcessingTransfer = true;
-    });
+    final shipmentId = _shipmentId;
+    if (shipmentId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          content: Text(
+            _t(
+              'No escrow shipment available to release.',
+              'ለመልቀቅ የእስክሮው ጭነት የለም።',
+            ),
+          ),
+        ),
+      );
+      return;
+    }
 
+    setState(() => _isProcessingTransfer = true);
     HapticFeedback.mediumImpact();
 
-    // Simulate real-time automated settlement clearing
-    await Future.delayed(const Duration(milliseconds: 1400));
-
-    if (!mounted) return;
-
-    setState(() {
-      _isProcessingTransfer = false;
-      _isTransferCompleted = true;
-    });
-
-    _showTransferReceiptSheet();
+    try {
+      await _escrow.release(shipmentId);
+      if (!mounted) return;
+      setState(() {
+        _isProcessingTransfer = false;
+        _isTransferCompleted = true;
+      });
+      _showTransferReceiptSheet();
+      await _loadEscrow();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isProcessingTransfer = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          content: Text(e.message),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isProcessingTransfer = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          content: Text(
+            _t(
+              'Escrow release failed. Try again or contact support.',
+              'የእስክሮው መልቀቅ አልተሳካም።',
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   void _showTransferReceiptSheet() {
@@ -295,12 +438,12 @@ class _InstantEscrowPayoutSettlementScreenState
                       const SizedBox(height: 8),
                       _receiptRow(
                         _t('Trip Reference', 'የጉዞ መለያ'),
-                        '#${widget.tripId}',
+                        '#$_tripId',
                       ),
                       const SizedBox(height: 8),
                       _receiptRow(
                         _t('Escrow Clearance ID', 'የእስክሮው ማጽጃ መለያ'),
-                        widget.smartEscrowLockId,
+                        _smartEscrowLockId,
                       ),
                       const SizedBox(height: 8),
                       _receiptRow(
@@ -525,20 +668,36 @@ class _InstantEscrowPayoutSettlementScreenState
                 const SizedBox(height: 10),
 
                 _ledgerItemTile(
-                  title: 'REQ-9840 (Addis Ababa → Mekelle)',
-                  date: 'Today, Just Now',
+                  title: _activeEscrow == null
+                      ? (_ledgerError ?? 'No escrow item')
+                      : '$_tripId ($_originCity → $_destinationCity)',
+                  date: _loadingLedger
+                      ? 'Loading…'
+                      : (_activeEscrow?.createdAt?.toIso8601String() ??
+                          'Ledger'),
                   amount: '+ETB ${_currencyFormat.format(_netSettlementAmount)}',
-                  status: _isTransferCompleted ? 'DISBURSED' : 'READY TO WITHDRAW',
+                  status: _isTransferCompleted
+                      ? 'DISBURSED'
+                      : (_activeEscrow?.status ?? 'EMPTY'),
                   isCompleted: _isTransferCompleted,
                 ),
-                const SizedBox(height: 8),
-                _ledgerItemTile(
-                  title: 'REQ-9712 (Djibouti → Mojo Dry Port)',
-                  date: 'Oct 18, 2026',
-                  amount: '+ETB 112,400.00',
-                  status: 'DISBURSED',
-                  isCompleted: true,
-                ),
+                if (_ledger != null && _ledger!.items.length > 1) ...[
+                  const SizedBox(height: 8),
+                  ..._ledger!.items.skip(1).take(2).map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _ledgerItemTile(
+                            title:
+                                '${item.shipmentId.length > 8 ? item.shipmentId.substring(0, 8).toUpperCase() : item.shipmentId} (${item.origin ?? '—'} → ${item.destination ?? '—'})',
+                            date: item.createdAt?.toIso8601String() ?? '',
+                            amount:
+                                '+ETB ${_currencyFormat.format(item.netPayout)}',
+                            status: item.status,
+                            isCompleted: item.status == 'RELEASED',
+                          ),
+                        ),
+                      ),
+                ],
                 const SizedBox(height: 20),
 
                 SizedBox(
@@ -1070,7 +1229,7 @@ class _InstantEscrowPayoutSettlementScreenState
 
           // Trip ID
           Text(
-            '${_t("Trip", "ጉዞ")} ${widget.tripId}',
+            '${_t("Trip", "ጉዞ")} $_tripId',
             style: GoogleFonts.outfit(
               fontSize: 19,
               fontWeight: FontWeight.w800,
@@ -1086,7 +1245,7 @@ class _InstantEscrowPayoutSettlementScreenState
             runSpacing: 4,
             children: [
               Text(
-                widget.originCity,
+                _originCity,
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -1099,7 +1258,7 @@ class _InstantEscrowPayoutSettlementScreenState
                 color: Color(0xFFF59E0B),
               ),
               Text(
-                widget.destinationCity,
+                _destinationCity,
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -1107,7 +1266,7 @@ class _InstantEscrowPayoutSettlementScreenState
                 ),
               ),
               Text(
-                '•  ${widget.distanceKm} km',
+                '•  ${widget.distanceKm ?? '—'} km',
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -1276,7 +1435,7 @@ class _InstantEscrowPayoutSettlementScreenState
           // Line 1: Gross Agreed Fare
           _ledgerLineRow(
             label: _t('Gross Agreed Fare', 'ስምምነት የተደረገበት ጠቅላላ ዋጋ'),
-            amount: 'ETB ${_currencyFormat.format(widget.grossFareEtb)}',
+            amount: 'ETB ${_currencyFormat.format(_grossFareEtb)}',
             amountColor: Colors.white,
           ),
           const SizedBox(height: 10),
@@ -1730,7 +1889,7 @@ class _InstantEscrowPayoutSettlementScreenState
                   border: Border.all(color: const Color(0xFF132338)),
                 ),
                 child: Text(
-                  widget.smartEscrowLockId,
+                  _smartEscrowLockId,
                   style: GoogleFonts.jetBrainsMono(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -1778,7 +1937,7 @@ class _InstantEscrowPayoutSettlementScreenState
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      widget.morTaxClearanceId,
+                      widget.morTaxClearanceId ?? '—',
                       style: GoogleFonts.jetBrainsMono(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
