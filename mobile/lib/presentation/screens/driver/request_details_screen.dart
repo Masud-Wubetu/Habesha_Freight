@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 
 class RequestDetailsScreen extends StatefulWidget {
   const RequestDetailsScreen({
@@ -288,13 +289,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildCorridorCard() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      borderColor: _border,
+      radius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -338,13 +337,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildRouteCard() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      borderColor: _border,
+      radius: 16,
       child: Column(
         children: [
           _routeStop(
@@ -546,64 +543,62 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
     required String detail,
     Color iconColor = _gold,
   }) {
-    return Container(
+    return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 112),
-      padding: const EdgeInsets.all(11),
-      decoration: BoxDecoration(
+      child: HfCard(
         color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: iconColor, size: 17),
-              const Spacer(),
-              _smallTag(tag),
-            ],
-          ),
-          const SizedBox(height: 9),
-          Text(
-            title,
-            style: const TextStyle(
-              color: _muted,
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
+        padding: const EdgeInsets.all(11),
+        borderColor: _border,
+        radius: 12,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: iconColor, size: 17),
+                const Spacer(),
+                _smallTag(tag),
+              ],
             ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: _white,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
+            const SizedBox(height: 9),
+            Text(
+              title,
+              style: const TextStyle(
+                color: _muted,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            detail,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: _muted, fontSize: 10),
-          ),
-        ],
+            const SizedBox(height: 3),
+            Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _white,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              detail,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: _muted, fontSize: 10),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildTransitProtocol() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(13),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: const Color(0xFF8A5A14)),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      borderColor: const Color(0xFF8A5A14),
+      radius: 14,
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -635,13 +630,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildShipperCard() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      borderColor: _border,
+      radius: 14,
       child: Column(
         children: [
           Row(
@@ -760,13 +753,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildLanePulse() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      borderColor: _border,
+      radius: 14,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -788,13 +779,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          Container(
+          HfCard(
+            color: _surfaceHigh,
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _surfaceHigh,
-              border: Border.all(color: _border.withValues(alpha: 0.7)),
-              borderRadius: BorderRadius.circular(11),
-            ),
+            borderColor: _border.withValues(alpha: 0.7),
+            radius: 11,
             child: Column(
               children: [
                 Row(
@@ -856,13 +845,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildBidPanel() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(15),
-      ),
+      borderColor: _border,
+      radius: 15,
       child: Column(
         children: [
           Row(
