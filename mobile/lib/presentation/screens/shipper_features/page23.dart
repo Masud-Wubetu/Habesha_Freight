@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/routing/app_routes.dart';
+import '../../../core/services/api_client.dart';
+import '../../../core/services/corridor_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/navigation/corridor_navigation_sheet.dart';
@@ -25,6 +27,8 @@ class PostCargoRequestScreen extends StatefulWidget {
 }
 
 class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
+  final CorridorService _corridor = CorridorService();
+
   String _selectedLanguage = 'EN';
   String _selectedCargoType = 'container_40ft';
   String _origin = 'Addis Ababa (Kality Port)';
@@ -35,6 +39,11 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
   DispatchMode _dispatchMode = DispatchMode.openBidding;
   int _fixedOfferAmount = 52000;
   bool _isPublishing = false;
+
+  String _cityFromHub(String hub) {
+    final paren = hub.indexOf(' (');
+    return paren > 0 ? hub.substring(0, paren).trim() : hub.trim();
+  }
 
   String get _cargoLabel {
     switch (_selectedCargoType) {
@@ -55,9 +64,49 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
 
   Future<void> _handlePublish() async {
     setState(() => _isPublishing = true);
-    await Future.delayed(const Duration(milliseconds: 350));
-    if (!mounted) return;
-    setState(() => _isPublishing = false);
+    final offered = _dispatchMode == DispatchMode.fixedOffer
+        ? _fixedOfferAmount.toDouble()
+        : (_fixedOfferAmount * 0.95).roundToDouble();
+
+    try {
+      final ok = await _corridor.postRealLoad(
+        originCity: _cityFromHub(_origin),
+        destinationCity: _cityFromHub(_destination),
+        weightTons: _weightTons.toDouble(),
+        offeredPriceEtb: offered,
+      );
+      if (!mounted) return;
+      setState(() => _isPublishing = false);
+      if (!ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to publish load. Please try again.'),
+            backgroundColor: Color(0xFF7F1D1D),
+          ),
+        );
+        return;
+      }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isPublishing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: const Color(0xFF7F1D1D),
+        ),
+      );
+      return;
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isPublishing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to publish load. Please try again.'),
+          backgroundColor: Color(0xFF7F1D1D),
+        ),
+      );
+      return;
+    }
 
     final modeLabel = _dispatchMode == DispatchMode.openBidding
         ? 'Open Bidding (Drivers bidding 48,000–54,000 ETB)'
