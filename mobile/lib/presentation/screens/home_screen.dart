@@ -31,36 +31,6 @@ class _HomeScreenState extends State<HomeScreen> {
   late EthiopianCorridor _selectedCorridor;
   double _weight = 14.0;
 
-  static final List<Map<String, dynamic>> _fallbackLoads = [
-    {
-      'id': '9840-a1',
-      'origin_city': 'Addis Ababa',
-      'destination_city': 'Djibouti Port',
-      'weight_tons': 32,
-      'offered_price_etb': 76000,
-      'cargo_description': 'Export Yirgacheffe Coffee Grade 1',
-      'status': 'POSTED',
-    },
-    {
-      'id': '8821-b2',
-      'origin_city': 'Mojo Dry Port',
-      'destination_city': 'Mekelle Hub',
-      'weight_tons': 28,
-      'offered_price_etb': 64500,
-      'cargo_description': 'Industrial Steel & Construction Billets',
-      'status': 'POSTED',
-    },
-    {
-      'id': '7730-c3',
-      'origin_city': 'Dire Dawa',
-      'destination_city': 'Galafi Border Post',
-      'weight_tons': 24,
-      'offered_price_etb': 52000,
-      'cargo_description': 'Refined Perishable Cold Chain Cargo',
-      'status': 'MATCHED',
-    },
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -69,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _checkAuthAndLoadData() async {
-    _userName = await StorageService.getUserName() ?? 'Demo Shipper';
+    _userName = await StorageService.getUserName() ?? 'Shipper';
     _userRole = await StorageService.getUserRole() ?? 'SHIPPER';
     await _refreshData();
   }
@@ -81,9 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final vehicles = await _corridor.fetchVehiclesCount();
     if (!mounted) return;
     setState(() {
-      _loads = loads.isNotEmpty ? loads : _fallbackLoads;
+      _loads = loads;
       _activeShipment = shipments.isNotEmpty ? shipments.first : null;
-      _vehiclesCount = vehicles > 0 ? vehicles : 42;
+      _vehiclesCount = vehicles > 0 ? vehicles : 0;
       _loading = false;
     });
   }
@@ -275,8 +245,8 @@ class _HomeScreenState extends State<HomeScreen> {
           userName: _userName,
           loadCount: _loads.length,
           isLoadingLoads: _loading,
-          onFindLoad: () => setState(() => _currentTab = 1),
-          onFindTrucks: () => setState(() => _currentTab = 4),
+          onFindLoad: _openPostLoadSheet,
+          onFindTrucks: () => setState(() => _currentTab = 1),
           activeShipment: _activeShipment,
           corridors: _corridor.getCorridors(),
           selectedCorridor: _selectedCorridor,
@@ -285,7 +255,6 @@ class _HomeScreenState extends State<HomeScreen> {
           onWeightChanged: (w) => setState(() => _weight = w),
           corridorService: _corridor,
           onRequestTrucks: _openPostLoadSheet,
-          vehiclesCount: _vehiclesCount,
         );
     }
   }

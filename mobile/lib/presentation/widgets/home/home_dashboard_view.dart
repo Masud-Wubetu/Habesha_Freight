@@ -6,7 +6,6 @@ import 'hero_section.dart';
 import 'home_header.dart';
 import 'live_transit_card.dart';
 import 'rate_estimator_section.dart';
-import 'telemetry_section.dart';
 
 class HomeDashboardView extends StatelessWidget {
   final String language;
@@ -24,7 +23,6 @@ class HomeDashboardView extends StatelessWidget {
   final ValueChanged<double> onWeightChanged;
   final CorridorService corridorService;
   final VoidCallback onRequestTrucks;
-  final int vehiclesCount;
   final String userName;
 
   const HomeDashboardView({
@@ -44,7 +42,6 @@ class HomeDashboardView extends StatelessWidget {
     required this.onWeightChanged,
     required this.corridorService,
     required this.onRequestTrucks,
-    required this.vehiclesCount,
     this.userName = 'Shipper',
   });
 
@@ -82,11 +79,6 @@ class HomeDashboardView extends StatelessWidget {
           onWeightChanged: onWeightChanged,
           corridorService: corridorService,
           onRequestTrucks: onRequestTrucks,
-        ),
-        const SizedBox(height: 20),
-        TelemetrySection(
-          verifiedVehicles: vehiclesCount,
-          activeLoadsCount: loadCount,
         ),
         const SizedBox(height: 24),
       ],

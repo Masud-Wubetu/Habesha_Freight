@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 
-import '../../screens/shipper_features/submit_bid_screen.dart';
-
 class DeliveriesView extends StatelessWidget {
   final List<Map<String, dynamic>> loads;
   final VoidCallback onPostNewLoad;
@@ -16,7 +14,7 @@ class DeliveriesView extends StatelessWidget {
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Deliveries & Cargo', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-          Text('Real-time database load manifests · Tap load to bid', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary)),
+          Text('Your posted cargo loads and transit status', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary)),
         ]),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -60,17 +58,36 @@ class DeliveriesView extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => SubmitFreightBidScreen(
-              requestId: reqId,
-              originCity: origin.toString(),
-              destinationCity: dest.toString(),
-              tonnage: '${weight}T',
-              initialBidAmount: (price is num) ? price.toDouble() : 76000.0,
-              corridorAverage: (price is num) ? (price.toDouble() * 1.05) : 78500.0,
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            backgroundColor: AppColors.card,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: AppColors.cardBorder),
             ),
+            title: Text(desc, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Manifest: $reqId', style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                const SizedBox(height: 8),
+                Text('Route: $origin ➔ $dest', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
+                Text('Weight: $weight Tons', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                const SizedBox(height: 6),
+                Text('Target Rate: $price ETB', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 13)),
+                const SizedBox(height: 6),
+                Text('Status: $status', style: const TextStyle(color: AppColors.badgeGreenText, fontSize: 12, fontWeight: FontWeight.w600)),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close', style: TextStyle(color: AppColors.gold)),
+              ),
+            ],
           ),
         );
       },
@@ -96,8 +113,8 @@ class DeliveriesView extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('$weight metric tonnes • Verified Carrier Matching', style: GoogleFonts.inter(fontSize: 10.5, color: AppColors.textMuted)),
-              Text('Submit Bid →', style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.gold)),
+              Text('$weight metric tonnes', style: GoogleFonts.inter(fontSize: 10.5, color: AppColors.textMuted)),
+              Text('Details →', style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.gold)),
             ],
           ),
         ]),

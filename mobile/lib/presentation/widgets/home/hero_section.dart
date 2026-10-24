@@ -43,7 +43,7 @@ class HeroSection extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                'SHIPPER PORTAL • VERIFIED FREIGHT NETWORK',
+                'SHIPPER CARGO PORTAL',
                 style: GoogleFonts.inter(
                   fontSize: 8.5,
                   fontWeight: FontWeight.w700,
@@ -80,9 +80,9 @@ class HeroSection extends StatelessWidget {
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: onFindLoad,
-                icon: const Icon(Icons.inventory_2_outlined, size: 16),
+                icon: const Icon(Icons.add_box_rounded, size: 16),
                 label: Text(
-                  'Find a Load',
+                  'Post Cargo Load',
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -103,12 +103,12 @@ class HeroSection extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: onFindTrucks,
                 icon: const Icon(
-                  Icons.local_shipping_outlined,
+                  Icons.inventory_2_outlined,
                   size: 16,
                   color: Colors.white,
                 ),
                 label: Text(
-                  'Find Trucks',
+                  'My Shipments',
                   style: GoogleFonts.outfit(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
