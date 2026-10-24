@@ -27,43 +27,20 @@ class PrimaryContactDetailsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Section Header: Title & Encrypted ID Badge
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Primary Contact Details',
-                style: GoogleFonts.outfit(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.shield_outlined,
-                    size: 14,
-                    color: AppColors.badgeGreenText,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Encrypted ID',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.badgeGreenText,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          // Section Header: Title
+          Text(
+            'Contact Details',
+            style: GoogleFonts.outfit(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
           const SizedBox(height: 16),
 
-          // Field 1: Full Name or Dispatch Rep
+          // Field 1: Full Name
           Text(
-            'Full Name or Dispatch Rep',
+            'Full Name',
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -86,7 +63,7 @@ class PrimaryContactDetailsCard extends StatelessWidget {
                   size: 20,
                   color: AppColors.textSecondary,
                 ),
-                hintText: 'e.g. Dawit Bekele',
+                hintText: 'Enter your full name',
                 hintStyle: GoogleFonts.inter(
                   fontSize: 14,
                   color: AppColors.textMuted,
@@ -101,9 +78,9 @@ class PrimaryContactDetailsCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Field 2: Phone Number (Telegram & SMS Verification)
+          // Field 2: Phone Number
           Text(
-            'Phone Number (Telegram & SMS Verification)',
+            'Phone Number',
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -162,7 +139,7 @@ class PrimaryContactDetailsCard extends StatelessWidget {
                       color: Colors.white,
                     ),
                     decoration: InputDecoration(
-                      hintText: '91 123 4567',
+                      hintText: '9XX XXX XXX',
                       hintStyle: GoogleFonts.inter(
                         fontSize: 14,
                         color: AppColors.textMuted,

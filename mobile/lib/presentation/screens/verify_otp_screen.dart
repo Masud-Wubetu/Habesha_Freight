@@ -110,7 +110,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     if (code == _demoOtp || code == '123456') {
       final mockUser = UserModel(
         id: 'usr-dev-9941',
-        fullName: widget.fullName ?? 'Dawit Bekele',
+        fullName: (widget.fullName != null && widget.fullName!.trim().isNotEmpty)
+            ? widget.fullName!.trim()
+            : 'User',
         phoneNumber: widget.phone,
         role: widget.role ?? 'SHIPPER',
         isVerified: true,

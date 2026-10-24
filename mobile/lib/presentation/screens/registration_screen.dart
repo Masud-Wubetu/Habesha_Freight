@@ -4,7 +4,6 @@ import '../../core/routing/app_routes.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/user_model.dart';
-import '../widgets/registration/active_lane_banner.dart';
 import '../widgets/registration/primary_contact_details_card.dart';
 import '../widgets/registration/registration_step_header.dart';
 import '../widgets/registration/role_selection_card.dart';
@@ -22,10 +21,8 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final AuthService _auth = AuthService();
   UserRegistrationRole _selectedRole = UserRegistrationRole.shipper;
-  final TextEditingController _nameCtrl =
-      TextEditingController(text: 'Dawit Bekele');
-  final TextEditingController _phoneCtrl =
-      TextEditingController(text: '91 123 4567');
+  final TextEditingController _nameCtrl = TextEditingController();
+  final TextEditingController _phoneCtrl = TextEditingController();
   bool _loading = false;
   String? _error;
 
@@ -134,11 +131,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                       ),
                       Text(
-                        'Carrier & Shipper Onboarding',
+                        'Create Account',
                         style: GoogleFonts.outfit(
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          color: Colors.white,
                         ),
                       ),
                       IconButton(
@@ -165,9 +162,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     phoneController: _phoneCtrl,
                     errorText: _error,
                   ),
-                  const SizedBox(height: 14),
-                  const ActiveLaneBanner(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
                   // Continue to Verification Button
                   SizedBox(
@@ -220,7 +215,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          'Already have a carrier profile? ',
+                          'Already have an account? ',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppColors.textSecondary,

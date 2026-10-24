@@ -58,7 +58,7 @@ class OtpStepHeader extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                'PAGE 04: VERIFY OTP',
+                'OTP VERIFICATION',
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
