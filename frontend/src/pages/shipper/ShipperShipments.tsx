@@ -114,18 +114,25 @@ export default function ShipperShipments() {
   }, []);
 
   const handleAcceptBid = async (bid: Bid) => {
+    if (!selectedLoad?.id) {
+      alert('Open a load before accepting a bid.');
+      return;
+    }
     try {
-      const res = await patch<any>(`/bids/${bid.id}/status`, { status: 'ACCEPTED' });
-      if (res && res.otps) {
+      const res = await patch<any>(
+        `/shipper/requests/${selectedLoad.id}/bids/${bid.id}/accept`,
+      );
+      const otps = res?.otps || res?.data?.otps;
+      if (otps) {
         setAcceptedBidInfo({
           driverName: bid.driver_name,
-          pickupOtp: res.otps.pickupOtp,
-          deliveryOtp: res.otps.deliveryOtp,
+          pickupOtp: otps.pickupOtp || otps.pickup_otp,
+          deliveryOtp: otps.deliveryOtp || otps.delivery_otp,
         });
         setShowOtpModal(true);
       }
-      // Refresh loads list
       fetchLoads();
+      await fetchLoadDetails(selectedLoad.id);
     } catch (err: any) {
       alert(err.message || 'Failed to accept bid.');
     }
