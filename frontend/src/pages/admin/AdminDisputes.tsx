@@ -4,6 +4,7 @@ import AdminLayout from '../../layouts/AdminLayout';
 
 interface DisputeItem {
   id: string;
+  rawId: string;
   reason: string;
   status: 'Open' | 'Resolved' | 'Under Review';
   shipper_name: string;
@@ -41,13 +42,15 @@ export default function AdminDisputes() {
             ? new Date(d.created_at as string).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
             : 'Recent';
 
+          const rawId = String(d.id || '');
           return {
-            id: d.id ? `DIS-${d.id.slice(0, 6)}` : `DIS-00${index + 1}`,
+            id: rawId ? `DIS-${rawId.slice(0, 6)}` : `DIS-00${index + 1}`,
+            rawId,
             reason: (d.title as string) || (d.reason as string) || (d.issue_type as string) || 'Delivery Delay',
             status: formattedStatus,
             shipper_name: (d.shipper_name as string) || 'Shipper',
             driver_name: (d.driver_name as string) || 'Driver',
-            shipment_id: d.shipment_id || d.load_id || 'SHP-001',
+            shipment_id: d.shipment_id || d.load_id || '—',
             date: formattedDate,
             details: (d.description as string) || 'Dispute claim pending resolution.',
             resolution: d.resolution as string,
@@ -66,27 +69,26 @@ export default function AdminDisputes() {
   };
 
   const handleResolve = async (dispute: DisputeItem, favor: 'Shipper' | 'Driver') => {
-    setDisputes((prev) =>
-      prev.map((d) => {
-        if (d.id === dispute.id) {
-          return {
-            ...d,
-            status: 'Resolved',
-            resolution: `Resolved in ${favor}'s Favor`,
-          };
-        }
-        return d;
-      })
-    );
-
+    if (!dispute.rawId) {
+      alert('Missing dispute id — cannot resolve.');
+      return;
+    }
+    const resolution = `Resolved in ${favor}'s Favor`;
     try {
       await api.post(
-        `/admin/disputes/${dispute.id}/resolve`,
-        { favor: favor.toUpperCase(), resolution: `Resolved in ${favor}'s Favor` },
-        true
+        `/admin/disputes/${dispute.rawId}/resolve`,
+        { favor: favor.toUpperCase(), resolution },
+        true,
       );
-    } catch (err) {
-      console.warn(`Dispute resolution error for ${dispute.id}`, err);
+      setDisputes((prev) =>
+        prev.map((d) =>
+          d.rawId === dispute.rawId
+            ? { ...d, status: 'Resolved', resolution }
+            : d,
+        ),
+      );
+    } catch (err: any) {
+      alert(err?.message || `Failed to resolve dispute ${dispute.id}`);
     }
   };
 
