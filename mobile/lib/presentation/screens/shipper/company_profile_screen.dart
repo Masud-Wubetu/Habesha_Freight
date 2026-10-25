@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../core/services/shipper_service.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 
 typedef CompanyProfileScreen = ShipperCompanyProfileScreen;
@@ -24,7 +23,6 @@ class _ShipperCompanyProfileScreenState
   bool _smsAlerts = true;
   bool _escrowAutoReceipts = true;
 
-  bool _isLoading = true;
   Map<String, dynamic>? _profile;
 
   // Local theme colors
@@ -42,19 +40,16 @@ class _ShipperCompanyProfileScreenState
     super.initState();
     if (widget.initialProfile != null) {
       _profile = widget.initialProfile;
-      _isLoading = false;
     } else {
       _loadProfile();
     }
   }
 
   Future<void> _loadProfile() async {
-    setState(() => _isLoading = true);
     final data = await _shipperService.getProfile();
     if (!mounted) return;
     setState(() {
       _profile = data;
-      _isLoading = false;
     });
   }
 

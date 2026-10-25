@@ -37,9 +37,10 @@ class AuthService {
     }
   }
 
-  /// Verify 6-digit OTP code sent to phone number
+  /// Verify 6-digit OTP code sent to email or phone number
   Future<AuthResponse> verifyOtp({
-    required String phoneNumber,
+    String? email,
+    String? phoneNumber,
     required String otpCode,
   }) async {
     try {
@@ -47,13 +48,20 @@ class AuthService {
       final base = customUrl ?? ApiConfig.baseUrl;
       final uri = Uri.parse('$base${ApiConfig.verifyOtp}');
 
+      final Map<String, dynamic> payload = {
+        'otp_code': otpCode.trim(),
+      };
+      if (email != null && email.trim().isNotEmpty) {
+        payload['email'] = email.trim().toLowerCase();
+      }
+      if (phoneNumber != null && phoneNumber.trim().isNotEmpty) {
+        payload['phone_number'] = phoneNumber.trim();
+      }
+
       final response = await _client.post(
         uri,
         headers: _headers(),
-        body: jsonEncode({
-          'phone_number': phoneNumber.trim(),
-          'otp_code': otpCode.trim(),
-        }),
+        body: jsonEncode(payload),
       );
 
       final Map<String, dynamic> data = jsonDecode(response.body);
@@ -72,6 +80,37 @@ class AuthService {
       return authResponse;
     } catch (e) {
       return AuthResponse.error('Network error verifying OTP: $e');
+    }
+  }
+
+  /// Resend OTP code to email or phone number
+  Future<AuthResponse> resendOtp({
+    String? email,
+    String? phoneNumber,
+  }) async {
+    try {
+      final customUrl = await StorageService.getBaseUrl();
+      final base = customUrl ?? ApiConfig.baseUrl;
+      final uri = Uri.parse('$base${ApiConfig.resendOtp}');
+
+      final Map<String, dynamic> payload = {};
+      if (email != null && email.trim().isNotEmpty) {
+        payload['email'] = email.trim().toLowerCase();
+      }
+      if (phoneNumber != null && phoneNumber.trim().isNotEmpty) {
+        payload['phone_number'] = phoneNumber.trim();
+      }
+
+      final response = await _client.post(
+        uri,
+        headers: _headers(),
+        body: jsonEncode(payload),
+      );
+
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      return AuthResponse.fromJson(data);
+    } catch (e) {
+      return AuthResponse.error('Network error resending OTP: $e');
     }
   }
 
@@ -147,33 +186,34 @@ class AuthService {
     }
   }
 
-  /// Register a new user
+  /// Register a new user with full name, email, and password
   Future<AuthResponse> register({
     required String fullName,
-    required String phoneNumber,
+    required String email,
+    required String password,
     required String role,
-    String? email,
-    String? password,
+    String? phoneNumber,
   }) async {
     try {
       final customUrl = await StorageService.getBaseUrl();
       final base = customUrl ?? ApiConfig.baseUrl;
       final uri = Uri.parse('$base${ApiConfig.register}');
 
-      final cleanPhone = phoneNumber.replaceAll(RegExp(r'\s+'), '');
-      final generatedEmail = email ?? 'user_${cleanPhone.replaceAll('+', '')}@habeshafreight.et';
-      final generatedPass = password ?? 'HabeshaFreight2026!';
+      final Map<String, dynamic> payload = {
+        'full_name': fullName.trim(),
+        'email': email.trim().toLowerCase(),
+        'password': password,
+        'role': role,
+      };
+
+      if (phoneNumber != null && phoneNumber.trim().isNotEmpty) {
+        payload['phone_number'] = phoneNumber.replaceAll(RegExp(r'\s+'), '');
+      }
 
       final response = await _client.post(
         uri,
         headers: _headers(),
-        body: jsonEncode({
-          'full_name': fullName.trim(),
-          'phone_number': cleanPhone,
-          'email': generatedEmail,
-          'password': generatedPass,
-          'role': role,
-        }),
+        body: jsonEncode(payload),
       );
 
       final Map<String, dynamic> data = jsonDecode(response.body);

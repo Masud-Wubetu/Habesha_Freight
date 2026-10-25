@@ -57,15 +57,29 @@ export async function register(req: Request, res: Response) {
     const initialKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
     const initialStatus = isDriverOrFleet ? 'INACTIVE' : 'ACTIVE';
 
-    const generatedPhone = `+2519${Math.floor(10000000 + Math.random() * 90000000)}`;
-    const finalPhoneNumber = phone_number && phone_number.trim() ? phone_number.trim() : generatedPhone;
-
-    const existingPhone = await db('users').where({ phone_number: finalPhoneNumber }).first();
-    if (existingPhone) {
-      return res.status(409).json({
-        success: false,
-        message: 'A user with this phone number already exists. Use a different number or log in.',
-      });
+    let finalPhoneNumber = phone_number && phone_number.trim() ? phone_number.trim() : null;
+    if (!finalPhoneNumber) {
+      let attempts = 0;
+      while (attempts < 10) {
+        const candidate = `+2519${Math.floor(10000000 + Math.random() * 90000000)}`;
+        const exists = await db('users').where({ phone_number: candidate }).first();
+        if (!exists) {
+          finalPhoneNumber = candidate;
+          break;
+        }
+        attempts++;
+      }
+      if (!finalPhoneNumber) {
+        finalPhoneNumber = `+2519${Date.now().toString().slice(-8)}`;
+      }
+    } else {
+      const existingPhone = await db('users').where({ phone_number: finalPhoneNumber }).first();
+      if (existingPhone) {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this phone number already exists. Use a different number or log in.',
+        });
+      }
     }
 
     const insertData: Record<string, any> = {
@@ -102,20 +116,17 @@ export async function register(req: Request, res: Response) {
         })
       : null;
 
-    if (!isDriverOrFleet) {
-      // Send real Email OTP via Nodemailer for SHIPPER only
-      emailService.sendOtpEmail(normalizedEmail, otp, full_name).catch((err) => {
-        console.error('❌ [BACKGROUND EMAIL ERROR]:', err);
-      });
-    }
+    // Send real Email OTP via Nodemailer
+    emailService.sendOtpEmail(normalizedEmail, otp, full_name).catch((err) => {
+      console.error('❌ [BACKGROUND EMAIL ERROR]:', err);
+    });
 
     return res.status(201).json({
       success: true,
-      message: isDriverOrFleet
-        ? 'Registration successful. Your account has been submitted for Admin approval.'
-        : 'Registration successful. A 6-digit OTP has been sent to your email address.',
+      message: 'Registration successful. A 6-digit OTP has been sent to your email address.',
       data: {
         user: newUser,
+        demo_otp: otp,
         token: token || undefined,
       },
     });
@@ -257,6 +268,9 @@ export async function resendOtp(req: Request, res: Response) {
     return res.status(200).json({
       success: true,
       message: 'New OTP code sent to your email address.',
+      data: {
+        demo_otp: otp,
+      },
     });
   } catch (error) {
     console.error('Resend OTP Error:', error);

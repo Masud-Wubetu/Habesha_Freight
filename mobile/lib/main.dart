@@ -16,7 +16,6 @@ import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/registration_screen.dart';
 import 'presentation/screens/verify_otp_screen.dart';
 import 'presentation/screens/shipper_features/submit_bid_screen.dart';
-import 'presentation/screens/shipper_features/escrow_vault_screen.dart';
 import 'presentation/screens/shipper_features/page06.dart';
 import 'presentation/screens/shipper_features/page08.dart';
 import 'presentation/screens/shipper_features/page09.dart';

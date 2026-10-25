@@ -12,7 +12,8 @@ import '../widgets/otp/recipient_number_card.dart';
 
 /// PAGE 04: VERIFY OTP — Secure 6-Digit Verification
 class VerifyOtpScreen extends StatefulWidget {
-  final String phone;
+  final String? email;
+  final String? phone;
   final String? demoOtp;
   final String? role;
   final String? fullName;
@@ -20,7 +21,8 @@ class VerifyOtpScreen extends StatefulWidget {
 
   const VerifyOtpScreen({
     super.key,
-    this.phone = '+251 911 234 567',
+    this.email,
+    this.phone,
     this.demoOtp,
     this.role,
     this.fullName,
@@ -79,6 +81,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     });
 
     final res = await _auth.verifyOtp(
+      email: widget.email,
       phoneNumber: widget.phone,
       otpCode: code,
     );
@@ -112,7 +115,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         fullName: (widget.fullName != null && widget.fullName!.trim().isNotEmpty)
             ? widget.fullName!.trim()
             : 'User',
-        phoneNumber: widget.phone,
+        email: widget.email,
+        phoneNumber: widget.phone ?? '+251911000000',
         role: widget.role ?? 'SHIPPER',
         isVerified: true,
       );
@@ -135,9 +139,14 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       return;
     }
 
+    final isEmail = widget.email != null && widget.email!.isNotEmpty;
     setState(() {
       _loading = false;
-      _error = res.message.isNotEmpty ? res.message : 'Invalid verification code. Please check SMS.';
+      _error = res.message.isNotEmpty
+          ? res.message
+          : (isEmail
+              ? 'Invalid verification code. Please check your email inbox.'
+              : 'Invalid verification code. Please check SMS.');
     });
   }
 
@@ -187,7 +196,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
                     // Subtitle
                     Text(
-                      'Please enter the 6-digit code sent to your phone to complete verification.',
+                      widget.email != null && widget.email!.isNotEmpty
+                          ? 'Please enter the 6-digit verification code sent to your email address.'
+                          : 'Please enter the 6-digit code sent to your phone to complete verification.',
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         color: const Color(0xFF94A3B8),
@@ -196,8 +207,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                     ),
                     const SizedBox(height: 18),
 
-                    // Recipient Number Card
+                    // Recipient Number / Email Card
                     RecipientNumberCard(
+                      email: widget.email,
                       phone: widget.phone,
                       onEdit: () => Navigator.maybePop(context),
                     ),
@@ -210,10 +222,22 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                     // Resend Row
                     OtpResendRow(
                       onResend: () async {
-                        final res = await _auth.sendOtp(phoneNumber: widget.phone);
+                        final messenger = ScaffoldMessenger.of(context);
+                        final res = await _auth.resendOtp(
+                          email: widget.email,
+                          phoneNumber: widget.phone,
+                        );
+                        if (!mounted) return;
                         if (res.success && res.demoOtp != null) {
                           setState(() => _demoOtp = res.demoOtp);
                         }
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(res.message.isNotEmpty ? res.message : 'New verification code sent!'),
+                            backgroundColor: AppColors.card,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(height: 18),
