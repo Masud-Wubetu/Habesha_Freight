@@ -120,10 +120,18 @@ class BidService {
       final token = await StorageService.getToken();
       final customUrl = await StorageService.getBaseUrl();
       final base = customUrl ?? ApiConfig.baseUrl;
-      final uri = Uri.parse('$base/shippers/bids');
-      final res = await _client
+      var uri = Uri.parse('$base/shipper/bids');
+      var res = await _client
           .get(uri, headers: _headers(token))
           .timeout(const Duration(seconds: 8));
+
+      if (res.statusCode != 200) {
+        uri = Uri.parse('$base/shippers/bids');
+        res = await _client
+            .get(uri, headers: _headers(token))
+            .timeout(const Duration(seconds: 8));
+      }
+
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body is Map && body['data'] is List) {
@@ -136,6 +144,50 @@ class BidService {
       return [];
     } catch (_) {
       return [];
+    }
+  }
+
+  /// Accept a carrier's bid
+  Future<bool> acceptBid({required String loadId, required String bidId}) async {
+    try {
+      final token = await StorageService.getToken();
+      final customUrl = await StorageService.getBaseUrl();
+      final base = customUrl ?? ApiConfig.baseUrl;
+      final uri = Uri.parse('$base/shipper/requests/$loadId/bids/$bidId/accept');
+      final res = await _client.patch(uri, headers: _headers(token));
+      if (res.statusCode == 200) return true;
+
+      final fallbackUri = Uri.parse('$base/bids/$bidId/status');
+      final fb = await _client.patch(
+        fallbackUri,
+        headers: _headers(token),
+        body: jsonEncode({'status': 'ACCEPTED'}),
+      );
+      return fb.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Reject a carrier's bid
+  Future<bool> rejectBid({required String loadId, required String bidId}) async {
+    try {
+      final token = await StorageService.getToken();
+      final customUrl = await StorageService.getBaseUrl();
+      final base = customUrl ?? ApiConfig.baseUrl;
+      final uri = Uri.parse('$base/shipper/requests/$loadId/bids/$bidId/reject');
+      final res = await _client.patch(uri, headers: _headers(token));
+      if (res.statusCode == 200) return true;
+
+      final fallbackUri = Uri.parse('$base/bids/$bidId/status');
+      final fb = await _client.patch(
+        fallbackUri,
+        headers: _headers(token),
+        body: jsonEncode({'status': 'REJECTED'}),
+      );
+      return fb.statusCode == 200;
+    } catch (_) {
+      return false;
     }
   }
 }
