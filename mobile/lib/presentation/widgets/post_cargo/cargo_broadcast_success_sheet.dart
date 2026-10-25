@@ -176,7 +176,7 @@ class CargoBroadcastSuccessSheet extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '~42 verified drivers alerted. Incoming bids will appear in your Active Hub.',
+                      'Verified drivers alerted on the corridor. Incoming bids will appear in Review Bids.',
                       style: GoogleFonts.inter(
                         fontSize: 11.5,
                         color: const Color(0xFF86EFAC),
@@ -199,7 +199,7 @@ class CargoBroadcastSuccessSheet extends StatelessWidget {
                 },
                 icon: const Icon(Icons.dashboard_rounded, color: Color(0xFF0F172A), size: 18),
                 label: Text(
-                  'Go to Active Hub & Ops (Page 06)',
+                  'Go to Operations Hub',
                   style: GoogleFonts.inter(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
@@ -223,7 +223,7 @@ class CargoBroadcastSuccessSheet extends StatelessWidget {
                 },
                 icon: const Icon(Icons.shield_rounded, color: AppColors.gold, size: 18),
                 label: Text(
-                  'View Escrow Settlement Vaults (Page 05)',
+                  'View Escrow Vault',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,

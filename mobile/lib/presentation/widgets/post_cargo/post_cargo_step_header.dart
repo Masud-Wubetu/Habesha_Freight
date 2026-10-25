@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
-import '../navigation/corridor_navigation_sheet.dart';
 
 class PostCargoStepHeader extends StatelessWidget {
   final String language;
@@ -80,21 +79,9 @@ class PostCargoStepHeader extends StatelessWidget {
               ],
             ),
 
-            // Actions: Modules, Language, Profile
+            // Actions: Language, Profile
             Row(
               children: [
-                IconButton(
-                  onPressed: () => CorridorNavigationSheet.show(context),
-                  icon: const Icon(Icons.grid_view_rounded, size: 19),
-                  color: AppColors.gold,
-                  tooltip: 'All Corridor Modules',
-                  style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F1A2D),
-                    padding: const EdgeInsets.all(7),
-                  ),
-                ),
-                const SizedBox(width: 8),
-
                 // Language Chip
                 InkWell(
                   onTap: () {
