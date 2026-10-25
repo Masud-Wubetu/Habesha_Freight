@@ -5,28 +5,26 @@ import '../../core/services/auth_service.dart';
 import '../../core/services/storage_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/user_model.dart';
-import '../widgets/login/auth_tab_switcher.dart';
 import '../widgets/login/login_footer.dart';
 import '../widgets/login/login_header.dart';
-import '../widgets/login/otp_sheet.dart';
 import '../widgets/login/password_auth_view.dart';
-import '../widgets/login/phone_auth_view.dart';
 import '../widgets/login/telebirr_button.dart';
+import 'verify_otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
   final AuthService _auth = AuthService();
-  AuthTab _tab = AuthTab.password;
 
-  final _phoneCtrl = TextEditingController();
-  final _passIdCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
-  bool _obscurePass = true, _loading = false;
+  final TextEditingController _emailCtrl = TextEditingController();
+  final TextEditingController _passCtrl = TextEditingController();
+  bool _obscurePass = true;
+  bool _loading = false;
   String? _error;
   String? _selectedDemoRole;
 
@@ -55,8 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _phoneCtrl.dispose();
-    _passIdCtrl.dispose();
+    _emailCtrl.dispose();
     _passCtrl.dispose();
     super.dispose();
   }
@@ -107,12 +104,10 @@ class _LoginScreenState extends State<LoginScreen> {
   void _selectDemoAccount({
     required String roleKey,
     required String email,
-    required String phone,
   }) {
     setState(() {
       _selectedDemoRole = roleKey;
-      _passIdCtrl.text = email;
-      _phoneCtrl.text = phone;
+      _emailCtrl.text = email;
       _passCtrl.text = 'Password123!';
       _error = null;
     });
@@ -145,74 +140,72 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _handlePhoneOtp() async {
-    final raw = _phoneCtrl.text.replaceAll(RegExp(r'\s+'), '');
-    if (raw.length < 8) {
-      return setState(() => _error = 'Enter valid Ethiopian phone');
+  Future<void> _handlePasswordLogin() async {
+    final email = _emailCtrl.text.trim().toLowerCase();
+    final pass = _passCtrl.text;
+
+    if (email.isEmpty) {
+      setState(() => _error = 'Please enter your email address.');
+      return;
     }
+
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    if (!emailRegex.hasMatch(email)) {
+      setState(() => _error = 'Please enter a valid email address.');
+      return;
+    }
+
+    if (pass.isEmpty) {
+      setState(() => _error = 'Please enter your password.');
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
     });
-    final fullPhone = raw.startsWith('+251')
-        ? raw
-        : '+251${raw.replaceFirst(RegExp(r'^0'), '')}';
-    final res = await _auth.sendOtp(phoneNumber: fullPhone);
+
+    final res = await _auth.login(identifier: email, password: pass);
     if (!mounted) return;
     setState(() => _loading = false);
-    if (res.success) {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => OtpSheet(
-          phone: fullPhone,
-          demoOtp: res.demoOtp,
-          auth: _auth,
-          onDone: _onSuccess,
+
+    if (res.success && res.user != null) {
+      _onSuccess(res.user!, res.token!);
+    } else if (res.requiresOtpVerification) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(res.message.isNotEmpty
+              ? res.message
+              : 'Please verify your email address to continue.'),
+          backgroundColor: AppColors.card,
+        ),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VerifyOtpScreen(
+            email: email,
+            role: res.user?.role,
+            fullName: res.user?.fullName,
+            onVerified: _onSuccess,
+          ),
         ),
       );
     } else {
       setState(
         () => _error = res.message.isNotEmpty
             ? res.message
-            : 'OTP request failed',
-      );
-    }
-  }
-
-  Future<void> _handlePasswordLogin() async {
-    final id = _passIdCtrl.text.trim(), pass = _passCtrl.text;
-    if (id.isEmpty || pass.isEmpty) {
-      return setState(() => _error = 'Fill all fields');
-    }
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    final res = await _auth.login(identifier: id, password: pass);
-    if (!mounted) return;
-    setState(() => _loading = false);
-    if (res.success && res.user != null) {
-      _onSuccess(res.user!, res.token!);
-    } else {
-      setState(
-        () => _error = res.message.isNotEmpty
-            ? res.message
-            : 'Invalid credentials',
+            : 'Invalid email address or password.',
       );
     }
   }
 
   Future<void> _handleTelebirr() async {
     setState(() => _loading = true);
-    final phone = _tab == AuthTab.phone
-        ? _phoneCtrl.text.replaceAll(RegExp(r'\s+'), '')
-        : '911123456';
-    final fullPhone = phone.startsWith('+251') ? phone : '+251$phone';
-    final res = await _auth.telebirrLogin(phoneNumber: fullPhone);
+    final res = await _auth.telebirrLogin(phoneNumber: '+251911123456');
     if (!mounted) return;
     setState(() => _loading = false);
+
     if (res.success && res.user != null) {
       _onSuccess(res.user!, res.token!);
     } else {
@@ -258,7 +251,6 @@ class _LoginScreenState extends State<LoginScreen> {
         'label': 'Shipper',
         'icon': Icons.storefront_rounded,
         'email': 'shipper@habeshafreight.et',
-        'phone': '91 112 3456',
         'color': AppColors.gold,
       },
       {
@@ -266,7 +258,6 @@ class _LoginScreenState extends State<LoginScreen> {
         'label': 'Driver',
         'icon': Icons.local_shipping_rounded,
         'email': 'driver@habeshafreight.et',
-        'phone': '92 265 4321',
         'color': const Color(0xFF38BDF8),
       },
       {
@@ -274,7 +265,6 @@ class _LoginScreenState extends State<LoginScreen> {
         'label': 'Fleet',
         'icon': Icons.dashboard_rounded,
         'email': 'fleet@habeshafreight.et',
-        'phone': '91 198 7654',
         'color': const Color(0xFF34D399),
       },
     ];
@@ -320,7 +310,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     onTap: () => _selectDemoAccount(
                       roleKey: acc['role'] as String,
                       email: acc['email'] as String,
-                      phone: acc['phone'] as String,
                     ),
                     borderRadius: BorderRadius.circular(8),
                     child: Container(
@@ -475,63 +464,72 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Sign in to your Habesha Freight account.',
+                          'Sign in with your email address and password.',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 16),
                         _buildDemoRoleBar(),
-                        AuthTabSwitcher(
-                          activeTab: _tab,
-                          onTabChanged: (t) => setState(() {
-                            _tab = t;
-                            _error = null;
-                          }),
-                        ),
-                        const SizedBox(height: 18),
-                        if (_tab == AuthTab.phone)
-                          PhoneAuthView(
-                            controller: _phoneCtrl,
-                            onSubmit: _handlePhoneOtp,
-                          )
-                        else
-                          PasswordAuthView(
-                            idController: _passIdCtrl,
-                            passController: _passCtrl,
-                            obscurePassword: _obscurePass,
-                            onToggleObscure: () => setState(
-                              () => _obscurePass = !_obscurePass,
-                            ),
-                            onSubmit: _handlePasswordLogin,
+                        PasswordAuthView(
+                          emailController: _emailCtrl,
+                          passController: _passCtrl,
+                          obscurePassword: _obscurePass,
+                          onToggleObscure: () => setState(
+                            () => _obscurePass = !_obscurePass,
                           ),
+                          onSubmit: _handlePasswordLogin,
+                        ),
                         if (_error != null) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            _error!,
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: AppColors.error,
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.errorStrong.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.errorStrong.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.error_outline_rounded,
+                                  size: 16,
+                                  color: AppColors.errorStrong,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _error!,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: AppColors.errorStrong,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 18),
                         SizedBox(
                           width: double.infinity,
                           height: 48,
                           child: ElevatedButton(
-                            onPressed: _loading
-                                ? null
-                                : (_tab == AuthTab.phone
-                                    ? _handlePhoneOtp
-                                    : _handlePasswordLogin),
+                            onPressed: _loading ? null : _handlePasswordLogin,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.gold,
                               foregroundColor: AppColors.textDark,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
+                              elevation: 2,
                             ),
                             child: _loading
                                 ? const SizedBox(
@@ -546,9 +544,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        _tab == AuthTab.phone
-                                            ? 'Request OTP Code'
-                                            : 'Sign In',
+                                        'Sign In',
                                         style: GoogleFonts.outfit(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w700,
