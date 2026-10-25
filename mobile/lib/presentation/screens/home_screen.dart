@@ -23,56 +23,13 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentTab = 0;
   String _lang = 'EN';
   bool _loading = false;
-  bool _usingDemoFallback = false;
   List<Map<String, dynamic>> _loads = [];
   Map<String, dynamic>? _activeShipment;
-  int _vehiclesCount = 42;
+  int _vehiclesCount = 0;
   String _userName = 'Shipper';
   String _userRole = 'SHIPPER';
   late EthiopianCorridor _selectedCorridor;
   double _weight = 14.0;
-
-  static final List<Map<String, dynamic>> _fallbackLoads = [
-    {
-      'id': '9840-a1',
-      'origin_city': 'Addis Ababa',
-      'destination_city': 'Djibouti Port',
-      'weight_tons': 32,
-      'offered_price_etb': 76000,
-      'cargo_description': 'Export Yirgacheffe Coffee Grade 1',
-      'status': 'POSTED',
-    },
-    {
-      'id': '8821-b2',
-      'origin_city': 'Mojo Dry Port',
-      'destination_city': 'Mekelle Hub',
-      'weight_tons': 28,
-      'offered_price_etb': 64500,
-      'cargo_description': 'Industrial Steel & Construction Billets',
-      'status': 'POSTED',
-    },
-    {
-      'id': '7730-c3',
-      'origin_city': 'Dire Dawa',
-      'destination_city': 'Galafi Border Post',
-      'weight_tons': 24,
-      'offered_price_etb': 52000,
-      'cargo_description': 'Refined Perishable Cold Chain Cargo',
-      'status': 'MATCHED',
-    },
-  ];
-
-  static final Map<String, dynamic> _fallbackShipment = {
-    'id': 'SHP-ETH-902',
-    'origin_city': 'Addis Ababa',
-    'destination_city': 'Djibouti Port',
-    'truck_plate': '3-ET-A88291',
-    'driver_name': 'Abebe Tadesse',
-    'speed_kmh': 72,
-    'eta_hours': 5,
-    'distance_remaining_km': 280,
-    'status': 'IN_TRANSIT',
-  };
 
   @override
   void initState() {
@@ -82,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _checkAuthAndLoadData() async {
-    _userName = await StorageService.getUserName() ?? 'Demo Shipper';
+    _userName = await StorageService.getUserName() ?? 'Shipper';
     _userRole = await StorageService.getUserRole() ?? 'SHIPPER';
     await _refreshData();
   }
@@ -94,10 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final vehicles = await _corridor.fetchVehiclesCount();
     if (!mounted) return;
     setState(() {
-      _loads = loads.isNotEmpty ? loads : _fallbackLoads;
-      _activeShipment = shipments.isNotEmpty ? shipments.first : _fallbackShipment;
-      _vehiclesCount = vehicles > 0 ? vehicles : 42;
-      _usingDemoFallback = loads.isEmpty || shipments.isEmpty;
+      _loads = loads;
+      _activeShipment = shipments.isNotEmpty ? shipments.first : null;
+      _vehiclesCount = vehicles;
       _loading = false;
     });
   }
@@ -266,12 +222,15 @@ class _HomeScreenState extends State<HomeScreen> {
       case 4:
         return TrackingView(activeShipment: _activeShipment, verifiedVehicles: _vehiclesCount);
       default:
+        // Parent is a SingleChildScrollView (unbounded height) — no Expanded here.
         return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_usingDemoFallback)
+            if (!_loading && _loads.isEmpty)
               Container(
                 width: double.infinity,
-                margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                margin: const EdgeInsets.fromLTRB(0, 0, 0, 8),
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: AppColors.card,
@@ -279,29 +238,27 @@ class _HomeScreenState extends State<HomeScreen> {
                   border: Border.all(color: AppColors.cardBorder),
                 ),
                 child: const Text(
-                  'Showing demo corridor samples — live /loads or /shipments returned empty.',
+                  'No loads yet — post a cargo request to get started.',
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
               ),
-            Expanded(
-              child: HomeDashboardView(
-                language: _lang,
-                onLanguageChanged: (l) => setState(() => _lang = l),
-                onProfileTap: _showProfileModal,
-                loadCount: _loads.length,
-                isLoadingLoads: _loading,
-                onFindLoad: () => setState(() => _currentTab = 1),
-                onFindTrucks: () => setState(() => _currentTab = 4),
-                activeShipment: _activeShipment,
-                corridors: _corridor.getCorridors(),
-                selectedCorridor: _selectedCorridor,
-                onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
-                weight: _weight,
-                onWeightChanged: (w) => setState(() => _weight = w),
-                corridorService: _corridor,
-                onRequestTrucks: _openPostLoadSheet,
-                vehiclesCount: _vehiclesCount,
-              ),
+            HomeDashboardView(
+              language: _lang,
+              onLanguageChanged: (l) => setState(() => _lang = l),
+              onProfileTap: _showProfileModal,
+              loadCount: _loads.length,
+              isLoadingLoads: _loading,
+              onFindLoad: () => setState(() => _currentTab = 1),
+              onFindTrucks: () => setState(() => _currentTab = 4),
+              activeShipment: _activeShipment,
+              corridors: _corridor.getCorridors(),
+              selectedCorridor: _selectedCorridor,
+              onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
+              weight: _weight,
+              onWeightChanged: (w) => setState(() => _weight = w),
+              corridorService: _corridor,
+              onRequestTrucks: _openPostLoadSheet,
+              vehiclesCount: _vehiclesCount,
             ),
           ],
         );

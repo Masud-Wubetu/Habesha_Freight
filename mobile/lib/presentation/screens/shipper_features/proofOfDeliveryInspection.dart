@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/config/api_config.dart';
+import '../../../core/services/api_client.dart';
 import '../../../core/theme/app_theme.dart';
 
 void main() {
@@ -29,11 +31,13 @@ typedef Page23Screen = ProofOfDeliveryInspectionScreen;
 class ProofOfDeliveryInspectionScreen extends StatefulWidget {
   final String initialLanguage;
   final bool enableAnimation;
+  final String? shipmentId;
 
   const ProofOfDeliveryInspectionScreen({
     super.key,
     this.initialLanguage = 'EN',
     this.enableAnimation = true,
+    this.shipmentId,
   });
 
   @override
@@ -45,6 +49,9 @@ class _ProofOfDeliveryInspectionScreenState
     extends State<ProofOfDeliveryInspectionScreen>
     with SingleTickerProviderStateMixin {
   late String _selectedLanguage;
+  final ApiClient _api = ApiClient();
+  final TextEditingController _otpController = TextEditingController();
+  bool _verifying = false;
 
   // Interactive Checklist states
   bool _item1Verified = true;
@@ -60,6 +67,21 @@ class _ProofOfDeliveryInspectionScreenState
   late Animation<double> _pulseAnimation;
 
   String _t(String en, String am) => _selectedLanguage == 'አማ' ? am : en;
+
+  String? get _resolvedShipmentId {
+    if (widget.shipmentId != null && widget.shipmentId!.trim().isNotEmpty) {
+      return widget.shipmentId!.trim();
+    }
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is String && args.trim().isNotEmpty) return args.trim();
+    if (args is Map) {
+      final id = args['shipmentId'] ?? args['shipment_id'] ?? args['id'];
+      if (id != null && id.toString().trim().isNotEmpty) {
+        return id.toString().trim();
+      }
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -84,6 +106,7 @@ class _ProofOfDeliveryInspectionScreenState
 
   @override
   void dispose() {
+    _otpController.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -1476,6 +1499,90 @@ class _ProofOfDeliveryInspectionScreenState
   // Interactive Modals & Dialogs
   // ---------------------------------------------------------------------------
 
+  Future<void> _verifyDeliveryOtp() async {
+    final shipmentId = _resolvedShipmentId;
+    if (shipmentId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            _t(
+              'Missing shipment id — open this screen with a shipment.',
+              'የጭነት መለያ የለም።',
+            ),
+            style: GoogleFonts.inter(color: Colors.white),
+          ),
+        ),
+      );
+      return;
+    }
+
+    final otp = _otpController.text.trim();
+    if (otp.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            _t('Enter the delivery OTP to complete verification.', 'የማረጋገጫ OTP ያስገቡ።'),
+            style: GoogleFonts.inter(color: Colors.white),
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _verifying = true);
+    try {
+      await _api.post(
+        ApiConfig.shipmentDeliveryVerify(shipmentId),
+        body: {'delivery_otp': otp},
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF064E3B),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            _t(
+              'Delivery verified — escrow release triggered.',
+              'ማረጋገጫ ተሳክቷል — እስክሮው ተለቋል።',
+            ),
+            style: GoogleFonts.inter(
+              color: const Color(0xFF34D399),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(e.message, style: GoogleFonts.inter(color: Colors.white)),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFF7F1D1D),
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            _t('Delivery verification failed.', 'ማረጋገጫ አልተሳካም።'),
+            style: GoogleFonts.inter(color: Colors.white),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _verifying = false);
+    }
+  }
+
   void _handleProceedToSignature() {
     showDialog(
       context: context,
@@ -1496,7 +1603,7 @@ class _ProofOfDeliveryInspectionScreenState
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  _t('Proceed to e-POD Signature', 'ወደ e-POD ፊርማ ይቀጥሉ'),
+                  _t('Complete Delivery Verification', 'የማድረስ ማረጋገጫ ጨርስ'),
                   style: GoogleFonts.outfit(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -1511,8 +1618,8 @@ class _ProofOfDeliveryInspectionScreenState
             children: [
               Text(
                 _t(
-                  'All $_clearedCount / 4 checklist items have been verified. Receiving agent Mulugeta Tesfaye is ready for digital signature handoff.',
-                  'ሁሉም $_clearedCount / 4 የፍተሻ ማረጋገጫዎች ተጠናቀዋል። ተቀባይ ወኪል ሙሉጌታ ተስፋዬ ለዲጂታል ፊርማ ዝግጁ ናቸው።',
+                  'All $_clearedCount / 4 checklist items verified. Enter the delivery OTP to POST /shipments/:id/delivery-verify.',
+                  'ሁሉም $_clearedCount / 4 ማረጋገጫዎች ተጠናቀዋል። የማድረስ OTP ያስገቡ።',
                 ),
                 style: GoogleFonts.inter(
                   color: const Color(0xFFCBD5E1),
@@ -1520,39 +1627,26 @@ class _ProofOfDeliveryInspectionScreenState
                 ),
               ),
               const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF081220),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF14243B)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.shield_outlined,
-                      color: Color(0xFFF59E0B),
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Escrow Payout Release: 45,000 ETB',
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFFF59E0B),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
+              TextField(
+                controller: _otpController,
+                keyboardType: TextInputType.number,
+                style: GoogleFonts.inter(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: _t('Delivery OTP', 'የማድረስ OTP'),
+                  labelStyle: GoogleFonts.inter(color: const Color(0xFF94A3B8)),
+                  filled: true,
+                  fillColor: const Color(0xFF081220),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFF14243B)),
+                  ),
                 ),
               ),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: _verifying ? null : () => Navigator.pop(context),
               child: Text(
                 _t('Review Again', 'እንደገና ይፈትሹ'),
                 style: GoogleFonts.inter(color: const Color(0xFF94A3B8)),
@@ -1566,27 +1660,11 @@ class _ProofOfDeliveryInspectionScreenState
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: const Color(0xFF064E3B),
-                    behavior: SnackBarBehavior.floating,
-                    content: Text(
-                      _t(
-                        'Handoff dispatched to Page 24 (e-POD Signature).',
-                        'ወደ ገጽ 24 (e-POD ፊርማ) በተሳካ ሁኔታ ተላልፏል።',
-                      ),
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFF34D399),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                );
-              },
+              onPressed: _verifying ? null : _verifyDeliveryOtp,
               child: Text(
-                _t('Open Page 24', 'ገጽ 24 ክፈት'),
+                _verifying
+                    ? _t('Verifying…', 'በማረጋገጥ ላይ…')
+                    : _t('Verify Delivery', 'ማድረስ አረጋግጥ'),
                 style: GoogleFonts.inter(fontWeight: FontWeight.w700),
               ),
             ),

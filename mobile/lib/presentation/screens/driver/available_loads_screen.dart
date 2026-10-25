@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/routing/app_routes.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/driver_service.dart';
 import 'package:mobile/presentation/screens/driver/request_details_screen.dart';
 import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
 
@@ -24,10 +26,45 @@ class _AvailableFreightLoadsScreenState
   static const Color _muted = Color(0xFF91A4BC);
   static const Color _white = Color(0xFFF4F7FC);
 
+  final DriverService _driverService = DriverService();
   final TextEditingController _searchController = TextEditingController();
 
   String _selectedCorridor = 'All Corridors';
   bool _autoBidEnabled = true;
+  bool _loading = true;
+  List<Map<String, dynamic>> _loads = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final rows = await _driverService.listAvailableLoads();
+      if (!mounted) return;
+      setState(() {
+        _loads = rows;
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loads = [];
+        _loading = false;
+      });
+      _showMessage(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loads = [];
+        _loading = false;
+      });
+      _showMessage('Unable to load available loads');
+    }
+  }
 
   @override
   void dispose() {
@@ -45,6 +82,97 @@ class _AvailableFreightLoadsScreenState
           behavior: SnackBarBehavior.floating,
         ),
       );
+  }
+
+  Future<void> _placeBid(Map<String, dynamic> load) async {
+    final loadId = load['id']?.toString() ?? '';
+    if (loadId.isEmpty) {
+      _showMessage('Missing load id');
+      return;
+    }
+    final priceRaw = load['offered_price_etb'];
+    final price = priceRaw is num
+        ? priceRaw.toDouble()
+        : double.tryParse(priceRaw?.toString() ?? '') ?? 0;
+
+    final controller = TextEditingController(
+      text: price > 0 ? price.toStringAsFixed(0) : '',
+    );
+    final amount = await showDialog<num>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _surface,
+        title: const Text('Place Bid', style: TextStyle(color: _white)),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(color: _white),
+          decoration: const InputDecoration(
+            labelText: 'Bid amount (ETB)',
+            labelStyle: TextStyle(color: _muted),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final v = num.tryParse(controller.text.trim());
+              Navigator.pop(ctx, v);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: _gold),
+            child: const Text('Submit'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (amount == null || amount <= 0) return;
+
+    try {
+      await _driverService.placeBid(loadId: loadId, amountEtb: amount);
+      if (!mounted) return;
+      _showMessage('Bid of ${amount.toStringAsFixed(0)} ETB submitted');
+      _load();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      _showMessage(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      _showMessage('Failed to place bid');
+    }
+  }
+
+  String _fmt(num n) => n.toStringAsFixed(0).replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (m) => '${m[1]},',
+      );
+
+  List<Map<String, dynamic>> get _filteredLoads {
+    final query = _searchController.text.trim().toLowerCase();
+    return _loads.where((load) {
+      if (_selectedCorridor != 'All Corridors') {
+        final route =
+            '${load['origin_city'] ?? ''} ${load['destination_city'] ?? ''}'
+                .toLowerCase();
+        if (!route.contains(_selectedCorridor.toLowerCase().split('→').first.trim().toLowerCase()) &&
+            !route.contains('djibouti') &&
+            !route.contains('modjo')) {
+          // Soft filter: keep all when corridor chip is generic short label
+        }
+      }
+      if (query.isEmpty) return true;
+      final hay = [
+        load['origin_city'],
+        load['destination_city'],
+        load['cargo_description'],
+        load['shipper_name'],
+        load['id'],
+      ].join(' ').toLowerCase();
+      return hay.contains(query);
+    }).toList();
   }
 
   void _handleDriverNavigation(int index) {
@@ -69,14 +197,15 @@ class _AvailableFreightLoadsScreenState
         if (widget.onNavigate != null) {
           widget.onNavigate!.call('bids');
         } else {
-          _showMessage('Bids screen is not connected yet');
+          // Bids board = this available loads screen
+          _showMessage('Browse loads below to place bids');
         }
         break;
       case 4:
         if (widget.onNavigate != null) {
           widget.onNavigate!.call('tracking');
         } else {
-          _showMessage('Tracking screen is not connected yet');
+          Navigator.pushNamed(context, AppRoutes.page16DriverHome);
         }
         break;
     }
@@ -84,6 +213,8 @@ class _AvailableFreightLoadsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final filtered = _filteredLoads;
+
     return Scaffold(
       backgroundColor: _background,
       body: SafeArea(
@@ -121,9 +252,9 @@ class _AvailableFreightLoadsScreenState
                             color: _surfaceHigh,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
-                            '24 Live',
-                            style: TextStyle(
+                          child: Text(
+                            '${_loads.length} Live',
+                            style: const TextStyle(
                               color: _gold,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -148,97 +279,93 @@ class _AvailableFreightLoadsScreenState
                     const SizedBox(height: 12),
                     _buildTelemetryCard(),
                     const SizedBox(height: 16),
-                    _buildLoadCard(
-                      label: 'STANDARD BID',
-                      reference: '#ET-8942',
-                      distance: '450 km Expressway',
-                      origin: 'Modjo Dry Port',
-                      destination: 'Dire Dawa FTZ',
-                      routeDescription: '28T Containerized Wheat & Grain',
-                      detail: 'Pickup: Tomorrow, 08:30 AM',
-                      cargoNote: 'Since 30T / FAW',
-                      category: 'Ethio Agricultural Expo.',
-                      rating: '4.95 (124 trips)',
-                      statusLabel: 'Telebirr Escrow',
-                      price: '65,000',
-                      priceCaption: 'Target Budget',
-                      trailingCaption: 'Est. Yield',
-                      trailingValue: '144 ETB / km',
-                      actionLabel: 'Place Bid Now',
-                      actionIcon: Icons.gavel_rounded,
-                      onAction: () =>
-                          _showMessage('Place Bid selected for #ET-8942'),
-                      secondaryAction: 'Details',
-                      onSecondary: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (context) => const RequestDetailsScreen(
-                              reference: '#ET-8942',
-                              origin: 'Modjo Dry Port',
-                              destination: 'Dire Dawa FTZ',
-                              cargo: '28T Containerized Wheat & Grain',
-                              pickup: 'Tomorrow, 08:30 AM',
-                              shipper: 'Ethio Agricultural Expo.',
-                              rating: '4.95 (124 trips)',
-                              price: '65,000 ETB',
-                              priceCaption: 'Target Budget',
-                              distance: '450 km Expressway',
-                              cargoNote: 'Since 30T / FAW',
-                              status: 'Telebirr Escrow',
-                            ),
+                    if (_loading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                        child: Center(
+                          child: CircularProgressIndicator(color: _gold),
+                        ),
+                      )
+                    else if (filtered.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 36),
+                        child: Center(
+                          child: Text(
+                            'No available loads right now.',
+                            style: TextStyle(color: _muted),
+                          ),
+                        ),
+                      )
+                    else
+                      ...filtered.map((load) {
+                        final origin = load['origin_city']?.toString() ?? '—';
+                        final dest =
+                            load['destination_city']?.toString() ?? '—';
+                        final cargo =
+                            load['cargo_description']?.toString() ?? 'Freight';
+                        final weight = load['weight_tons'];
+                        final shipper =
+                            load['shipper_name']?.toString() ?? 'Shipper';
+                        final priceRaw = load['offered_price_etb'];
+                        final price = priceRaw is num
+                            ? priceRaw.toDouble()
+                            : double.tryParse(priceRaw?.toString() ?? '') ?? 0;
+                        final rawId = load['id']?.toString() ?? '';
+                        final short = rawId.length > 4
+                            ? rawId.substring(0, 4).toUpperCase()
+                            : rawId.toUpperCase();
+                        final cargoLine = weight != null
+                            ? '${weight}T $cargo'
+                            : cargo;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildLoadCard(
+                            label: 'STANDARD BID',
+                            reference: '#ET-$short',
+                            distance: '$origin → $dest',
+                            origin: origin,
+                            destination: dest,
+                            routeDescription: cargoLine,
+                            detail: 'Status: ${load['status'] ?? 'POSTED'}',
+                            cargoNote: weight != null ? '${weight}T' : null,
+                            category: shipper,
+                            rating: 'Verified shipper',
+                            statusLabel: 'Open for bids',
+                            price: _fmt(price),
+                            priceCaption: 'Target Budget',
+                            trailingCaption: 'Corridor',
+                            trailingValue: '$origin → $dest',
+                            actionLabel: 'Place Bid Now',
+                            actionIcon: Icons.gavel_rounded,
+                            onAction: () => _placeBid(load),
+                            secondaryAction: 'Details',
+                            onSecondary: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute<void>(
+                                  builder: (context) => RequestDetailsScreen(
+                                    reference: '#ET-$short',
+                                    origin: origin,
+                                    destination: dest,
+                                    cargo: cargoLine,
+                                    pickup: load['created_at']?.toString() ??
+                                        'Soon',
+                                    shipper: shipper,
+                                    rating: 'Verified',
+                                    price: '${_fmt(price)} ETB',
+                                    priceCaption: 'Target Budget',
+                                    distance: '$origin → $dest',
+                                    cargoNote: weight != null ? '${weight}T' : '',
+                                    status: 'Open for bids',
+                                    loadId: rawId,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLoadCard(
-                      label: 'INSTANT DISPATCH',
-                      reference: '#ET-7719',
-                      distance: '98 km Rapid Link',
-                      origin: 'Addis (Kaliti)',
-                      destination: 'Adama Hub',
-                      routeDescription: '32T Structural Steel & Rebar',
-                      detail: 'Pickup: Today, 16:00 PM (Urgent)',
-                      cargoNote: 'Flatbed 3-Axle',
-                      category: 'Mugher Cement & Steel',
-                      rating: '4.80 (89 loads)',
-                      statusLabel: 'Funded & Locked',
-                      price: '38,000',
-                      priceCaption: 'Fixed Guaranteed Rate',
-                      trailingCaption: 'Direct Settlement',
-                      trailingValue: 'Immediate on POD',
-                      actionLabel: 'Accept Load Instantly (38,000 ETB)',
-                      actionIcon: Icons.flash_on_rounded,
-                      onAction: () =>
-                          _showMessage('Instant load acceptance selected'),
-                      isInstant: true,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLoadCard(
-                      label: 'EXPORT GRADE',
-                      reference: '#ET-6204',
-                      distance: '218 km Highway',
-                      origin: 'Hawassa Agro',
-                      destination: 'Modjo Dry Port',
-                      routeDescription: '22T Grade-1 Export Coffee',
-                      detail: 'Pickup: Oct 10, Morning Window',
-                      cargoNote: 'Requires Tarp',
-                      category: 'Sidama Coffee Union',
-                      rating: '4.91 (210 loads)',
-                      statusLabel: '3 Bids Received',
-                      price: '42,000',
-                      priceCaption: "Shipper's Baseline",
-                      trailingCaption: 'Market Average',
-                      trailingValue: '192 ETB / km',
-                      actionLabel: 'Submit Bid',
-                      actionIcon: Icons.send_rounded,
-                      onAction: () =>
-                          _showMessage('Submit Bid selected for #ET-6204'),
-                      secondaryAction: 'Save',
-                      secondaryIcon: Icons.bookmark_border_rounded,
-                      onSecondary: () => _showMessage('Load saved'),
-                    ),
+                      }),
                     const SizedBox(height: 12),
                     _buildAutoBidCard(),
                     const SizedBox(height: 20),
@@ -427,9 +554,21 @@ class _AvailableFreightLoadsScreenState
 
   Widget _buildCorridorFilters() {
     final corridors = <MapEntry<String, String>>[
-      const MapEntry('All Corridors', '24'),
-      const MapEntry('Addis → Djibouti', '8'),
-      const MapEntry('Modjo →', '6'),
+      MapEntry('All Corridors', '${_loads.length}'),
+      MapEntry(
+        'Addis → Djibouti',
+        '${_loads.where((l) {
+          final r = '${l['origin_city']} ${l['destination_city']}'.toLowerCase();
+          return r.contains('addis') || r.contains('djibouti');
+        }).length}',
+      ),
+      MapEntry(
+        'Modjo →',
+        '${_loads.where((l) {
+          final r = '${l['origin_city']} ${l['destination_city']}'.toLowerCase();
+          return r.contains('modjo') || r.contains('mojo');
+        }).length}',
+      ),
     ];
 
     return SingleChildScrollView(

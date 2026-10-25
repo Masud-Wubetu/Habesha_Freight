@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/escrow_service.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
 
@@ -10,40 +12,12 @@ class EscrowInvoicesScreen extends StatefulWidget {
 }
 
 class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
+  final EscrowService _escrowService = EscrowService();
   int _selectedTab = 0;
-
-  static const _transactions = <_EscrowTransaction>[
-    _EscrowTransaction(
-      id: 'HF-9012',
-      paymentMethod: 'Telebirr Escrow',
-      origin: 'Addis Ababa',
-      destination: 'Dire Dawa',
-      amount: '38,000',
-      status: 'Driver in Transit (Awash Corridor)',
-      detail: 'Waypoint 3/5 • Speed: 62 km/h',
-      kind: _TransactionKind.active,
-    ),
-    _EscrowTransaction(
-      id: 'HF-8841',
-      paymentMethod: 'CBE Birr Escrow',
-      origin: 'Addis Ababa',
-      destination: 'Adama Cargo Dry Port',
-      amount: '18,500',
-      status: 'Offloading at Terminal • Proof Ready',
-      detail: 'POD Signed by Consignee Bekele M.',
-      kind: _TransactionKind.readyToRelease,
-    ),
-    _EscrowTransaction(
-      id: 'HF-7720',
-      paymentMethod: 'Released & Settled',
-      origin: 'Hawassa',
-      destination: 'Modjo Dry Port',
-      amount: '42,000',
-      status: 'Carrier: Selam Logistics PLC',
-      detail: 'Completed Oct 4, 2024 • Invoice #INV-1092',
-      kind: _TransactionKind.released,
-    ),
-  ];
+  bool _loading = true;
+  List<_EscrowTransaction> _transactions = [];
+  double _totalLocked = 0;
+  double _totalReleased = 0;
 
   List<_EscrowTransaction> get _visibleTransactions {
     switch (_selectedTab) {
@@ -52,12 +26,100 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
             .where((t) => t.kind == _TransactionKind.released)
             .toList();
       case 2:
-        return [];
+        return _transactions
+            .where((t) => t.kind == _TransactionKind.disputed)
+            .toList();
       default:
         return _transactions
-            .where((t) => t.kind != _TransactionKind.released)
+            .where((t) =>
+                t.kind == _TransactionKind.active ||
+                t.kind == _TransactionKind.readyToRelease)
             .toList();
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final ledger = await _escrowService.getLedger();
+      final mapped = ledger.items.map(_mapItem).toList();
+      if (!mounted) return;
+      setState(() {
+        _transactions = mapped;
+        _totalLocked = ledger.totalLocked;
+        _totalReleased = ledger.totalReleased;
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _transactions = [];
+        _totalLocked = 0;
+        _totalReleased = 0;
+        _loading = false;
+      });
+      _showMessage(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _transactions = [];
+        _totalLocked = 0;
+        _totalReleased = 0;
+        _loading = false;
+      });
+      _showMessage('Unable to load escrow ledger');
+    }
+  }
+
+  _EscrowTransaction _mapItem(EscrowItem item) {
+    final short = item.shipmentId.isNotEmpty
+        ? (item.shipmentId.length > 6
+            ? item.shipmentId.substring(0, 6).toUpperCase()
+            : item.shipmentId.toUpperCase())
+        : item.id;
+    final status = item.status.toUpperCase();
+    final kind = _kindFromStatus(status);
+    final amount = item.grossAmount.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        );
+    final provider = kind == _TransactionKind.released
+        ? 'Released & Settled'
+        : (item.gatewayReference != null &&
+                item.gatewayReference!.toLowerCase().contains('cbe')
+            ? 'CBE Birr Escrow'
+            : 'Telebirr Escrow');
+
+    return _EscrowTransaction(
+      id: short,
+      paymentMethod: provider,
+      origin: item.origin ?? '—',
+      destination: item.destination ?? '—',
+      amount: amount,
+      status: kind == _TransactionKind.released
+          ? 'Carrier: ${item.carrierName ?? 'N/A'}'
+          : kind == _TransactionKind.readyToRelease
+              ? 'Proof Ready · Awaiting POD OTP'
+              : 'Status: $status',
+      detail: item.cargo ?? item.gatewayReference ?? item.status,
+      kind: kind,
+      shipmentId: item.shipmentId,
+    );
+  }
+
+  _TransactionKind _kindFromStatus(String status) {
+    if (status == 'RELEASED') return _TransactionKind.released;
+    if (status == 'DISPUTED' || status == 'REFUNDED') {
+      return _TransactionKind.disputed;
+    }
+    if (status == 'PENDING') return _TransactionKind.readyToRelease;
+    return _TransactionKind.active;
   }
 
   @override
@@ -149,7 +211,14 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
             _tabBar(),
             const SizedBox(height: 14),
 
-            if (_visibleTransactions.isEmpty)
+            if (_loading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              )
+            else if (_visibleTransactions.isEmpty)
               _emptyState()
             else
               ..._visibleTransactions.map(_transactionCard),
@@ -232,18 +301,18 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          const Text.rich(
+          Text.rich(
             TextSpan(
               children: [
                 TextSpan(
-                  text: '150,000',
-                  style: TextStyle(
+                  text: _formatEtb(_totalLocked),
+                  style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                TextSpan(
+                const TextSpan(
                   text: ' ETB',
                   style: TextStyle(
                     color: AppColors.primary,
@@ -280,10 +349,18 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _metric('Released This Month', '890,000 ETB')),
+              Expanded(
+                child: _metric(
+                  'Released This Month',
+                  '${_formatEtb(_totalReleased)} ETB',
+                ),
+              ),
               const SizedBox(width: 10),
               Expanded(
-                child: _metric('Active Consignments', '2 Corridor Runs'),
+                child: _metric(
+                  'Active Consignments',
+                  '${_transactions.where((t) => t.kind != _TransactionKind.released && t.kind != _TransactionKind.disputed).length} Corridor Runs',
+                ),
               ),
             ],
           ),
@@ -719,9 +796,16 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
   }
+
+  String _formatEtb(double value) {
+    return value.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        );
+  }
 }
 
-enum _TransactionKind { active, readyToRelease, released }
+enum _TransactionKind { active, readyToRelease, released, disputed }
 
 class _EscrowTransaction {
   const _EscrowTransaction({
@@ -733,6 +817,7 @@ class _EscrowTransaction {
     required this.status,
     required this.detail,
     required this.kind,
+    this.shipmentId = '',
   });
 
   final String id;
@@ -743,4 +828,5 @@ class _EscrowTransaction {
   final String status;
   final String detail;
   final _TransactionKind kind;
+  final String shipmentId;
 }

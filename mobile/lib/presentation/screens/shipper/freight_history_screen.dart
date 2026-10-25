@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/shipper_service.dart';
 import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
 
 class FreightHistoryScreen extends StatefulWidget {
@@ -9,47 +11,106 @@ class FreightHistoryScreen extends StatefulWidget {
 }
 
 class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
+  final ShipperService _shipperService = ShipperService();
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'Last 30 Days';
+  List<_ShipmentHistoryEntry> _shipments = [];
+  bool _loading = true;
+  double _totalDisbursed = 0;
 
-  static const List<_ShipmentHistoryEntry> _shipments = [
-    _ShipmentHistoryEntry(
-      id: 'WB-89410',
-      date: 'Oct 4, 2026',
-      routeFrom: 'Modjo Dry Port',
-      routeTo: 'Mekelle IP',
-      cargo: '28T Industrial Rebar',
-      amount: '85,000',
-      status: 'Delivered & Released',
-      driverName: 'Kassahun Berhanu',
-      truckInfo: 'Sinotruk 30T • Plate 3-52419 ET',
-      rating: '4.9',
-    ),
-    _ShipmentHistoryEntry(
-      id: 'WB-89204',
-      date: 'Sep 28, 2026',
-      routeFrom: 'Addis Ababa',
-      routeTo: 'Dire Dawa FTZ',
-      cargo: '32T Wheat Flour',
-      amount: '54,000',
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final rows = await _shipperService.listShipments();
+      final delivered = rows
+          .where((r) =>
+              (r['status']?.toString() ?? '').toUpperCase() == 'DELIVERED')
+          .map(_mapShipment)
+          .toList();
+      final total = delivered.fold<double>(
+        0,
+        (sum, s) => sum + (double.tryParse(s.amount.replaceAll(',', '')) ?? 0),
+      );
+      if (!mounted) return;
+      setState(() {
+        _shipments = delivered;
+        _totalDisbursed = total;
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _shipments = [];
+        _totalDisbursed = 0;
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _shipments = [];
+        _totalDisbursed = 0;
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to load freight history')),
+      );
+    }
+  }
+
+  _ShipmentHistoryEntry _mapShipment(Map<String, dynamic> row) {
+    final rawId = row['id']?.toString() ?? '';
+    final short = rawId.length > 6
+        ? rawId.substring(0, 6).toUpperCase()
+        : rawId.toUpperCase();
+    final price = row['offered_price_etb'] ?? row['amount_etb'] ?? 0;
+    final amountNum = price is num ? price.toDouble() : double.tryParse(price.toString()) ?? 0;
+    final amount = amountNum.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        );
+    final created = row['delivered_at'] ?? row['updated_at'] ?? row['created_at'];
+    String dateLabel = '—';
+    if (created != null) {
+      final dt = DateTime.tryParse(created.toString());
+      if (dt != null) {
+        const months = [
+          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+        ];
+        dateLabel = '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+      }
+    }
+    final weight = row['weight_tons'];
+    final cargo = row['cargo_description']?.toString() ?? 'Freight';
+    final cargoLabel = weight != null ? '${weight}T $cargo' : cargo;
+    final driver = row['driver_name']?.toString() ??
+        row['carrier_name']?.toString() ??
+        'Carrier';
+    final plate = row['plate_number']?.toString();
+    final vehicle = row['vehicle_type']?.toString() ?? 'Heavy Rig';
+
+    return _ShipmentHistoryEntry(
+      id: 'WB-$short',
+      date: dateLabel,
+      routeFrom: row['origin_city']?.toString() ?? '—',
+      routeTo: row['destination_city']?.toString() ?? '—',
+      cargo: cargoLabel,
+      amount: amount,
       status: 'Delivered',
-      driverName: 'Solomon Tekle',
-      truckInfo: 'FAW J6P • Plate 3-84091 ET',
-      rating: '5.0',
-    ),
-    _ShipmentHistoryEntry(
-      id: 'WB-88912',
-      date: 'Sep 15, 2026',
-      routeFrom: 'Hawassa',
-      routeTo: 'Modjo Hub',
-      cargo: '22T Export Grade Coffee',
-      amount: '42,000',
-      status: 'Delivered',
-      driverName: 'Girma Tadesse',
-      truckInfo: 'Sinotruk • Plate 3-10294 ET',
-      rating: '4.8',
-    ),
-  ];
+      driverName: driver,
+      truckInfo: plate != null ? '$vehicle • Plate $plate' : vehicle,
+      rating: row['driver_rating']?.toString() ?? '—',
+    );
+  }
 
   @override
   void dispose() {
@@ -180,9 +241,9 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                       color: innerCardColor,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Text(
-                      '45 Completed',
-                      style: TextStyle(
+                    child: Text(
+                      '${_shipments.length} Completed',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -238,9 +299,12 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              const Text(
-                                '1,250,000',
-                                style: TextStyle(
+                              Text(
+                                _totalDisbursed.toStringAsFixed(0).replaceAllMapped(
+                                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                      (m) => '${m[1]},',
+                                    ),
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -355,33 +419,41 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
               const SizedBox(height: 20),
 
               // Shipment List
-              ...filteredShipments.map(
-                (shipment) => _buildShipmentCard(
-                  shipment,
-                  cardColor,
-                  innerCardColor,
-                  primaryYellow,
-                  textMuted,
-                  greenAccent,
-                ),
-              ),
-
-              if (filteredShipments.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 30),
+              if (_loading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
                   child: Center(
-                    child: Text(
-                      'No shipments found.',
-                      style: TextStyle(color: textMuted),
-                    ),
+                    child: CircularProgressIndicator(color: primaryYellow),
+                  ),
+                )
+              else ...[
+                ...filteredShipments.map(
+                  (shipment) => _buildShipmentCard(
+                    shipment,
+                    cardColor,
+                    innerCardColor,
+                    primaryYellow,
+                    textMuted,
+                    greenAccent,
                   ),
                 ),
+                if (filteredShipments.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 30),
+                    child: Center(
+                      child: Text(
+                        'No shipments found.',
+                        style: TextStyle(color: textMuted),
+                      ),
+                    ),
+                  ),
+              ],
 
               const SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: _load,
                   style: TextButton.styleFrom(
                     backgroundColor: innerCardColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -392,10 +464,10 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.history, color: textLight, size: 18),
+                      Icon(Icons.refresh, color: textLight, size: 18),
                       const SizedBox(width: 8),
                       Text(
-                        'Load Older Corridors (42 more)',
+                        'Refresh History',
                         style: TextStyle(
                           color: textLight,
                           fontSize: 13,

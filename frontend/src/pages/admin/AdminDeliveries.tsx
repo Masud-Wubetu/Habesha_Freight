@@ -40,15 +40,16 @@ export default function AdminDeliveries() {
 
     try {
       setLoading(true);
-      await api.post(`/shipments/${deliveryId.replace('LOAD-', '')}/delivery-verify`, {
-        delivery_otp: '982041', // Standard override code
-      }, true).catch(() => null);
-
-      alert(`✓ Delivery ${deliveryId} force-marked as COMPLETED. Escrow funds released to driver.`);
+      const shipmentId = deliveryId.replace('LOAD-', '');
+      await api.post(`/shipments/${shipmentId}/delivery-verify`, {
+        force: true,
+        reason: 'Admin force release',
+      }, true);
+      alert(`Delivery ${deliveryId} verified. Refreshing list…`);
       setSelectedDeliveryModal(null);
-      fetchDeliveries(statusFilter);
+      await fetchDeliveries(statusFilter);
     } catch (err: any) {
-      alert(err?.message || 'Action performed successfully.');
+      alert(err?.message || 'Force release failed. No escrow changes were applied.');
     } finally {
       setLoading(false);
     }

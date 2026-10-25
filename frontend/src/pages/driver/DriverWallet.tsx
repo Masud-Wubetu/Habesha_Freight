@@ -17,39 +17,10 @@ export default function DriverWallet() {
   const navigate = useNavigate();
   const user = getStoredUser();
 
-  const [availableBalance, setAvailableBalance] = useState(42750);
-  const [pendingEscrow, setPendingEscrow] = useState(45000);
-  const [lifetimeEarnings, setLifetimeEarnings] = useState(187500);
-
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: 'TX-9021',
-      amount_etb: 42750,
-      type: 'PAYOUT_RELEASE',
-      method: 'Escrow Auto-Release (SHP-001)',
-      account_number: 'Internal Wallet',
-      status: 'COMPLETED',
-      created_at: new Date().toISOString(),
-    },
-    {
-      id: 'TX-8910',
-      amount_etb: 30000,
-      type: 'WITHDRAWAL',
-      method: 'Telebirr Mobile Wallet',
-      account_number: '+251 91 123 4567',
-      status: 'COMPLETED',
-      created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-    },
-    {
-      id: 'TX-8824',
-      amount_etb: 45000,
-      type: 'WITHDRAWAL',
-      method: 'Commercial Bank of Ethiopia (CBE)',
-      account_number: '1000293849102',
-      status: 'COMPLETED',
-      created_at: new Date(Date.now() - 86400000 * 5).toISOString(),
-    },
-  ]);
+  const [availableBalance, setAvailableBalance] = useState(0);
+  const [pendingEscrow, setPendingEscrow] = useState(0);
+  const [lifetimeEarnings, setLifetimeEarnings] = useState(0);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   // Withdrawal modal state
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -69,36 +40,61 @@ export default function DriverWallet() {
 
   const fetchWalletData = async () => {
     try {
+      const earningsRes = await get<any>('/drivers/earnings').catch(() => null);
+      const earnings = earningsRes?.data || earningsRes;
+      if (earnings) {
+        setAvailableBalance(Number(earnings.available || earnings.available_balance || 0));
+        setLifetimeEarnings(Number(earnings.lifetime || earnings.total_earned || earnings.total || 0));
+        setPendingEscrow(Number(earnings.pending || earnings.pending_escrow || 0));
+      }
+
+      const historyRes = await get<any>('/drivers/earnings/history').catch(() => null);
+      const history = historyRes?.data || historyRes;
+      const historyItems = Array.isArray(history) ? history : history?.items || [];
+      if (historyItems.length > 0) {
+        setTransactions(
+          historyItems.map((i: any, index: number) => ({
+            id: String(i.id || `TX-${index}`),
+            amount_etb: Number(i.amount_etb || i.net_payout_amount_etb || i.gross_amount_etb || 0),
+            type: i.type === 'WITHDRAWAL' ? 'WITHDRAWAL' : 'PAYOUT_RELEASE',
+            method: i.method || i.gateway_reference || 'Escrow',
+            account_number: i.account_number || 'Internal Driver Wallet',
+            status: (i.status || 'COMPLETED').toUpperCase(),
+            created_at: i.created_at || new Date().toISOString(),
+          })),
+        );
+        return;
+      }
+
       const res = await get<any>('/escrow/ledger/all');
       const data = res?.data || res;
-      if (data?.items && Array.isArray(data.items) && data.items.length > 0) {
-        const releasedSum = data.items
-          .filter((i: any) => i.status === 'RELEASED')
-          .reduce((sum: number, i: any) => sum + Number(i.net_payout_amount_etb || i.gross_amount_etb || i.amount_etb || 0), 0);
-        
-        const lockedSum = data.items
-          .filter((i: any) => ['LOCKED', 'HELD', 'PENDING'].includes(i.status))
-          .reduce((sum: number, i: any) => sum + Number(i.gross_amount_etb || i.amount_etb || 0), 0);
-
-        setPendingEscrow(lockedSum);
-        setLifetimeEarnings(releasedSum > 0 ? releasedSum : 187500);
-        setAvailableBalance(releasedSum > 0 ? releasedSum : 42750);
-
-        // Map live database items to transactions
-        const dbTxs: Transaction[] = data.items.map((i: any, index: number) => ({
-          id: i.id ? `TX-${i.id.slice(0, 6).toUpperCase()}` : `TX-90${index}`,
+      const items = Array.isArray(data?.items) ? data.items : [];
+      const releasedSum = items
+        .filter((i: any) => i.status === 'RELEASED')
+        .reduce((sum: number, i: any) => sum + Number(i.net_payout_amount_etb || i.gross_amount_etb || i.amount_etb || 0), 0);
+      const lockedSum = items
+        .filter((i: any) => ['LOCKED', 'HELD', 'PENDING'].includes(i.status))
+        .reduce((sum: number, i: any) => sum + Number(i.gross_amount_etb || i.amount_etb || 0), 0);
+      setPendingEscrow(lockedSum);
+      setLifetimeEarnings(releasedSum);
+      setAvailableBalance(releasedSum);
+      setTransactions(
+        items.map((i: any, index: number) => ({
+          id: i.id ? `TX-${String(i.id).slice(0, 6).toUpperCase()}` : `TX-${index}`,
           amount_etb: Number(i.net_payout_amount_etb || i.gross_amount_etb || i.amount_etb || 0),
-          type: i.status === 'RELEASED' ? 'PAYOUT_RELEASE' : 'PAYOUT_RELEASE',
+          type: 'PAYOUT_RELEASE' as const,
           method: `Escrow (${i.gateway_reference || 'Telebirr/Chapa'})`,
           account_number: 'Internal Driver Wallet',
           status: i.status === 'RELEASED' ? 'COMPLETED' : 'PENDING',
           created_at: i.created_at || new Date().toISOString(),
-        }));
-
-        setTransactions(dbTxs);
-      }
+        })),
+      );
     } catch (err) {
       console.error('Wallet fetch error:', err);
+      setAvailableBalance(0);
+      setPendingEscrow(0);
+      setLifetimeEarnings(0);
+      setTransactions([]);
     }
   };
 
@@ -135,7 +131,7 @@ export default function DriverWallet() {
         setWithdrawSuccessMsg(null);
       }, 3200);
     } catch (err: any) {
-      alert(err.message || 'Withdrawal processed successfully.');
+      alert(err?.message || 'Withdrawal is not available on the API yet.');
     } finally {
       setWithdrawing(false);
     }

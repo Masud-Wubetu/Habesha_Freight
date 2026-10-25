@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/driver_service.dart';
 
 class RequestDetailsScreen extends StatefulWidget {
   const RequestDetailsScreen({
@@ -15,6 +17,7 @@ class RequestDetailsScreen extends StatefulWidget {
     required this.distance,
     this.cargoNote,
     this.status,
+    this.loadId,
   });
 
   final String reference;
@@ -29,6 +32,7 @@ class RequestDetailsScreen extends StatefulWidget {
   final String distance;
   final String? cargoNote;
   final String? status;
+  final String? loadId;
 
   @override
   State<RequestDetailsScreen> createState() => _RequestDetailsScreenState();
@@ -43,6 +47,9 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   static const Color _green = Color(0xFF32D6A0);
   static const Color _muted = Color(0xFF91A4BC);
   static const Color _white = Color(0xFFF4F7FC);
+
+  final DriverService _driverService = DriverService();
+  bool _submitting = false;
 
   late final TextEditingController _bidController = TextEditingController(
     text: widget.price.replaceAll(RegExp(r'[^0-9]'), ''),
@@ -61,6 +68,12 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Future<void> _showBidForm() async {
+    final loadId = widget.loadId?.trim() ?? '';
+    if (loadId.isEmpty) {
+      _showMessage('Missing load id — cannot submit bid.');
+      return;
+    }
+
     final submitted = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
@@ -122,8 +135,23 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
       ),
     );
 
-    if (submitted != null && mounted) {
-      _showMessage('Bid of $submitted ETB prepared for ${widget.reference}.');
+    if (submitted == null || !mounted) return;
+    final amount = num.tryParse(submitted);
+    if (amount == null || amount <= 0) return;
+
+    setState(() => _submitting = true);
+    try {
+      await _driverService.placeBid(loadId: loadId, amountEtb: amount);
+      if (!mounted) return;
+      _showMessage('Bid of $submitted ETB submitted for ${widget.reference}.');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      _showMessage(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      _showMessage('Failed to place bid');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -921,9 +949,9 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton.icon(
-              onPressed: _showBidForm,
+              onPressed: _submitting ? null : _showBidForm,
               icon: const Icon(Icons.arrow_forward_rounded),
-              label: const Text('Submit Your Bid Price'),
+              label: Text(_submitting ? 'Submitting…' : 'Submit Your Bid Price'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _gold,
                 foregroundColor: _background,

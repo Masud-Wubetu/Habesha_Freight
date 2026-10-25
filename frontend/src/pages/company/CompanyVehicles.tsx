@@ -50,35 +50,21 @@ export default function CompanyVehicles() {
         ? res.vehicles
         : [];
 
-      if (list.length > 0) {
-        setVehicles(
-          list.map((v: any, idx: number) => ({
-            id: String(v.id || `veh-${idx + 1}`),
-            plate: v.plate_number || v.plateNumber || v.plate || 'AA-00000',
-            model: v.model || v.makeModel || 'Isuzu Truck',
-            type: v.vehicle_type || v.type || 'Flatbed',
-            capacity: v.capacity_tons ? `${v.capacity_tons}t` : v.capacity ? `${v.capacity}t` : '10t',
-            driver: v.driverName || v.driver || (v.assigned_driver_id ? 'Assigned Driver' : 'Unassigned'),
-            status: v.is_active === false ? 'MAINTENANCE' : (v.status || 'AVAILABLE').toUpperCase() as any,
-          }))
-        );
-      } else {
-        setVehicles([
-          { id: 'veh-1', plate: 'AAU-3421', model: 'Isuzu FSR', type: 'Flatbed', capacity: '10t', driver: 'Abebe Girma', status: 'AVAILABLE' },
-          { id: 'veh-2', plate: 'AA-45892', model: 'Mercedes Actros', type: 'Refrigerated', capacity: '20t', driver: 'Tesfaye Haile', status: 'IN_TRANSIT' },
-          { id: 'veh-3', plate: 'AA-11034', model: 'Volvo FH', type: 'Tanker', capacity: '25t', driver: 'Selam Tadesse', status: 'AVAILABLE' },
-          { id: 'veh-4', plate: 'AA-77821', model: 'Isuzu NPR', type: 'Box Truck', capacity: '5t', driver: 'Unassigned', status: 'MAINTENANCE' },
-          { id: 'veh-5', plate: 'AA-92340', model: 'Sino Howo', type: 'Flatbed', capacity: '30t', driver: 'Kibru Alemu', status: 'IN_TRANSIT' },
-        ]);
-      }
+      setVehicles(
+        list.map((v: any, idx: number) => ({
+          id: String(v.id || `veh-${idx + 1}`),
+          plate: v.plate_number || v.plateNumber || v.plate || '—',
+          model: v.model || v.makeModel || v.vehicle_type || 'Truck',
+          type: v.vehicle_type || v.type || 'Flatbed',
+          capacity: v.capacity_tons ? `${v.capacity_tons}t` : v.capacity ? `${v.capacity}t` : '—',
+          driver: v.driverName || v.driver || (v.assigned_driver_id ? 'Assigned Driver' : 'Unassigned'),
+          status: v.is_active === false ? 'MAINTENANCE' : (v.status || 'AVAILABLE').toUpperCase() as any,
+        }))
+      );
     } catch (err) {
-      setVehicles([
-        { id: 'veh-1', plate: 'AAU-3421', model: 'Isuzu FSR', type: 'Flatbed', capacity: '10t', driver: 'Abebe Girma', status: 'AVAILABLE' },
-        { id: 'veh-2', plate: 'AA-45892', model: 'Mercedes Actros', type: 'Refrigerated', capacity: '20t', driver: 'Tesfaye Haile', status: 'IN_TRANSIT' },
-        { id: 'veh-3', plate: 'AA-11034', model: 'Volvo FH', type: 'Tanker', capacity: '25t', driver: 'Selam Tadesse', status: 'AVAILABLE' },
-        { id: 'veh-4', plate: 'AA-77821', model: 'Isuzu NPR', type: 'Box Truck', capacity: '5t', driver: 'Unassigned', status: 'MAINTENANCE' },
-        { id: 'veh-5', plate: 'AA-92340', model: 'Sino Howo', type: 'Flatbed', capacity: '30t', driver: 'Kibru Alemu', status: 'IN_TRANSIT' },
-      ]);
+      console.error('Failed to fetch company vehicles', err);
+      setVehicles([]);
+      showNotification('Unable to load vehicles from API');
     } finally {
       setLoading(false);
     }
@@ -110,25 +96,12 @@ export default function CompanyVehicles() {
         await api.post('/vehicles', payload);
       }
       showNotification(`Vehicle ${newVehicle.plate} successfully registered!`);
-    } catch (err) {
-      showNotification(`Vehicle ${newVehicle.plate} registered!`);
+      setIsModalOpen(false);
+      setNewVehicle({ plate: '', model: '', type: 'TRAILER', capacity: '10t', driver: '' });
+      await fetchVehicles();
+    } catch (err: any) {
+      showNotification(err?.message || `Failed to register ${newVehicle.plate}`);
     }
-
-    setVehicles((prev) => [
-      ...prev,
-      {
-        id: String(Date.now()),
-        plate: newVehicle.plate,
-        model: newVehicle.model,
-        type: newVehicle.type,
-        capacity: newVehicle.capacity.endsWith('t') ? newVehicle.capacity : `${newVehicle.capacity}t`,
-        driver: newVehicle.driver || 'Unassigned',
-        status: 'AVAILABLE',
-      },
-    ]);
-
-    setIsModalOpen(false);
-    setNewVehicle({ plate: '', model: '', type: 'TRAILER', capacity: '10t', driver: '' });
   };
 
   const handleOpenEdit = (v: Vehicle) => {
@@ -157,17 +130,12 @@ export default function CompanyVehicles() {
         await api.put(`/vehicles/${editingVehicle.id}`, payload);
       }
       showNotification(`Vehicle ${editingVehicle.plate} updated successfully!`);
-    } catch (err) {
-      showNotification(`Vehicle ${editingVehicle.plate} updated locally!`);
+      setIsEditModalOpen(false);
+      setEditingVehicle(null);
+      await fetchVehicles();
+    } catch (err: any) {
+      showNotification(err?.message || `Failed to update ${editingVehicle.plate}`);
     }
-
-    // Update in local state
-    setVehicles((prev) =>
-      prev.map((item) => (item.id === editingVehicle.id ? editingVehicle : item))
-    );
-
-    setIsEditModalOpen(false);
-    setEditingVehicle(null);
   };
 
   const handleDeleteVehicle = async (id: string, plate: string) => {

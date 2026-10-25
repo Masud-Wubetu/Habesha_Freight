@@ -90,12 +90,7 @@ export default function ShipperPayments() {
         fetchEscrowLedger();
       }, 1200);
     } catch (err: any) {
-      setDepositMessage(err.message || 'Deposit completed and locked locally.');
-      setTimeout(() => {
-        setShowDepositModal(false);
-        setDepositMessage(null);
-        fetchEscrowLedger();
-      }, 1200);
+      setDepositMessage(err?.message || 'Escrow deposit failed. Funds were not locked.');
     } finally {
       setDepositing(false);
     }
@@ -105,13 +100,10 @@ export default function ShipperPayments() {
     if (!confirm('Are you sure you want to release locked escrow funds to the driver?')) return;
     try {
       await post(`/escrow/${shipmentId}/release`, {});
-      fetchEscrowLedger();
-    } catch (err) {
+      await fetchEscrowLedger();
+    } catch (err: any) {
       console.error('Release escrow error:', err);
-      // Update UI optimistically
-      setEscrows(prev =>
-        prev.map(e => (e.shipment_id === shipmentId ? { ...e, status: 'RELEASED' } : e))
-      );
+      alert(err?.message || 'Escrow release failed.');
     }
   };
 
@@ -119,12 +111,10 @@ export default function ShipperPayments() {
     if (!confirm('Initiate escrow refund claim back to your account?')) return;
     try {
       await post(`/escrow/${shipmentId}/refund`, { reason: 'Cancellation claim by shipper' });
-      fetchEscrowLedger();
-    } catch (err) {
+      await fetchEscrowLedger();
+    } catch (err: any) {
       console.error('Refund escrow error:', err);
-      setEscrows(prev =>
-        prev.map(e => (e.shipment_id === shipmentId ? { ...e, status: 'REFUNDED' } : e))
-      );
+      alert(err?.message || 'Escrow refund failed.');
     }
   };
 

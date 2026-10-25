@@ -68,16 +68,19 @@ export function useCompanyFleetRequests() {
   }, []);
 
   const updateRequestStatus = async (id: string, newStatus: 'Accepted' | 'Declined') => {
+    const endpoint =
+      newStatus === 'Accepted'
+        ? `/company/fleet-requests/${id}/accept`
+        : `/company/fleet-requests/${id}/decline`;
     try {
-      const endpoint = newStatus === 'Accepted' ? `/company/fleet-requests/${id}/accept` : `/company/fleet-requests/${id}/decline`;
       await api.patch(endpoint);
-    } catch {
-      // Optimistic update fallback
+      setRequests((prev) =>
+        prev.map((req) => (req.id === id ? { ...req, status: newStatus } : req)),
+      );
+    } catch (err: any) {
+      console.error('Fleet request status update failed', err);
+      throw err instanceof Error ? err : new Error(err?.message || 'Failed to update fleet request');
     }
-
-    setRequests((prev) =>
-      prev.map((req) => (req.id === id ? { ...req, status: newStatus } : req))
-    );
   };
 
   useEffect(() => {
