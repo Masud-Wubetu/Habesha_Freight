@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/routing/app_routes.dart';
+import '../../../core/services/corridor_service.dart';
+import '../../../core/services/shipper_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
-import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/live_tracking/live_tracking_header.dart';
 import '../../widgets/live_tracking/corridor_radar_map_card.dart';
 import '../../widgets/live_tracking/telemetry_metrics_row.dart';
@@ -17,12 +18,14 @@ class LiveTelemetryTrackingScreen extends StatefulWidget {
   final String initialLanguage;
   final String waybillNumber;
   final bool enableAnimation;
+  final Map<String, dynamic>? shipment;
 
   const LiveTelemetryTrackingScreen({
     super.key,
     this.initialLanguage = 'EN',
     this.waybillNumber = '#HF-8841-ET',
     this.enableAnimation = true,
+    this.shipment,
   });
 
   @override
@@ -32,12 +35,38 @@ class LiveTelemetryTrackingScreen extends StatefulWidget {
 
 class _LiveTelemetryTrackingScreenState
     extends State<LiveTelemetryTrackingScreen> {
+  final ShipperService _shipperService = ShipperService();
+  final CorridorService _corridorService = CorridorService();
+
   late String _language;
+  Map<String, dynamic>? _profile;
+  Map<String, dynamic>? _activeShipment;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _language = widget.initialLanguage;
+    _activeShipment = widget.shipment;
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final prof = await _shipperService.getProfile();
+    if (!mounted) return;
+    setState(() => _profile = prof);
+
+    if (_activeShipment == null) {
+      final shipments = await _corridorService.fetchRealShipments();
+      if (!mounted) return;
+      final active = shipments.cast<Map<String, dynamic>?>().firstWhere(
+        (s) => s != null && (s['status'] == 'in_transit' || s['status'] == 'assigned'),
+        orElse: () => null,
+      );
+      if (active != null) {
+        setState(() => _activeShipment = active);
+      }
+    }
   }
 
   void _handleLanguageChanged(String newLang) {
@@ -45,6 +74,9 @@ class _LiveTelemetryTrackingScreenState
   }
 
   void _handleProfileTap() {
+    final name = _profile?['full_name'] ?? 'Shipper';
+    final email = _profile?['email'] ?? '';
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF0F172A),
@@ -76,7 +108,7 @@ class _LiveTelemetryTrackingScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Selamawit Tadesse',
+                        name,
                         style: GoogleFonts.outfit(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -84,39 +116,40 @@ class _LiveTelemetryTrackingScreenState
                         ),
                       ),
                       Text(
-                        'Bole Dry Port Logistics • Enterprise',
+                        email.isNotEmpty ? email : 'Verified Shipper Account',
                         style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF94A3B8)),
                       ),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              const Divider(color: Color(0xFF1E2E48)),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.local_shipping_rounded, color: Color(0xFF38BDF8)),
-                title: Text('My Shipments Hub (Page 08)', style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
+                title: Text('My Shipments', style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
                 onTap: () {
                   Navigator.pop(ctx);
-                  Navigator.pushNamed(context, AppRoutes.page08MyShipments);
+                  Navigator.pushNamed(context, AppRoutes.page24MyShipments);
                 },
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.gavel_rounded, color: AppColors.gold),
-                title: Text('Review Cargo Bids (Page 09)', style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
+                title: Text('Review Cargo Bids', style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
                 onTap: () {
                   Navigator.pop(ctx);
-                  Navigator.pushNamed(context, AppRoutes.page09ReviewBids);
+                  Navigator.pushNamed(context, AppRoutes.page08ReviewBids);
                 },
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.grid_view_rounded, color: AppColors.badgeGreenText),
-                title: Text('Corridor Modules Hub', style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
+                leading: const Icon(Icons.shield_rounded, color: Color(0xFF34D399)),
+                title: Text('Escrow Vault', style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
                 onTap: () {
                   Navigator.pop(ctx);
-                  CorridorNavigationSheet.show(context);
+                  Navigator.pushNamed(context, AppRoutes.page05EscrowVault);
                 },
               ),
             ],
