@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 
 class ShipperEscrowHeader extends StatelessWidget {
   final String language;
   final ValueChanged<String>? onLanguageChanged;
   final VoidCallback? onProfileTap;
+  final VoidCallback? onBack;
 
   const ShipperEscrowHeader({
     super.key,
     this.language = 'EN',
     this.onLanguageChanged,
     this.onProfileTap,
+    this.onBack,
   });
 
   @override
@@ -23,12 +26,26 @@ class ShipperEscrowHeader extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Brand Logo & Title
+            // Back Arrow + Brand Logo & Title
             Row(
               children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+                  onPressed: onBack ?? () {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    } else {
+                      Navigator.pushReplacementNamed(context, AppRoutes.home);
+                    }
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                  tooltip: 'Back to Home',
+                ),
+                const SizedBox(width: 4),
                 Container(
-                  width: 38,
-                  height: 38,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     color: const Color(0xFF0F1A2D),
                     borderRadius: BorderRadius.circular(10),
@@ -37,17 +54,17 @@ class ShipperEscrowHeader extends StatelessWidget {
                   child: const Icon(
                     Icons.local_shipping_outlined,
                     color: AppColors.gold,
-                    size: 20,
+                    size: 19,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     RichText(
                       text: TextSpan(
                         style: GoogleFonts.outfit(
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.2,
                         ),

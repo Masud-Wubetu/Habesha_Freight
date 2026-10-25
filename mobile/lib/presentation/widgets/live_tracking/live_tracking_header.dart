@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 
 class LiveTrackingHeader extends StatelessWidget {
   final String language;
   final ValueChanged<String> onLanguageChanged;
   final VoidCallback onProfileTap;
+  final VoidCallback? onBack;
   final String waybillNumber;
 
   const LiveTrackingHeader({
@@ -14,6 +16,7 @@ class LiveTrackingHeader extends StatelessWidget {
     required this.language,
     required this.onLanguageChanged,
     required this.onProfileTap,
+    this.onBack,
     this.waybillNumber = '#HF-8841-ET',
   });
 
@@ -26,9 +29,23 @@ class LiveTrackingHeader extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Brand Logo & Title
+            // Back Button + Brand Logo & Title
             Row(
               children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+                  onPressed: onBack ?? () {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    } else {
+                      Navigator.pushReplacementNamed(context, AppRoutes.home);
+                    }
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+                  tooltip: 'Back to Home',
+                ),
+                const SizedBox(width: 4),
                 Container(
                   width: 36,
                   height: 36,
