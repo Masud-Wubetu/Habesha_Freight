@@ -55,12 +55,61 @@ void main() {
     expect(find.text('All'), findsOneWidget);
     expect(find.text('Active'), findsOneWidget);
     expect(find.text('Bidding'), findsOneWidget);
+    expect(find.text('Awarded'), findsOneWidget);
     expect(find.text('Delivered'), findsAtLeastNWidgets(1));
 
     // Shipment Item cards
     expect(find.text('#HF-9012'), findsOneWidget);
     expect(find.text('Addis Ababa'), findsAtLeastNWidgets(1));
     expect(find.text('Dire Dawa'), findsAtLeastNWidgets(1));
+  });
+
+  testWidgets('Page 08 opens review, awarded manifest, and delivered POD detail views',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(createTestWidget(shipments: CorridorShipmentItem.demoShipments));
+    await tester.pumpAndSettle();
+
+    // 1. Test POD Receipt dialog for Delivered shipment
+    final podButton = find.text('POD Receipt').first;
+    await tester.ensureVisible(podButton);
+    await tester.tap(podButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Proof of Delivery & Settlement'), findsOneWidget);
+    expect(find.text('STATUS: DELIVERED • ESCROW SETTLED'), findsOneWidget);
+    expect(find.text('Waybill Manifest'), findsOneWidget);
+
+    // Close POD dialog
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+
+    // 2. Test Manifest Pass dialog for Awarded shipment
+    final manifestPassButton = find.text('Manifest Pass').first;
+    await tester.ensureVisible(manifestPassButton);
+    await tester.tap(manifestPassButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Consignment Awarded'), findsOneWidget);
+    expect(find.text('STATUS: CONTRACT AWARDED • AWAITING DISPATCH'), findsOneWidget);
+    expect(find.text('Consignment ID'), findsOneWidget);
+
+    // Dismiss dialog
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    // 3. Test Review Bids modal for Bidding shipment
+    final reviewBidsButton = find.text('Review Bids').first;
+    await tester.ensureVisible(reviewBidsButton);
+    await tester.tap(reviewBidsButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cargo Tender Live on Board'), findsOneWidget);
+    expect(find.text('Review Live Driver Bids'), findsOneWidget);
   });
 
   testWidgets('Page 08 renders clean empty state when no shipments exist',
@@ -77,3 +126,4 @@ void main() {
     expect(find.text('Post Cargo Load'), findsOneWidget);
   });
 }
+

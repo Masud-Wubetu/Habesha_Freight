@@ -242,7 +242,8 @@ export async function getRequestBids(req: AuthenticatedRequest, res: Response) {
         'users.phone_number as driver_phone',
         'users.profile_photo_url as driver_photo',
         'vehicles.vehicle_type',
-        'vehicles.capacity_tons'
+        'vehicles.capacity_tons',
+        'vehicles.plate_number'
       )
       .orderBy('bids.bid_amount_etb', 'asc');
 
@@ -292,7 +293,8 @@ export async function getAllShipperBids(req: AuthenticatedRequest, res: Response
         'users.phone_number as driver_phone',
         'users.profile_photo_url as driver_photo',
         'vehicles.vehicle_type',
-        'vehicles.capacity_tons'
+        'vehicles.capacity_tons',
+        'vehicles.plate_number'
       )
       .where('loads.shipper_id', shipperId)
       .orderBy('bids.created_at', 'desc');

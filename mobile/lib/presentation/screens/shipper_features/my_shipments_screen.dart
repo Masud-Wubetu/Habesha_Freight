@@ -43,17 +43,27 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
 
   Future<void> _loadShipments() async {
     setState(() => _loading = true);
-    final realShipments = await _corridorService.fetchRealShipments();
     final realLoads = await _corridorService.fetchShipperLoads();
+    final realShipments = await _corridorService.fetchRealShipments();
 
     final List<CorridorShipmentItem> loaded = [];
-    for (final s in realShipments) {
-      loaded.add(CorridorShipmentItem.fromLoadMap(s));
-    }
+    final Set<String> seenIds = {};
+
     for (final l in realLoads) {
-      final id = l['id']?.toString() ?? '';
-      if (!loaded.any((item) => item.id.contains(id))) {
-        loaded.add(CorridorShipmentItem.fromLoadMap(l));
+      final item = CorridorShipmentItem.fromLoadMap(l);
+      final key = l['id']?.toString() ?? item.id;
+      if (!seenIds.contains(key)) {
+        seenIds.add(key);
+        loaded.add(item);
+      }
+    }
+
+    for (final s in realShipments) {
+      final item = CorridorShipmentItem.fromLoadMap(s);
+      final key = s['load_id']?.toString() ?? s['id']?.toString() ?? item.id;
+      if (!seenIds.contains(key)) {
+        seenIds.add(key);
+        loaded.add(item);
       }
     }
 
@@ -74,6 +84,9 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
   int get _deliveredCount =>
       _shipments.where((item) => item.status == ShipmentStatus.delivered).length;
 
+  int get _awardedCount =>
+      _shipments.where((item) => item.status == ShipmentStatus.awaitingDispatch).length;
+
   List<CorridorShipmentItem> get _filteredShipments {
     return _shipments.where((item) {
       if (_selectedFilterTab == 1 && item.status != ShipmentStatus.inTransit) {
@@ -83,6 +96,9 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
         return false;
       }
       if (_selectedFilterTab == 3 && item.status != ShipmentStatus.delivered) {
+        return false;
+      }
+      if (_selectedFilterTab == 4 && item.status != ShipmentStatus.awaitingDispatch) {
         return false;
       }
       if (_searchQuery.isNotEmpty) {
@@ -212,7 +228,35 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
     );
   }
 
+  Widget _modalRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF94A3B8)),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _handleCallDriver(CorridorShipmentItem item) {
+    final phone = item.driverPhone ?? '+251 915 570 697';
+    final name = item.driverName ?? 'Assigned Transporter';
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF0F172A),
@@ -236,7 +280,7 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Calling Driver',
+                'Calling Transporter',
                 style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -245,7 +289,7 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                '${item.driverName ?? "Assigned Driver"} • +251 91 148 2910',
+                '$name • $phone',
                 style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF94A3B8)),
               ),
               const SizedBox(height: 18),
@@ -266,10 +310,92 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
   }
 
   void _handleReviewBids(CorridorShipmentItem item) {
-    Navigator.pushNamed(context, AppRoutes.page09ReviewBids);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(22.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF3B82F6)),
+                    ),
+                    child: const Icon(Icons.gavel_rounded, color: Color(0xFF60A5FA), size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Cargo Tender Live on Board', style: GoogleFonts.outfit(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white)),
+                        Text('Manifest ${item.id} • Open for Carrier Offers', style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF94A3B8))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0B1320),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF1E293B)),
+                ),
+                child: Column(
+                  children: [
+                    _modalRow('Corridor Route', '${item.origin} ➔ ${item.destination}'),
+                    const SizedBox(height: 8),
+                    _modalRow('Cargo Specification', item.cargoType),
+                    const SizedBox(height: 8),
+                    _modalRow('Target Budget', item.lowestOfferEtb != null ? '${item.lowestOfferEtb} ETB' : 'Market Tender'),
+                    const SizedBox(height: 8),
+                    _modalRow('Escrow Guarantee', 'Telebirr & CBE Protected'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pushNamed(context, AppRoutes.page09ReviewBids);
+                  },
+                  icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                  label: const Text('Review Live Driver Bids'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: AppColors.textDark,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _handleManifestPass(CorridorShipmentItem item) {
+    final driverName = item.driverName ?? 'Selam Commercial Logistics';
+    final phone = item.driverPhone ?? '+251 915 570 697';
+    final plate = item.plateNumber ?? 'ET-3-89412';
+    final price = item.lowestOfferEtb != null ? '${item.lowestOfferEtb} ETB' : 'Escrow Secured';
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -280,10 +406,10 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
         ),
         title: Row(
           children: [
-            const Icon(Icons.qr_code_rounded, color: AppColors.gold, size: 24),
+            const Icon(Icons.verified_rounded, color: Color(0xFF10B981), size: 24),
             const SizedBox(width: 8),
             Text(
-              'Digital Manifest Pass',
+              'Consignment Awarded',
               style: GoogleFonts.outfit(
                 color: Colors.white,
                 fontSize: 18,
@@ -296,38 +422,143 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Consignment: ${item.id}',
-              style: GoogleFonts.inter(
-                color: AppColors.gold,
-                fontWeight: FontWeight.w600,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF064E3B),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF10B981)),
+              ),
+              child: Text(
+                'STATUS: CONTRACT AWARDED • AWAITING DISPATCH',
+                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF34D399)),
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Carrier: ${item.carrierAssigned ?? "Assigned Carrier"}',
-              style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
-            ),
-            Text(
-              'Status: ${item.gatePassStatus ?? "Gate Pass Valid"}',
-              style: GoogleFonts.inter(color: const Color(0xFF10B981), fontSize: 12),
-            ),
+            const SizedBox(height: 12),
+            _modalRow('Consignment ID', item.id),
+            const SizedBox(height: 6),
+            _modalRow('Route', '${item.origin} ➔ ${item.destination}'),
+            const SizedBox(height: 6),
+            _modalRow('Cargo', item.cargoType),
+            const SizedBox(height: 6),
+            _modalRow('Locked Escrow', price),
+            const Divider(color: Color(0xFF1E293B), height: 16),
+            _modalRow('Transporter', driverName),
+            const SizedBox(height: 6),
+            _modalRow('Contact Phone', phone),
+            const SizedBox(height: 6),
+            _modalRow('Vehicle Plate', plate),
             const SizedBox(height: 12),
             Container(
-              height: 120,
+              height: 100,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.center,
-              child: const Icon(Icons.qr_code_2_rounded, size: 90, color: Color(0xFF0F172A)),
+              child: const Icon(Icons.qr_code_2_rounded, size: 80, color: Color(0xFF0F172A)),
             ),
+          ],
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _handleCallDriver(item);
+            },
+            icon: const Icon(Icons.phone_rounded, size: 16, color: AppColors.gold),
+            label: const Text('Call Transporter', style: TextStyle(color: AppColors.gold)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamed(context, AppRoutes.page05EscrowVault);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: AppColors.textDark,
+            ),
+            child: const Text('Escrow Vault'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handlePodReceipt(CorridorShipmentItem item) {
+    final driverName = item.driverName ?? 'Commercial Carrier';
+    final date = item.deliveredDate ?? 'August 23, 2026';
+    final payout = item.lowestOfferEtb != null ? '${item.lowestOfferEtb} ETB' : 'Released in Full';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFF1E293B)),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.receipt_long_rounded, color: Color(0xFF10B981), size: 24),
+            const SizedBox(width: 8),
+            Text(
+              'Proof of Delivery & Settlement',
+              style: GoogleFonts.outfit(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF064E3B),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF10B981)),
+              ),
+              child: Text(
+                'STATUS: DELIVERED • ESCROW SETTLED',
+                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF34D399)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _modalRow('Waybill Manifest', item.id),
+            const SizedBox(height: 6),
+            _modalRow('Route Delivered', '${item.origin} ➔ ${item.destination}'),
+            const SizedBox(height: 6),
+            _modalRow('Delivered Date', date),
+            const SizedBox(height: 6),
+            _modalRow('Carrier Settled', driverName),
+            const SizedBox(height: 6),
+            _modalRow('Escrow Payout', payout),
+            const SizedBox(height: 6),
+            _modalRow('Verification', 'Recipient OTP & e-POD Stamped'),
+            const SizedBox(height: 6),
+            _modalRow('Regulatory', 'National Bank of Ethiopia Certified'),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close', style: TextStyle(color: AppColors.gold)),
+            child: const Text('Close', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamed(context, AppRoutes.page05EscrowVault);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: AppColors.textDark,
+            ),
+            child: const Text('Escrow Vault'),
           ),
         ],
       ),
@@ -467,6 +698,7 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
                   activeCount: _activeCount,
                   biddingCount: _biddingCount,
                   deliveredCount: _deliveredCount,
+                  awardedCount: _awardedCount,
                 ),
                 const SizedBox(height: 16),
                 if (_loading)
@@ -598,7 +830,7 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
           onCallDriverTap: () => _handleCallDriver(item),
           onReviewBidsTap: () => _handleReviewBids(item),
           onManifestPassTap: () => _handleManifestPass(item),
-          onPodReceiptTap: () => Navigator.pushNamed(context, AppRoutes.page05EscrowVault),
+          onPodReceiptTap: () => _handlePodReceipt(item),
         );
       },
     );

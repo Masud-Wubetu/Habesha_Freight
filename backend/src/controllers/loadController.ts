@@ -77,8 +77,33 @@ export async function getShipperLoads(req: AuthenticatedRequest, res: Response) 
   const shipperId = req.user?.userId;
   try {
     const loads = await db('loads')
-      .where({ shipper_id: shipperId })
-      .orderBy('created_at', 'desc');
+      .leftJoin('shipments', 'loads.id', 'shipments.load_id')
+      .leftJoin('users as carrier', 'shipments.carrier_id', 'carrier.id')
+      .leftJoin('bids as accepted_bid', function () {
+        this.on('loads.id', '=', 'accepted_bid.load_id').andOn(function () {
+          this.onVal('accepted_bid.status', '=', 'ACCEPTED').orOnVal('accepted_bid.status', '=', 'PENDING');
+        });
+      })
+      .leftJoin('users as bid_driver', 'accepted_bid.driver_id', 'bid_driver.id')
+      .leftJoin('vehicles', function () {
+        this.on('shipments.vehicle_id', '=', 'vehicles.id')
+          .orOn('shipments.carrier_id', '=', 'vehicles.driver_id')
+          .orOn('accepted_bid.driver_id', '=', 'vehicles.driver_id');
+      })
+      .select(
+        'loads.*',
+        'shipments.id as shipment_id',
+        'shipments.status as shipment_status',
+        'shipments.delivery_verified_at as delivered_at',
+        db.raw('COALESCE(carrier.full_name, bid_driver.full_name) as driver_name'),
+        db.raw('COALESCE(carrier.phone_number, bid_driver.phone_number) as driver_phone'),
+        'vehicles.plate_number',
+        'vehicles.vehicle_type',
+        db.raw('(SELECT COUNT(*) FROM bids WHERE bids.load_id = loads.id)::int as bids_count'),
+        db.raw('(SELECT MIN(bid_amount_etb) FROM bids WHERE bids.load_id = loads.id) as lowest_bid_etb')
+      )
+      .where({ 'loads.shipper_id': shipperId })
+      .orderBy('loads.created_at', 'desc');
     return res.status(200).json({ success: true, data: loads });
   } catch (error) {
     console.error('Shipper Loads Error:', error);

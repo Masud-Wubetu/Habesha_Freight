@@ -43,6 +43,9 @@ class CorridorShipmentItem {
   // Delivered fields
   final String? signedBy;
   final String? deliveredDate;
+  final String? driverPhone;
+  final String? rawDbId;
+  final String? loadId;
 
   const CorridorShipmentItem({
     required this.id,
@@ -74,6 +77,9 @@ class CorridorShipmentItem {
     this.loadingProgress,
     this.signedBy,
     this.deliveredDate,
+    this.driverPhone,
+    this.rawDbId,
+    this.loadId,
   });
 
   factory CorridorShipmentItem.fromLoadMap(Map<String, dynamic> map) {
@@ -81,37 +87,59 @@ class CorridorShipmentItem {
     final idSuffix = rawId.length > 4 ? rawId.substring(0, 4) : rawId.padLeft(4, '0');
     final id = '#HF-$idSuffix';
     final origin = map['origin_city']?.toString() ?? 'Addis Ababa';
-    final dest = map['destination_city']?.toString() ?? 'Djibouti';
-    final rawStatus = (map['status'] ?? 'OPEN').toString().toUpperCase();
+    final dest = map['destination_city']?.toString() ?? 'Dire Dawa';
+    final rawStatus = (map['shipment_status'] ?? map['status'] ?? 'OPEN').toString().toUpperCase();
     final weight = map['weight_tons'] != null ? '${map['weight_tons']}T' : '20T';
     final desc = map['cargo_description']?.toString() ?? 'General Cargo';
+    final driver = map['driver_name']?.toString() ?? map['carrier_name']?.toString();
+    final phone = map['driver_phone']?.toString();
+    final plate = map['plate_number']?.toString();
+    final delivered = map['delivered_at'] != null ? map['delivered_at'].toString().split('T').first : null;
 
     ShipmentStatus status;
-    if (rawStatus == 'IN_TRANSIT') {
+    if (rawStatus == 'IN_TRANSIT' || rawStatus == 'ACTIVE') {
       status = ShipmentStatus.inTransit;
-    } else if (rawStatus == 'DELIVERED') {
+    } else if (rawStatus == 'DELIVERED' || rawStatus == 'COMPLETED') {
       status = ShipmentStatus.delivered;
-    } else if (rawStatus == 'ASSIGNED') {
+    } else if (rawStatus == 'ASSIGNED' || rawStatus == 'MATCHED' || rawStatus == 'AWARDED') {
       status = ShipmentStatus.awaitingDispatch;
     } else {
       status = ShipmentStatus.bidding;
     }
 
+    final bidsCount = (map['bids_count'] is num)
+        ? (map['bids_count'] as num).toInt()
+        : int.tryParse(map['bids_count']?.toString() ?? '') ?? 0;
+
+    final lowestBid = (map['lowest_bid_etb'] is num)
+        ? (map['lowest_bid_etb'] as num).toInt()
+        : int.tryParse(map['lowest_bid_etb']?.toString() ?? '');
+
+    final rawPrice = (map['offered_price_etb'] is num)
+        ? (map['offered_price_etb'] as num).toInt()
+        : int.tryParse(map['offered_price_etb']?.toString() ?? '');
+
+    final price = (rawPrice != null && rawPrice > 0) ? rawPrice : lowestBid;
+
     return CorridorShipmentItem(
       id: id,
+      rawDbId: rawId,
+      loadId: map['load_id']?.toString() ?? rawId,
       cargoType: '$desc • $weight',
       status: status,
       origin: origin,
-      originDetail: '$origin Hub',
+      originDetail: '$origin Depot',
       destination: dest,
-      destinationDetail: '$dest Port',
+      destinationDetail: '$dest Port / Yard',
       viaRoute: 'Direct Corridor',
       distanceKm: (map['distance_km'] is num) ? (map['distance_km'] as num).toInt() : 450,
-      lowestOfferEtb: (map['offered_price_etb'] is num) ? (map['offered_price_etb'] as num).toInt() : null,
-      driverName: map['driver_name']?.toString(),
-      carrierAssigned: map['carrier_name']?.toString() ?? map['assigned_carrier']?.toString(),
-      plateNumber: map['plate_number']?.toString(),
-      deliveredDate: map['delivered_at']?.toString(),
+      lowestOfferEtb: price,
+      bidsCount: bidsCount,
+      driverName: driver,
+      driverPhone: phone,
+      carrierAssigned: driver,
+      plateNumber: plate,
+      deliveredDate: delivered,
     );
   }
 

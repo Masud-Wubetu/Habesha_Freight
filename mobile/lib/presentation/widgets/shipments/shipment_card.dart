@@ -26,8 +26,25 @@ class ShipmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveTap = onTap ?? () {
+      switch (item.status) {
+        case ShipmentStatus.inTransit:
+          onLiveRadarTap?.call();
+          break;
+        case ShipmentStatus.bidding:
+          onReviewBidsTap?.call();
+          break;
+        case ShipmentStatus.awaitingDispatch:
+          onManifestPassTap?.call();
+          break;
+        case ShipmentStatus.delivered:
+          onPodReceiptTap?.call();
+          break;
+      }
+    };
+
     return InkWell(
-      onTap: onTap,
+      onTap: effectiveTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         width: double.infinity,
@@ -176,7 +193,7 @@ class ShipmentCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: const Color(0x998B5CF6)),
           ),
-          child: Text('ASSIGNED • AWAITING DISPATCH', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFFC4B5FD))),
+          child: Text('AWARDED • AWAITING DISPATCH', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFFC4B5FD))),
         );
       case ShipmentStatus.delivered:
         return Container(
