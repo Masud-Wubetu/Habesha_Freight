@@ -156,9 +156,9 @@ class ShipmentsHeader extends StatelessWidget {
         ),
         const SizedBox(height: 18),
 
-        // Sub-Header Tag: ACTIVE FLEET TELEMETRY
+        // Sub-Header Tag
         Text(
-          'ACTIVE FLEET TELEMETRY',
+          'SHIPPER CARGO TRACKER',
           style: GoogleFonts.inter(
             fontSize: 10.5,
             fontWeight: FontWeight.w700,
@@ -182,43 +182,44 @@ class ShipmentsHeader extends StatelessWidget {
                 letterSpacing: -0.3,
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFF052E16),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFF166534)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF22C55E),
-                      shape: BoxShape.circle,
+            if (liveEnRouteCount > 0)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF052E16),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFF166534)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF22C55E),
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '$liveEnRouteCount Live En-Route',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF4ADE80),
+                    const SizedBox(width: 6),
+                    Text(
+                      '$liveEnRouteCount Live En-Route',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF4ADE80),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
           ],
         ),
         const SizedBox(height: 4),
 
         // Description
         Text(
-          'Real-time GPS corridor tracking and cargo negotiation hub',
+          'View your freight consignments and live transit status',
           style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: FontWeight.w400,

@@ -76,6 +76,42 @@ class CorridorShipmentItem {
     this.deliveredDate,
   });
 
+  factory CorridorShipmentItem.fromLoadMap(Map<String, dynamic> map) {
+    final rawId = map['id']?.toString() ?? '1';
+    final idSuffix = rawId.length > 4 ? rawId.substring(0, 4) : rawId.padLeft(4, '0');
+    final id = '#HF-$idSuffix';
+    final origin = map['origin_city']?.toString() ?? 'Addis Ababa';
+    final dest = map['destination_city']?.toString() ?? 'Djibouti';
+    final rawStatus = (map['status'] ?? 'OPEN').toString().toUpperCase();
+    final weight = map['weight_tons'] != null ? '${map['weight_tons']}T' : '20T';
+    final desc = map['cargo_description']?.toString() ?? 'General Cargo';
+
+    ShipmentStatus status;
+    if (rawStatus == 'IN_TRANSIT') {
+      status = ShipmentStatus.inTransit;
+    } else if (rawStatus == 'DELIVERED') {
+      status = ShipmentStatus.delivered;
+    } else if (rawStatus == 'ASSIGNED') {
+      status = ShipmentStatus.awaitingDispatch;
+    } else {
+      status = ShipmentStatus.bidding;
+    }
+
+    return CorridorShipmentItem(
+      id: id,
+      cargoType: '$desc • $weight',
+      status: status,
+      origin: origin,
+      originDetail: '$origin Hub',
+      destination: dest,
+      destinationDetail: '$dest Port',
+      viaRoute: 'Direct Corridor',
+      distanceKm: (map['distance_km'] is num) ? (map['distance_km'] as num).toInt() : 450,
+      lowestOfferEtb: (map['offered_price_etb'] is num) ? (map['offered_price_etb'] as num).toInt() : null,
+      driverName: map['driver_name']?.toString(),
+    );
+  }
+
   static const List<CorridorShipmentItem> demoShipments = [
     // 1. In Transit (#HF-9012)
     CorridorShipmentItem(

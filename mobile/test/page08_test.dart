@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/data/models/corridor_shipment_item.dart';
 import 'package:mobile/presentation/screens/shipper_features/page08.dart';
 
 void main() {
-  Widget createTestWidget() {
+  Widget createTestWidget({List<CorridorShipmentItem>? shipments}) {
     return MaterialApp(
       theme: AppTheme.darkTheme,
-      home: const Page08Screen(),
+      home: Page08Screen(initialShipments: shipments),
     );
   }
 
@@ -15,14 +16,14 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
   });
 
-  testWidgets('Page 08 (My Shipments) renders branding header and telemetry ribbon',
+  testWidgets('Page 08 (My Shipments) renders branding header and cargo tracker ribbon',
       (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(createTestWidget());
+    await tester.pumpWidget(createTestWidget(shipments: CorridorShipmentItem.demoShipments));
     await tester.pumpAndSettle();
 
     // Brand Header
@@ -36,24 +37,19 @@ void main() {
     expect(find.text('EN'), findsOneWidget);
 
     // Sub-header and Title
-    expect(find.text('ACTIVE FLEET TELEMETRY'), findsOneWidget);
+    expect(find.text('SHIPPER CARGO TRACKER'), findsOneWidget);
     expect(find.text('My Shipments'), findsOneWidget);
-    expect(find.text('3 Live En-Route'), findsOneWidget);
   });
 
-  testWidgets('Page 08 renders Corridor Telemetry Radar Card and search bar',
+  testWidgets('Page 08 renders search bar, filter tabs, and shipment items',
       (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(createTestWidget());
+    await tester.pumpWidget(createTestWidget(shipments: CorridorShipmentItem.demoShipments));
     await tester.pumpAndSettle();
-
-    // Radar Card elements
-    expect(find.text('Key Corridor Telemetry'), findsOneWidget);
-    expect(find.text('Live Radar'), findsAtLeastNWidgets(1));
 
     // Filter Chips
     expect(find.text('All'), findsOneWidget);
@@ -65,5 +61,19 @@ void main() {
     expect(find.text('#HF-9012'), findsOneWidget);
     expect(find.text('Addis Ababa'), findsAtLeastNWidgets(1));
     expect(find.text('Dire Dawa'), findsAtLeastNWidgets(1));
+  });
+
+  testWidgets('Page 08 renders clean empty state when no shipments exist',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(createTestWidget(shipments: []));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No Shipments Yet'), findsOneWidget);
+    expect(find.text('Post Cargo Load'), findsOneWidget);
   });
 }
