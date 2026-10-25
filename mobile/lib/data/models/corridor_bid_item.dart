@@ -70,6 +70,36 @@ class CorridorBidItem {
     );
   }
 
+  factory CorridorBidItem.fromMap(Map<String, dynamic> map) {
+    final driverName = map['driver_name']?.toString() ?? 'Carrier Driver';
+    final parts = driverName.trim().split(' ');
+    final initials = parts.map((p) => p.isNotEmpty ? p[0].toUpperCase() : '').take(2).join();
+
+    final amt = (map['bid_amount_etb'] is num)
+        ? (map['bid_amount_etb'] as num).toDouble()
+        : double.tryParse(map['bid_amount_etb']?.toString() ?? '35000') ?? 35000.0;
+
+    return CorridorBidItem(
+      id: map['id']?.toString() ?? 'bid-${DateTime.now().millisecondsSinceEpoch}',
+      driverName: driverName,
+      driverInitials: initials.isNotEmpty ? initials : 'CD',
+      rating: (map['rating'] is num) ? (map['rating'] as num).toDouble() : 4.8,
+      reviewsCount: (map['reviews_count'] is num) ? (map['reviews_count'] as num).toInt() : 42,
+      truckSpec: map['truck_spec']?.toString() ?? 'Heavy Commercial Truck',
+      locationText: map['location']?.toString() ?? 'Addis Ababa Corridor',
+      availabilityText: map['availability']?.toString() ?? 'Available Immediately',
+      bidAmountEtb: amt,
+      badgeLabel: map['badge_label']?.toString() ?? 'VERIFIED CARRIER',
+      badgeColor: const Color(0xFF10B981),
+      isTopMatch: map['is_top_match'] == true,
+      isEscrowGuaranteed: true,
+      estTransit: map['est_transit']?.toString() ?? '8h 30m',
+      gpsStatus: 'Live GPS Active',
+      fuelIncluded: 'Yes',
+      isAccepted: map['status'] == 'ACCEPTED',
+    );
+  }
+
   static List<CorridorBidItem> mockBids() {
     return [
       const CorridorBidItem(

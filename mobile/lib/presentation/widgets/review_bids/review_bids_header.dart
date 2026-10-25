@@ -168,7 +168,7 @@ class ReviewBidsHeader extends StatelessWidget {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        'PAGE 09: REVIEW CARGO BIDS',
+                        'CARGO BIDS & OFFERS',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.inter(
@@ -206,7 +206,7 @@ class ReviewBidsHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '$activeBidsCount Bids Active • Live Auction',
+                    '$activeBidsCount Active Bids • Live Tender',
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,

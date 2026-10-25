@@ -113,4 +113,30 @@ class BidService {
       );
     }
   }
+
+  /// Fetch all bids placed on the current shipper's loads
+  Future<List<Map<String, dynamic>>> fetchShipperBids() async {
+    try {
+      final token = await StorageService.getToken();
+      final customUrl = await StorageService.getBaseUrl();
+      final base = customUrl ?? ApiConfig.baseUrl;
+      final uri = Uri.parse('$base/shippers/bids');
+      final res = await _client
+          .get(uri, headers: _headers(token))
+          .timeout(const Duration(seconds: 8));
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        if (body is Map && body['data'] is List) {
+          return List<Map<String, dynamic>>.from(body['data']);
+        }
+        if (body is List) {
+          return List<Map<String, dynamic>>.from(body);
+        }
+      }
+      return [];
+    } catch (_) {
+      return [];
+    }
+  }
 }
+
