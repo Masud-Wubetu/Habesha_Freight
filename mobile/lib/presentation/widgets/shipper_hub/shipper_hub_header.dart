@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
-import '../navigation/corridor_navigation_sheet.dart';
 
 class ShipperHubHeader extends StatelessWidget {
   final String language;
@@ -59,7 +58,7 @@ class ShipperHubHeader extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'LOGISTICS EXCHANGE',
+                      'OPERATIONS HUB',
                       style: GoogleFonts.inter(
                         fontSize: 8.5,
                         fontWeight: FontWeight.w800,
@@ -72,22 +71,9 @@ class ShipperHubHeader extends StatelessWidget {
               ],
             ),
 
-            // Actions: Modules, Language, Avatar
+            // Actions: Language, Avatar
             Row(
               children: [
-                // Modules Hub
-                IconButton(
-                  onPressed: () => CorridorNavigationSheet.show(context),
-                  icon: const Icon(Icons.grid_view_rounded, size: 19),
-                  color: AppColors.gold,
-                  tooltip: 'All Corridor Modules',
-                  style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F1A2D),
-                    padding: const EdgeInsets.all(7),
-                  ),
-                ),
-                const SizedBox(width: 8),
-
                 // Language Chip
                 InkWell(
                   onTap: () {
@@ -146,73 +132,6 @@ class ShipperHubHeader extends StatelessWidget {
               ],
             ),
           ],
-        ),
-        const SizedBox(height: 12),
-
-        // PAGE 06 Ribbon Header matching screenshot
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0A1324),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF1E2E4A), width: 1),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: const BoxDecoration(
-                  color: AppColors.gold,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'PAGE 06: SHIPPER DASHBOARD • ACTIVE HUB & OP...',
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.3,
-                    color: const Color(0xFFCBD5E1),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 5,
-                      height: 5,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF34D399),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'LIVE HUB',
-                      style: GoogleFonts.inter(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF34D399),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ],
     );
