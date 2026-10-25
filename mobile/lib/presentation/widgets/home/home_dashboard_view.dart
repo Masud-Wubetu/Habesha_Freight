@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/corridor_model.dart';
 import '../../../core/services/corridor_service.dart';
-import 'corridors_section.dart';
+import 'corridor_quick_estimator.dart';
 import 'hero_section.dart';
 import 'home_header.dart';
 import 'live_transit_card.dart';
-import 'rate_estimator_section.dart';
+import 'shipper_metrics_row.dart';
 
 class HomeDashboardView extends StatelessWidget {
   final String language;
@@ -16,6 +16,7 @@ class HomeDashboardView extends StatelessWidget {
   final VoidCallback onFindLoad;
   final VoidCallback onFindTrucks;
   final Map<String, dynamic>? activeShipment;
+  final Map<String, dynamic>? shipperStats;
   final List<EthiopianCorridor> corridors;
   final EthiopianCorridor selectedCorridor;
   final ValueChanged<EthiopianCorridor> onSelectCorridor;
@@ -35,6 +36,7 @@ class HomeDashboardView extends StatelessWidget {
     required this.onFindLoad,
     required this.onFindTrucks,
     required this.activeShipment,
+    this.shipperStats,
     required this.corridors,
     required this.selectedCorridor,
     required this.onSelectCorridor,
@@ -64,17 +66,21 @@ class HomeDashboardView extends StatelessWidget {
           onFindTrucks: onFindTrucks,
           userName: userName,
         ),
+        const SizedBox(height: 16),
+        ShipperMetricsRow(
+          stats: shipperStats,
+          loading: isLoadingLoads,
+        ),
         const SizedBox(height: 18),
-        LiveTransitCard(activeShipment: activeShipment),
-        const SizedBox(height: 20),
-        CorridorsSection(
-          corridors: corridors,
-          selectedCorridor: selectedCorridor,
-          onSelect: onSelectCorridor,
+        LiveTransitCard(
+          activeShipment: activeShipment,
+          onPostLoad: onFindLoad,
         ),
         const SizedBox(height: 20),
-        RateEstimatorSection(
-          corridor: selectedCorridor,
+        CorridorQuickEstimator(
+          corridors: corridors,
+          selectedCorridor: selectedCorridor,
+          onSelectCorridor: onSelectCorridor,
           weightTons: weight,
           onWeightChanged: onWeightChanged,
           corridorService: corridorService,

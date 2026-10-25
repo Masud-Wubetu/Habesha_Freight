@@ -25,7 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = false;
   List<Map<String, dynamic>> _loads = [];
   Map<String, dynamic>? _activeShipment;
-  int _vehiclesCount = 42;
+  Map<String, dynamic>? _shipperStats;
+  int _vehiclesCount = 0;
   String _userName = 'Shipper';
   String _userRole = 'SHIPPER';
   late EthiopianCorridor _selectedCorridor;
@@ -48,11 +49,23 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _loading = true);
     final loads = await _corridor.fetchRealLoads();
     final shipments = await _corridor.fetchRealShipments();
+    final stats = await _corridor.fetchShipperStats();
     final vehicles = await _corridor.fetchVehiclesCount();
     if (!mounted) return;
+
+    // Only pick shipments that are currently active in transit
+    final activeShipments = shipments.where((s) {
+      final status = (s['status'] ?? '').toString().toUpperCase();
+      return status == 'IN_TRANSIT' ||
+          status == 'DISPATCHED' ||
+          status == 'PICKED_UP' ||
+          status == 'ASSIGNED';
+    }).toList();
+
     setState(() {
       _loads = loads;
-      _activeShipment = shipments.isNotEmpty ? shipments.first : null;
+      _activeShipment = activeShipments.isNotEmpty ? activeShipments.first : null;
+      _shipperStats = stats;
       _vehiclesCount = vehicles > 0 ? vehicles : 0;
       _loading = false;
     });
@@ -248,6 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onFindLoad: _openPostLoadSheet,
           onFindTrucks: () => setState(() => _currentTab = 1),
           activeShipment: _activeShipment,
+          shipperStats: _shipperStats,
           corridors: _corridor.getCorridors(),
           selectedCorridor: _selectedCorridor,
           onSelectCorridor: (c) => setState(() => _selectedCorridor = c),

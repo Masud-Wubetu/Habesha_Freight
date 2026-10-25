@@ -19,154 +19,137 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayName = userName.trim().isNotEmpty ? userName.trim() : 'Shipper';
+    final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'S';
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.cardBorder),
+        // Brand Logo & Title
+        Expanded(
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: const Icon(
+                  Icons.local_shipping_outlined,
+                  color: AppColors.gold,
+                  size: 20,
+                ),
               ),
-              child: const Icon(
-                Icons.local_shipping_outlined,
-                color: AppColors.gold,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    style: GoogleFonts.outfit(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
+              const SizedBox(width: 10),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Habesha ',
+                          style: GoogleFonts.outfit(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Freight',
+                          style: GoogleFonts.outfit(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.gold,
+                          ),
+                        ),
+                      ],
                     ),
-                    children: const [
-                      TextSpan(
-                        text: 'Habesha ',
-                        style: TextStyle(color: Colors.white),
+                    Text(
+                      'ETHIOPIAN CORRIDORS',
+                      style: GoogleFonts.inter(
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.1,
+                        color: AppColors.textMuted,
                       ),
-                      TextSpan(
-                        text: 'Freight',
-                        style: TextStyle(color: AppColors.gold),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  'LOGISTICS PLATFORM',
-                  style: GoogleFonts.inter(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.1,
-                    color: AppColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Container(
-              height: 30,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.cardBorder),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: language,
-                  icon: const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: AppColors.textSecondary,
-                    size: 14,
-                  ),
-                  dropdownColor: AppColors.card,
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                  onChanged: (v) => v != null ? onLanguageChanged(v) : null,
-                  items: const [
-                    DropdownMenuItem(value: 'EN', child: Text('EN')),
-                    DropdownMenuItem(value: 'አም', child: Text('አም')),
+                    ),
                   ],
                 ),
               ),
+            ],
+          ),
+        ),
+
+        const SizedBox(width: 8),
+
+        // Right Actions (Compact, responsive, no overflow)
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // All Modules shortcut
+            IconButton(
+              onPressed: () => CorridorNavigationSheet.show(context),
+              tooltip: 'Corridor Modules',
+              icon: const Icon(
+                Icons.grid_view_rounded,
+                size: 18,
+                color: AppColors.gold,
+              ),
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.card,
+                padding: const EdgeInsets.all(8),
+                side: const BorderSide(color: AppColors.cardBorder),
+              ),
             ),
+
             const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => CorridorNavigationSheet.show(context),
+
+            // Profile Avatar Button
+            InkWell(
+              onTap: onProfileTap,
+              borderRadius: BorderRadius.circular(20),
               child: Container(
-                height: 30,
+                height: 38,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: AppColors.gold.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Row(
-                  children: [
-                    const Icon(
-                      Icons.grid_view_rounded,
-                      size: 14,
-                      color: AppColors.gold,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Modules',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.gold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: onProfileTap,
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                height: 30,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.card,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: 0.5),
-                  ),
-                ),
-                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.person, color: AppColors.gold, size: 14),
-                    const SizedBox(width: 4),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 75),
+                    CircleAvatar(
+                      radius: 11,
+                      backgroundColor: AppColors.gold,
                       child: Text(
-                        userName.split(' ').first,
-                        style: GoogleFonts.inter(
+                        initial,
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 80),
+                      child: Text(
+                        displayName.split(' ').first,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

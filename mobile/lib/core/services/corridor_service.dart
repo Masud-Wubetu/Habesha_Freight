@@ -51,6 +51,26 @@ class CorridorService {
     }
   }
 
+  /// Real database shipper stats from GET /api/loads/shipper/stats
+  Future<Map<String, dynamic>?> fetchShipperStats() async {
+    try {
+      final base = await _getBaseUrl();
+      final res = await _client.get(
+        Uri.parse('$base/loads/shipper/stats'),
+        headers: await _authHeaders(),
+      );
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        if (body is Map && body['data'] is Map) {
+          return Map<String, dynamic>.from(body['data']);
+        }
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Real database shipments from GET /api/shipments
   Future<List<Map<String, dynamic>>> fetchRealShipments() async {
     try {

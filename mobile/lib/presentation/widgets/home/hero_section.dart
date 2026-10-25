@@ -20,97 +20,72 @@ class HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final firstName = userName.trim().isNotEmpty
+        ? userName.trim().split(' ').first
+        : 'Shipper';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.badgeAmberBg,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.badgeAmberBorder),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 5,
-                height: 5,
-                decoration: const BoxDecoration(
-                  color: AppColors.gold,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'SHIPPER CARGO PORTAL',
-                style: GoogleFonts.inter(
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.badgeAmberText,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
+        // Clean Title
         Text(
-          userName != 'Shipper' && userName.isNotEmpty
-              ? 'Welcome, $userName\nMove Your Cargo Across Ethiopia'
-              : 'Move Your Cargo.\nFind the Right Truck.',
+          'Welcome, $firstName',
           style: GoogleFonts.outfit(
-            fontSize: 22,
+            fontSize: 24,
             fontWeight: FontWeight.w800,
             color: Colors.white,
-            height: 1.2,
+            letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
-          'Instant direct matching, verified carrier telemetry, and transparent corridor rates across Ethiopia.',
+          'Book verified carriers and track your corridor cargo in real time.',
           style: GoogleFonts.inter(
-            fontSize: 12,
+            fontSize: 12.5,
             color: AppColors.textSecondary,
             height: 1.35,
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
+
+        // Action Buttons Row
         Row(
           children: [
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: onFindLoad,
-                icon: const Icon(Icons.add_box_rounded, size: 16),
+                icon: const Icon(Icons.add_rounded, size: 18),
                 label: Text(
                   'Post Cargo Load',
                   style: GoogleFonts.outfit(
-                    fontSize: 13,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.gold,
                   foregroundColor: AppColors.textDark,
-                  minimumSize: const Size(0, 42),
+                  minimumSize: const Size(0, 44),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  elevation: 1.5,
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: onFindTrucks,
                 icon: const Icon(
                   Icons.inventory_2_outlined,
-                  size: 16,
+                  size: 17,
                   color: Colors.white,
                 ),
                 label: Text(
                   'My Shipments',
                   style: GoogleFonts.outfit(
-                    fontSize: 13,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
@@ -118,9 +93,9 @@ class HeroSection extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   backgroundColor: AppColors.card,
                   side: const BorderSide(color: AppColors.cardBorder),
-                  minimumSize: const Size(0, 42),
+                  minimumSize: const Size(0, 44),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
