@@ -35,6 +35,7 @@ class _PostLoadSheetState extends State<PostLoadSheet> {
       destinationCity: _corridor.destinationCity,
       weightTons: _weight,
       offeredPriceEtb: tariff.estimatedPriceEtb,
+      cargoDescription: _descCtrl.text.trim(),
     );
     if (!mounted) return;
     setState(() => _submitting = false);

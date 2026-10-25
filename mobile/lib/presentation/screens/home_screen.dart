@@ -47,7 +47,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _refreshData() async {
     setState(() => _loading = true);
-    final loads = await _corridor.fetchRealLoads();
+    final loads = _userRole == 'SHIPPER'
+        ? await _corridor.fetchShipperLoads()
+        : await _corridor.fetchRealLoads();
     final shipments = await _corridor.fetchRealShipments();
     final stats = await _corridor.fetchShipperStats();
     final vehicles = await _corridor.fetchVehiclesCount();
@@ -79,8 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (_) => PostLoadSheet(
         corridorService: _corridor,
         onPosted: () {
-          _snack('Load posted to PostgreSQL database successfully!');
+          _snack('Load broadcasted! Status: POSTED (Live on Transporter Load Board).');
           _refreshData();
+          setState(() => _currentTab = 1);
         },
       ),
     );

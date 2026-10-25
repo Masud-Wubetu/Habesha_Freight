@@ -13,8 +13,8 @@ class DeliveriesView extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Deliveries & Cargo', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-          Text('Your posted cargo loads and transit status', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary)),
+          Text('My Shipments & Cargo', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
+          Text('Your posted cargo loads broadcasted to drivers and carriers', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary)),
         ]),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -79,7 +79,16 @@ class DeliveriesView extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text('Target Rate: $price ETB', style: const TextStyle(color: AppColors.gold, fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 6),
-                Text('Status: $status', style: const TextStyle(color: AppColors.badgeGreenText, fontSize: 12, fontWeight: FontWeight.w600)),
+                Text(
+                  status.toUpperCase() == 'POSTED'
+                      ? 'Status: POSTED • Available for Drivers'
+                      : 'Status: $status',
+                  style: TextStyle(
+                    color: status.toUpperCase() == 'POSTED' ? const Color(0xFF60A5FA) : AppColors.badgeGreenText,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
             actions: [
@@ -122,9 +131,34 @@ class DeliveriesView extends StatelessWidget {
     );
   }
 
-  Widget _badge(String status) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-    decoration: BoxDecoration(color: AppColors.badgeAmberBg, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.badgeAmberBorder)),
-    child: Text(status, style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppColors.badgeAmberText)),
-  );
+  Widget _badge(String status) {
+    final isPosted = status.toUpperCase() == 'POSTED';
+    final isDelivered = status.toUpperCase() == 'DELIVERED';
+
+    final Color bg = isPosted
+        ? const Color(0x661E3A8A)
+        : isDelivered
+            ? AppColors.badgeGreenBg
+            : AppColors.badgeAmberBg;
+
+    final Color border = isPosted
+        ? const Color(0x993B82F6)
+        : isDelivered
+            ? AppColors.badgeGreenBorder
+            : AppColors.badgeAmberBorder;
+
+    final Color text = isPosted
+        ? const Color(0xFF93C5FD)
+        : isDelivered
+            ? AppColors.badgeGreenText
+            : AppColors.badgeAmberText;
+
+    final String label = isPosted ? 'POSTED • Live for Drivers' : status;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8), border: Border.all(color: border)),
+      child: Text(label, style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: text)),
+    );
+  }
 }

@@ -51,6 +51,22 @@ class CorridorService {
     }
   }
 
+  /// Real database loads specifically for the logged-in shipper from GET /api/loads/shipper
+  Future<List<Map<String, dynamic>>> fetchShipperLoads() async {
+    try {
+      final base = await _getBaseUrl();
+      final res = await _client.get(Uri.parse('$base/loads/shipper'), headers: await _authHeaders());
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data is Map && data['data'] is List) return List<Map<String, dynamic>>.from(data['data']);
+        if (data is List) return List<Map<String, dynamic>>.from(data);
+      }
+      return await fetchRealLoads();
+    } catch (_) {
+      return await fetchRealLoads();
+    }
+  }
+
   /// Real database shipper stats from GET /api/loads/shipper/stats
   Future<Map<String, dynamic>?> fetchShipperStats() async {
     try {
@@ -109,6 +125,7 @@ class CorridorService {
     required String destinationCity,
     required double weightTons,
     required double offeredPriceEtb,
+    String? cargoDescription,
   }) async {
     try {
       final base = await _getBaseUrl();
@@ -116,7 +133,9 @@ class CorridorService {
         Uri.parse('$base${ApiConfig.loads}'),
         headers: await _authHeaders(),
         body: jsonEncode({
-          'cargo_description': 'Corridor Container Freight ($originCity to $destinationCity)',
+          'cargo_description': (cargoDescription != null && cargoDescription.trim().isNotEmpty)
+              ? cargoDescription.trim()
+              : 'Corridor Container Freight ($originCity to $destinationCity)',
           'weight_tons': weightTons,
           'origin_city': originCity,
           'destination_city': destinationCity,
