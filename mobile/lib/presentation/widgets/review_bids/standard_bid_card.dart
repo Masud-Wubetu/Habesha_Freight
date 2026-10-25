@@ -583,9 +583,48 @@ class StandardBidCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 14),
+          // Cargo Route & Description
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F1A2D),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF1E293B)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.route_rounded, size: 14, color: AppColors.gold),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${item.originCity} ➔ ${item.destinationCity}',
+                    style: GoogleFonts.outfit(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '• ${item.cargoDescription}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: const Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
-          // Total Price & Actions (Counter Offer & Accept)
+          const SizedBox(height: 10),
+
+          // Total Price & Actions (Counter Offer & Accept or Awarded)
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
             child: Row(
@@ -612,7 +651,7 @@ class StandardBidCard extends StatelessWidget {
                         Text(
                           item.bidAmountEtb.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},'),
                           style: GoogleFonts.outfit(
-                            fontSize: 21,
+                            fontSize: 20,
                             fontWeight: FontWeight.w800,
                             color: const Color(0xFFF59E0B),
                           ),
@@ -621,7 +660,7 @@ class StandardBidCard extends StatelessWidget {
                         Text(
                           'ETB',
                           style: GoogleFonts.inter(
-                            fontSize: 11.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFFF59E0B),
                           ),
@@ -631,71 +670,94 @@ class StandardBidCard extends StatelessWidget {
                   ],
                 ),
 
-                // Buttons: Counter Offer and Accept
-                Row(
-                  children: [
-                    // Counter Offer button
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        _showCounterOfferModal(context);
-                      },
-                      icon: const Icon(Icons.swap_horiz_rounded, size: 14, color: AppColors.gold),
-                      label: Text(
-                        item.counterOfferEtb != null
-                            ? 'Countered'
-                            : 'Counter Offer',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                          color: Colors.white,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E293B),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: const BorderSide(color: Color(0xFF334155)),
-                        ),
-                      ),
+                // Buttons: Counter Offer and Accept (or Awarded badge)
+                if (item.isAccepted)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF042F2E),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF0D9488)),
                     ),
-                    const SizedBox(width: 8),
-
-                    // Accept button
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        _showAcceptConfirmationModal(context);
-                      },
-                      icon: Icon(
-                        item.isAccepted ? Icons.check_circle_rounded : Icons.check_rounded,
-                        size: 15,
-                        color: Colors.white,
-                      ),
-                      label: Text(
-                        item.isAccepted ? 'Accepted' : 'Accept',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12.5,
-                          color: Colors.white,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          color: Color(0xFF10B981),
+                          size: 15,
                         ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: item.isAccepted ? const Color(0xFF10B981) : const Color(0xFF1E293B),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          side: BorderSide(
-                            color: item.isAccepted ? const Color(0xFF10B981) : const Color(0xFF475569),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Awarded',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: const Color(0xFF34D399),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Counter Offer button
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          _showCounterOfferModal(context);
+                        },
+                        icon: const Icon(Icons.swap_horiz_rounded, size: 13, color: AppColors.gold),
+                        label: Text(
+                          item.counterOfferEtb != null
+                              ? 'Countered'
+                              : 'Counter Offer',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1E293B),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: const BorderSide(color: Color(0xFF334155)),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 6),
+
+                      // Accept button
+                      ElevatedButton.icon(
+                        onPressed: onAcceptTap ?? () {
+                          _showAcceptConfirmationModal(context);
+                        },
+                        icon: const Icon(Icons.check_rounded, size: 14, color: Colors.white),
+                        label: Text(
+                          'Accept',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10B981),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),

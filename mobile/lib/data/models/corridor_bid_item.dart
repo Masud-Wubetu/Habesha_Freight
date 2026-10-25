@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 
 class CorridorBidItem {
   final String id;
+  final String? loadId;
+  final String originCity;
+  final String destinationCity;
+  final String cargoDescription;
+  final double offeredPriceEtb;
+  final String? driverPhone;
+  final String status;
   final String driverName;
   final String driverInitials;
   final double rating;
@@ -23,6 +30,13 @@ class CorridorBidItem {
 
   const CorridorBidItem({
     required this.id,
+    this.loadId,
+    this.originCity = 'Addis Ababa',
+    this.destinationCity = 'Dire Dawa',
+    this.cargoDescription = '28 MT Dry Bulk (Teff & Grain)',
+    this.offeredPriceEtb = 0.0,
+    this.driverPhone,
+    this.status = 'PENDING',
     required this.driverName,
     required this.driverInitials,
     required this.rating,
@@ -46,9 +60,17 @@ class CorridorBidItem {
   CorridorBidItem copyWith({
     bool? isAccepted,
     double? counterOfferEtb,
+    String? status,
   }) {
     return CorridorBidItem(
       id: id,
+      loadId: loadId,
+      originCity: originCity,
+      destinationCity: destinationCity,
+      cargoDescription: cargoDescription,
+      offeredPriceEtb: offeredPriceEtb,
+      driverPhone: driverPhone,
+      status: status ?? this.status,
       driverName: driverName,
       driverInitials: driverInitials,
       rating: rating,
@@ -77,26 +99,56 @@ class CorridorBidItem {
 
     final amt = (map['bid_amount_etb'] is num)
         ? (map['bid_amount_etb'] as num).toDouble()
-        : double.tryParse(map['bid_amount_etb']?.toString() ?? '35000') ?? 35000.0;
+        : double.tryParse(map['bid_amount_etb']?.toString() ?? '0') ?? 0.0;
+
+    final targetPrice = (map['offered_price_etb'] is num)
+        ? (map['offered_price_etb'] as num).toDouble()
+        : double.tryParse(map['offered_price_etb']?.toString() ?? '0') ?? 0.0;
+
+    final isAccepted = map['status'] == 'ACCEPTED';
+    final phone = map['driver_phone']?.toString();
+    final vehicle = map['vehicle_type']?.toString();
+    final trips = (map['completed_trips'] is num)
+        ? (map['completed_trips'] as num).toInt()
+        : int.tryParse(map['completed_trips']?.toString() ?? '0') ?? 0;
+    final rating = double.tryParse(map['driver_rating']?.toString() ?? '5.0') ?? 5.0;
+
+    String truckText = 'Commercial Freight Carrier';
+    if (vehicle != null && vehicle.isNotEmpty) {
+      truckText = vehicle.replaceAll('_', ' ');
+    } else if (map['capacity_tons'] != null) {
+      truckText = '${map['capacity_tons']}T Heavy Carrier';
+    }
+
+    final origin = map['origin_city']?.toString() ?? 'Addis Ababa';
+    final destination = map['destination_city']?.toString() ?? 'Dire Dawa';
+    final cargo = map['cargo_description']?.toString() ?? 'General Cargo';
 
     return CorridorBidItem(
       id: map['id']?.toString() ?? 'bid-${DateTime.now().millisecondsSinceEpoch}',
+      loadId: map['load_id']?.toString(),
+      originCity: origin,
+      destinationCity: destination,
+      cargoDescription: cargo,
+      offeredPriceEtb: targetPrice,
+      driverPhone: phone,
+      status: map['status']?.toString() ?? (isAccepted ? 'ACCEPTED' : 'PENDING'),
       driverName: driverName,
       driverInitials: initials.isNotEmpty ? initials : 'CD',
-      rating: (map['rating'] is num) ? (map['rating'] as num).toDouble() : 4.8,
-      reviewsCount: (map['reviews_count'] is num) ? (map['reviews_count'] as num).toInt() : 42,
-      truckSpec: map['truck_spec']?.toString() ?? 'Heavy Commercial Truck',
-      locationText: map['location']?.toString() ?? 'Addis Ababa Corridor',
-      availabilityText: map['availability']?.toString() ?? 'Available Immediately',
+      rating: rating,
+      reviewsCount: trips,
+      truckSpec: truckText,
+      locationText: phone != null && phone.isNotEmpty ? 'Phone: $phone' : '$origin Corridor',
+      availabilityText: isAccepted ? 'Contract Awarded • Escrow Active' : 'Available for Dispatch',
       bidAmountEtb: amt,
-      badgeLabel: map['badge_label']?.toString() ?? 'VERIFIED CARRIER',
-      badgeColor: const Color(0xFF10B981),
+      badgeLabel: isAccepted ? 'AWARDED CONTRACT' : 'VERIFIED CARRIER',
+      badgeColor: isAccepted ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
       isTopMatch: map['is_top_match'] == true,
       isEscrowGuaranteed: true,
-      estTransit: map['est_transit']?.toString() ?? '8h 30m',
+      estTransit: map['est_transit']?.toString(),
       gpsStatus: 'Live GPS Active',
       fuelIncluded: 'Yes',
-      isAccepted: map['status'] == 'ACCEPTED',
+      isAccepted: isAccepted,
     );
   }
 

@@ -236,25 +236,33 @@ class _ActiveTenderSummaryCardState extends State<ActiveTenderSummaryCard> {
                 ),
               ),
 
-              // Countdown Timer Pill
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.access_time_rounded,
-                    color: Color(0xFFF59E0B),
-                    size: 14,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    _formatDuration(_remaining),
-                    style: GoogleFonts.inter(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFFF59E0B),
+              // Real status indicator
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF334155), width: 0.8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.radio_button_checked_rounded,
+                      color: Color(0xFF10B981),
+                      size: 11,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Text(
+                      'Live Tender',
+                      style: GoogleFonts.inter(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

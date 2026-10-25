@@ -295,14 +295,46 @@ class _ReviewBidsScreenState extends State<ReviewBidsScreen> {
     );
   }
 
+  Future<void> _handleAcceptBid(CorridorBidItem bid) async {
+    setState(() {
+      _bids = _bids.map((b) => b.id == bid.id ? b.copyWith(isAccepted: true, status: 'ACCEPTED') : b).toList();
+    });
+
+    if (bid.loadId != null) {
+      final ok = await _bidService.acceptBid(loadId: bid.loadId!, bidId: bid.id);
+      if (ok && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Bid of ${bid.bidAmountEtb.toStringAsFixed(0)} ETB accepted! Escrow locked & contract awarded to ${bid.driverName}.'),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      }
+    }
+  }
+
+  void _handleCounterOffer(CorridorBidItem bid, double counterAmt) {
+    setState(() {
+      _bids = _bids.map((b) => b.id == bid.id ? b.copyWith(counterOfferEtb: counterAmt) : b).toList();
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Counter offer of ${counterAmt.toStringAsFixed(0)} ETB submitted to ${bid.driverName}.'),
+        backgroundColor: AppColors.card,
+      ),
+    );
+  }
+
   Widget _buildBidsContent() {
+    final firstBid = _bids.isNotEmpty ? _bids.first : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ActiveTenderSummaryCard(
-          origin: 'Addis Ababa',
-          destination: 'Dire Dawa',
-          cargoSpec: '28 MT Dry Bulk (Teff & Grain)',
+          origin: firstBid?.originCity ?? 'Addis Ababa',
+          destination: firstBid?.destinationCity ?? 'Dire Dawa',
+          cargoSpec: firstBid?.cargoDescription ?? '28 MT Dry Bulk (Teff & Grain)',
           distanceKm: 452,
           bidsCount: _bids.length,
         ),
@@ -313,12 +345,8 @@ class _ReviewBidsScreenState extends State<ReviewBidsScreen> {
           TopMatchBidCard(
             item: _bids.firstWhere((b) => b.isTopMatch),
             onAcceptTap: () {
-              final topId = _bids.firstWhere((b) => b.isTopMatch).id;
-              setState(() {
-                _bids = _bids
-                    .map((b) => b.id == topId ? b.copyWith(isAccepted: true) : b)
-                    .toList();
-              });
+              final top = _bids.firstWhere((b) => b.isTopMatch);
+              _handleAcceptBid(top);
             },
           ),
         const SizedBox(height: 16),
@@ -329,22 +357,8 @@ class _ReviewBidsScreenState extends State<ReviewBidsScreen> {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: StandardBidCard(
                   item: bid,
-                  onCounterOfferSubmitted: (counterAmt) {
-                    setState(() {
-                      _bids = _bids
-                          .map((b) => b.id == bid.id
-                              ? b.copyWith(counterOfferEtb: counterAmt)
-                              : b)
-                          .toList();
-                    });
-                  },
-                  onAcceptTap: () {
-                    setState(() {
-                      _bids = _bids
-                          .map((b) => b.id == bid.id ? b.copyWith(isAccepted: true) : b)
-                          .toList();
-                    });
-                  },
+                  onCounterOfferSubmitted: (counterAmt) => _handleCounterOffer(bid, counterAmt),
+                  onAcceptTap: () => _handleAcceptBid(bid),
                 ),
               ),
             ),
