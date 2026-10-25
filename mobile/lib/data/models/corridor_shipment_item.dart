@@ -109,6 +109,9 @@ class CorridorShipmentItem {
       distanceKm: (map['distance_km'] is num) ? (map['distance_km'] as num).toInt() : 450,
       lowestOfferEtb: (map['offered_price_etb'] is num) ? (map['offered_price_etb'] as num).toInt() : null,
       driverName: map['driver_name']?.toString(),
+      carrierAssigned: map['carrier_name']?.toString() ?? map['assigned_carrier']?.toString(),
+      plateNumber: map['plate_number']?.toString(),
+      deliveredDate: map['delivered_at']?.toString(),
     );
   }
 

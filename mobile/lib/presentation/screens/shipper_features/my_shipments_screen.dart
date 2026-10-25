@@ -44,7 +44,7 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
   Future<void> _loadShipments() async {
     setState(() => _loading = true);
     final realShipments = await _corridorService.fetchRealShipments();
-    final realLoads = await _corridorService.fetchRealLoads();
+    final realLoads = await _corridorService.fetchShipperLoads();
 
     final List<CorridorShipmentItem> loaded = [];
     for (final s in realShipments) {
@@ -95,7 +95,10 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
         if (!matches) return false;
       }
       if (_selectedCorridor != 'All Corridors') {
-        if (!item.viaRoute.toLowerCase().contains(_selectedCorridor.toLowerCase())) {
+        final origin = item.origin.toLowerCase();
+        final dest = item.destination.toLowerCase();
+        final filter = _selectedCorridor.toLowerCase();
+        if (!filter.contains(origin) && !filter.contains(dest) && !item.viaRoute.toLowerCase().contains(filter)) {
           return false;
         }
       }
@@ -134,9 +137,14 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
   }
 
   void _handleFilterSettings() {
+    final corridorOptions = [
+      'All Corridors',
+      ..._corridorService.getCorridors().map((c) => '${c.originCity} ➔ ${c.destinationCity}'),
+    ];
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -159,32 +167,26 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8)),
+                    icon: const Icon(Icons.close_rounded, color: AppColors.textMuted),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
-                'SELECT ROUTE',
+                'SELECT STRATEGIC CORRIDOR',
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.1,
-                  color: const Color(0xFF94A3B8),
+                  color: AppColors.textMuted,
                 ),
               ),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: [
-                  'All Corridors',
-                  'Expressway A1',
-                  'Awash Route',
-                  'Hawassa A7',
-                  'Northern Line',
-                ].map((corridor) {
+                children: corridorOptions.map((corridor) {
                   final isSelected = _selectedCorridor == corridor;
                   return ChoiceChip(
                     label: Text(corridor),
@@ -194,11 +196,11 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
                       Navigator.pop(ctx);
                     },
                     selectedColor: AppColors.gold,
-                    backgroundColor: const Color(0xFF1E293B),
+                    backgroundColor: AppColors.card,
                     labelStyle: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      color: isSelected ? const Color(0xFF0F172A) : Colors.white,
+                      color: isSelected ? AppColors.textDark : Colors.white,
                     ),
                   );
                 }).toList(),
