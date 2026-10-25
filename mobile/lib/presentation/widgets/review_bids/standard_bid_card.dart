@@ -583,45 +583,6 @@ class StandardBidCard extends StatelessWidget {
             ),
           ),
 
-          // Cargo Route & Description
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F1A2D),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF1E293B)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.route_rounded, size: 14, color: AppColors.gold),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${item.originCity} ➔ ${item.destinationCity}',
-                    style: GoogleFonts.outfit(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '• ${item.cargoDescription}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        color: const Color(0xFF94A3B8),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
           const SizedBox(height: 10),
 
           // Total Price & Actions (Counter Offer & Accept or Awarded)

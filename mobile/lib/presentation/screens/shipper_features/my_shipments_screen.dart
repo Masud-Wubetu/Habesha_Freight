@@ -362,7 +362,7 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
                     const SizedBox(height: 8),
                     _modalRow('Target Budget', item.lowestOfferEtb != null ? '${item.lowestOfferEtb} ETB' : 'Market Tender'),
                     const SizedBox(height: 8),
-                    _modalRow('Escrow Guarantee', 'Telebirr & CBE Protected'),
+                    _modalRow('Carrier Bids', item.bidsCount != null && item.bidsCount! > 0 ? '${item.bidsCount} Bids Received' : 'Broadcasting to drivers'),
                   ],
                 ),
               ),
@@ -372,7 +372,11 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pop(ctx);
-                    Navigator.pushNamed(context, AppRoutes.page09ReviewBids);
+                    Navigator.pushNamed(
+                      context,
+                      AppRoutes.page09ReviewBids,
+                      arguments: item,
+                    );
                   },
                   icon: const Icon(Icons.arrow_forward_rounded, size: 16),
                   label: const Text('Review Live Driver Bids'),

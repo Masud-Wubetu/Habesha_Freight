@@ -277,8 +277,9 @@ export async function getRequestBids(req: AuthenticatedRequest, res: Response) {
 export async function getAllShipperBids(req: AuthenticatedRequest, res: Response) {
   try {
     const shipperId = req.user?.userId;
+    const { status, load_id } = req.query;
 
-    const bids = await db('bids')
+    let query = db('bids')
       .join('loads', 'bids.load_id', 'loads.id')
       .join('users', 'bids.driver_id', 'users.id')
       .leftJoin('vehicles', 'bids.driver_id', 'vehicles.driver_id')
@@ -296,8 +297,16 @@ export async function getAllShipperBids(req: AuthenticatedRequest, res: Response
         'vehicles.capacity_tons',
         'vehicles.plate_number'
       )
-      .where('loads.shipper_id', shipperId)
-      .orderBy('bids.created_at', 'desc');
+      .where('loads.shipper_id', shipperId);
+
+    if (load_id) {
+      query = query.where('bids.load_id', String(load_id));
+    }
+    if (status) {
+      query = query.where('bids.status', String(status));
+    }
+
+    const bids = await query.orderBy('bids.created_at', 'desc');
 
     const bidsWithStats = await Promise.all(
       bids.map(async (b: any) => {

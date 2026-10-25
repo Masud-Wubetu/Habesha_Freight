@@ -7,6 +7,7 @@ import '../../../core/services/corridor_service.dart';
 import '../../../core/services/storage_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/corridor_bid_item.dart';
+import '../../../data/models/corridor_shipment_item.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/post_load/post_load_sheet.dart';
 import '../../widgets/review_bids/active_tender_summary_card.dart';
@@ -17,11 +18,13 @@ import '../../widgets/review_bids/top_match_bid_card.dart';
 class ReviewBidsScreen extends StatefulWidget {
   final String initialLanguage;
   final List<CorridorBidItem>? initialBids;
+  final CorridorShipmentItem? targetShipment;
 
   const ReviewBidsScreen({
     super.key,
     this.initialLanguage = 'EN',
     this.initialBids,
+    this.targetShipment,
   });
 
   @override
@@ -35,22 +38,48 @@ class _ReviewBidsScreenState extends State<ReviewBidsScreen> {
   List<CorridorBidItem> _bids = [];
   bool _loading = false;
   String _userName = 'Shipper';
+  CorridorShipmentItem? _targetShipment;
+  bool _argsInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _language = widget.initialLanguage;
+    _targetShipment = widget.targetShipment;
     if (widget.initialBids != null) {
       _bids = List.from(widget.initialBids!);
-    } else {
-      _loadBids();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_argsInitialized) {
+      _argsInitialized = true;
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (_targetShipment == null && args is CorridorShipmentItem) {
+        _targetShipment = args;
+      }
+      if (widget.initialBids == null) {
+        _loadBids();
+      }
     }
   }
 
   Future<void> _loadBids() async {
     setState(() => _loading = true);
     final user = await StorageService.getUserName();
-    final realBids = await _bidService.fetchShipperBids();
+
+    List<Map<String, dynamic>> realBids = [];
+    if (_targetShipment != null) {
+      final loadId = _targetShipment!.rawDbId ?? _targetShipment!.loadId ?? _targetShipment!.id;
+      realBids = await _bidService.fetchRequestBids(loadId);
+    } else {
+      final allBids = await _bidService.fetchShipperBids();
+      // Show pending bids for review, or all if empty
+      final pending = allBids.where((b) => b['status'] == 'PENDING').toList();
+      realBids = pending.isNotEmpty ? pending : allBids;
+    }
 
     if (!mounted) return;
     setState(() {
@@ -234,6 +263,83 @@ class _ReviewBidsScreenState extends State<ReviewBidsScreen> {
   }
 
   Widget _buildEmptyState() {
+    if (_targetShipment != null) {
+      final origin = _targetShipment!.origin;
+      final dest = _targetShipment!.destination;
+      final cargo = _targetShipment!.cargoType;
+      final dist = _targetShipment!.distanceKm;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ActiveTenderSummaryCard(
+            origin: origin,
+            destination: dest,
+            cargoSpec: cargo,
+            distanceKm: dist,
+            bidsCount: 0,
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFF1E293B)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.badgeAmberBg,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.badgeAmberBorder),
+                  ),
+                  child: const Icon(
+                    Icons.access_time_rounded,
+                    color: AppColors.gold,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  'Awaiting Transporter Bids',
+                  style: GoogleFonts.outfit(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Your cargo tender is active on the $origin ➔ $dest corridor. Driver bids and rate quotes will appear here as soon as they are submitted.',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF94A3B8),
+                    fontSize: 12.5,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: _loadBids,
+                  icon: const Icon(Icons.refresh_rounded, size: 16, color: AppColors.gold),
+                  label: const Text('Refresh Bids', style: TextStyle(color: AppColors.gold)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF334155)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
@@ -327,15 +433,19 @@ class _ReviewBidsScreenState extends State<ReviewBidsScreen> {
 
   Widget _buildBidsContent() {
     final firstBid = _bids.isNotEmpty ? _bids.first : null;
+    final origin = _targetShipment?.origin ?? firstBid?.originCity ?? 'Addis Ababa';
+    final dest = _targetShipment?.destination ?? firstBid?.destinationCity ?? 'Dire Dawa';
+    final cargo = _targetShipment?.cargoType ?? firstBid?.cargoDescription ?? '28 MT Dry Bulk (Teff & Grain)';
+    final dist = _targetShipment?.distanceKm ?? 452;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ActiveTenderSummaryCard(
-          origin: firstBid?.originCity ?? 'Addis Ababa',
-          destination: firstBid?.destinationCity ?? 'Dire Dawa',
-          cargoSpec: firstBid?.cargoDescription ?? '28 MT Dry Bulk (Teff & Grain)',
-          distanceKm: 452,
+          origin: origin,
+          destination: dest,
+          cargoSpec: cargo,
+          distanceKm: dist,
           bidsCount: _bids.length,
         ),
         const SizedBox(height: 16),

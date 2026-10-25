@@ -63,11 +63,8 @@ void main() {
     expect(find.text('3'), findsOneWidget);
     expect(find.text('Drivers'), findsOneWidget);
 
-    // Escrow Protection Notice
-    expect(
-      find.text('Telebirr & Commercial Bank of Ethiopia (CBE) Protected'),
-      findsOneWidget,
-    );
+    // Clean bids status pill
+    expect(find.text('3 Carrier Bids'), findsOneWidget);
   });
 
   testWidgets('Page 09 renders Top Match Verified Pro bid card (Girma Tadesse)',

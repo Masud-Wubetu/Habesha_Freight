@@ -115,18 +115,26 @@ class BidService {
   }
 
   /// Fetch all bids placed on the current shipper's loads
-  Future<List<Map<String, dynamic>>> fetchShipperBids() async {
+  Future<List<Map<String, dynamic>>> fetchShipperBids({String? loadId, String? status}) async {
     try {
       final token = await StorageService.getToken();
       final customUrl = await StorageService.getBaseUrl();
       final base = customUrl ?? ApiConfig.baseUrl;
-      var uri = Uri.parse('$base/shipper/bids');
+
+      final queryParams = <String, String>{};
+      if (loadId != null && loadId.isNotEmpty) queryParams['load_id'] = loadId;
+      if (status != null && status.isNotEmpty) queryParams['status'] = status;
+      final queryString = queryParams.isNotEmpty
+          ? '?${Uri(queryParameters: queryParams).query}'
+          : '';
+
+      var uri = Uri.parse('$base/shipper/bids$queryString');
       var res = await _client
           .get(uri, headers: _headers(token))
           .timeout(const Duration(seconds: 8));
 
       if (res.statusCode != 200) {
-        uri = Uri.parse('$base/shippers/bids');
+        uri = Uri.parse('$base/shippers/bids$queryString');
         res = await _client
             .get(uri, headers: _headers(token))
             .timeout(const Duration(seconds: 8));
@@ -142,6 +150,31 @@ class BidService {
         }
       }
       return [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Fetch bids for a specific load request
+  Future<List<Map<String, dynamic>>> fetchRequestBids(String loadId) async {
+    try {
+      final token = await StorageService.getToken();
+      final customUrl = await StorageService.getBaseUrl();
+      final base = customUrl ?? ApiConfig.baseUrl;
+
+      final uri = Uri.parse('$base/shipper/requests/$loadId/bids');
+      final res = await _client
+          .get(uri, headers: _headers(token))
+          .timeout(const Duration(seconds: 8));
+
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        if (body is Map && body['data'] is List) {
+          return List<Map<String, dynamic>>.from(body['data']);
+        }
+      }
+      // Fallback
+      return fetchShipperBids(loadId: loadId);
     } catch (_) {
       return [];
     }
