@@ -5,6 +5,7 @@
 ![Framework](https://img.shields.io/badge/Framework-Express%204.19-lightgrey)
 ![Database](https://img.shields.io/badge/Database-PostgreSQL%20%2B%20PostGIS-blue)
 ![Test Status](https://img.shields.io/badge/Tests-32%2F32%20Passing-brightgreen)
+[![Demo Video](https://img.shields.io/badge/Demo%20Video-Awesome%20Screenshot-0080FF?logo=googlechrome&logoColor=white)](https://www.awesomescreenshot.com/video/57793490?key=44418869b6f6497f05378f28b54dbb83)
 
 ## Group Member
 - 1, Masud Wubetu Hassen  CTC-6562-26
@@ -18,6 +19,15 @@
 **HabeshaFreight** is a digital freight marketplace engine tailored to the operational realities of Ethiopian regional road transport. It connects verified shippers with verified drivers and fleet owners, replacing fragmented phone-based coordination and multi-layer broker chains with a transparent, audited, and secure digital workflow.
 
 The core backend service provides multi-role authentication (OTP + JWT), role-based access control (RBAC), relational database modeling, and a feature-rich Admin Operations Suite.
+
+---
+
+## 🎥 Demo Video
+
+[![Watch Project Demo](https://img.shields.io/badge/▶%20Watch%20Demo-Awesome%20Screenshot-0080FF?style=for-the-badge&logo=googlechrome&logoColor=white)](https://www.awesomescreenshot.com/video/57793490?key=44418869b6f6497f05378f28b54dbb83)
+
+> 📺 **Watch the full project walkthrough demo:**  
+> 🔗 [https://www.awesomescreenshot.com/video/57793490?key=44418869b6f6497f05378f28b54dbb83](https://www.awesomescreenshot.com/video/57793490?key=44418869b6f6497f05378f28b54dbb83)
 
 ---
 
