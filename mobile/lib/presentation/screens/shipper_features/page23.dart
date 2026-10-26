@@ -6,7 +6,6 @@ import '../../../core/services/api_client.dart';
 import '../../../core/services/corridor_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
-import '../../widgets/navigation/corridor_navigation_sheet.dart';
 import '../../widgets/post_cargo/cargo_broadcast_success_sheet.dart';
 import '../../widgets/post_cargo/cargo_classification_selector.dart';
 import '../../widgets/post_cargo/corridor_waypoints_card.dart';
@@ -39,6 +38,20 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
   DispatchMode _dispatchMode = DispatchMode.openBidding;
   int _fixedOfferAmount = 52000;
   bool _isPublishing = false;
+  int _availableTrucks = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVehicles();
+  }
+
+  Future<void> _loadVehicles() async {
+    final count = await _corridorService.fetchVehiclesCount();
+    if (mounted && count > 0) {
+      setState(() => _availableTrucks = count);
+    }
+  }
 
   String _cityFromHub(String hub) {
     final paren = hub.indexOf(' (');
@@ -108,9 +121,19 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
       return;
     }
 
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to publish cargo load. Please check network connection.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
     final modeLabel = _dispatchMode == DispatchMode.openBidding
-        ? 'Open Bidding (Drivers bidding 48,000–54,000 ETB)'
-        : 'Fixed Offer (${_fixedOfferAmount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} ETB)';
+        ? 'Open Bidding'
+        : '${_fixedOfferAmount.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} ETB';
 
     await CargoBroadcastSuccessSheet.show(
       context,
@@ -311,7 +334,7 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.dashboard_rounded, color: Color(0xFF38BDF8)),
-                title: Text('Active Hub & Operations (Page 06)', style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
+                title: Text('Operations Dashboard', style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
                 onTap: () {
                   Navigator.pop(ctx);
                   Navigator.pushNamed(context, AppRoutes.page06ShipperHub);
@@ -319,11 +342,11 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.grid_view_rounded, color: AppColors.badgeGreenText),
-                title: Text('Corridor Modules Hub', style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
+                leading: const Icon(Icons.inventory_2_outlined, color: AppColors.gold),
+                title: Text('My Shipments', style: GoogleFonts.inter(color: Colors.white, fontSize: 13)),
                 onTap: () {
                   Navigator.pop(ctx);
-                  CorridorNavigationSheet.show(context);
+                  Navigator.pushNamed(context, AppRoutes.page24MyShipments);
                 },
               ),
             ],
@@ -387,7 +410,7 @@ class _PostCargoRequestScreenState extends State<PostCargoRequestScreen> {
               const SizedBox(height: 20),
               PublishCargoCta(
                 onPublish: _handlePublish,
-                availableTrucksCount: 42,
+                availableTrucksCount: _availableTrucks,
                 isLoading: _isPublishing,
               ),
               const SizedBox(height: 100),

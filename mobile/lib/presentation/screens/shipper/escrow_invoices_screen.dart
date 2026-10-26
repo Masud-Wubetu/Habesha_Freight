@@ -4,8 +4,7 @@ import 'package:mobile/core/services/escrow_service.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
 
-class EscrowInvoicesScreen extends StatefulWidget {
-  const EscrowInvoicesScreen({super.key});
+export '../shipper_features/page05.dart';
 
   @override
   State<EscrowInvoicesScreen> createState() => _EscrowInvoicesScreenState();

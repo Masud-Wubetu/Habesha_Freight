@@ -4,7 +4,6 @@ import '../../core/routing/app_routes.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/user_model.dart';
-import '../widgets/registration/active_lane_banner.dart';
 import '../widgets/registration/primary_contact_details_card.dart';
 import '../widgets/registration/registration_step_header.dart';
 import '../widgets/registration/role_selection_card.dart';
@@ -22,17 +21,17 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final AuthService _auth = AuthService();
   UserRegistrationRole _selectedRole = UserRegistrationRole.shipper;
-  final TextEditingController _nameCtrl =
-      TextEditingController(text: 'Dawit Bekele');
-  final TextEditingController _phoneCtrl =
-      TextEditingController(text: '91 123 4567');
+  final TextEditingController _nameCtrl = TextEditingController();
+  final TextEditingController _emailCtrl = TextEditingController();
+  final TextEditingController _passwordCtrl = TextEditingController();
   bool _loading = false;
   String? _error;
 
   @override
   void dispose() {
     _nameCtrl.dispose();
-    _phoneCtrl.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
@@ -53,13 +52,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   Future<void> _handleContinue() async {
     final name = _nameCtrl.text.trim();
-    final rawPhone = _phoneCtrl.text.replaceAll(RegExp(r'\s+'), '');
+    final email = _emailCtrl.text.trim().toLowerCase();
+    final password = _passwordCtrl.text;
+
     if (name.isEmpty) {
-      setState(() => _error = 'Please enter your full name or representative title.');
+      setState(() => _error = 'Please enter your full name.');
       return;
     }
-    if (rawPhone.length < 8) {
-      setState(() => _error = 'Please enter a valid Ethiopian phone number.');
+
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    if (email.isEmpty || !emailRegex.hasMatch(email)) {
+      setState(() => _error = 'Please enter a valid email address.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setState(() => _error = 'Password must be at least 6 characters long.');
       return;
     }
 
@@ -68,37 +76,49 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       _error = null;
     });
 
-    final fullPhone = rawPhone.startsWith('+251')
-        ? rawPhone
-        : '+251${rawPhone.replaceFirst(RegExp(r'^0'), '')}';
-
-    // Attempt to register or request OTP for verification
+    // Attempt to register
     final regRes = await _auth.register(
       fullName: name,
-      phoneNumber: fullPhone,
+      email: email,
+      password: password,
       role: _selectedRole.backendRole,
     );
 
-    String? demoOtp = regRes.demoOtp;
-
-    // If already registered or need OTP, request OTP directly
-    if (!regRes.success) {
-      final otpRes = await _auth.sendOtp(phoneNumber: fullPhone);
-      if (otpRes.success) {
-        demoOtp = otpRes.demoOtp;
-      }
-    }
-
     if (!mounted) return;
     setState(() => _loading = false);
+
+    // If already registered or error, display clear error message to user
+    if (!regRes.success) {
+      setState(() {
+        _error = regRes.message.isNotEmpty
+            ? regRes.message
+            : 'Registration failed. An account with this email may already exist.';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_error!),
+          backgroundColor: AppColors.errorStrong,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Verification code sent to $email'),
+        backgroundColor: AppColors.card,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
 
     // Navigate to dedicated Page 04: Verify OTP Screen
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => VerifyOtpScreen(
-          phone: fullPhone,
-          demoOtp: demoOtp ?? '123456',
+          email: email,
+          demoOtp: regRes.demoOtp,
           role: _selectedRole.backendRole,
           fullName: name,
           onVerified: _onVerificationSuccess,
@@ -134,11 +154,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         ),
                       ),
                       Text(
-                        'Carrier & Shipper Onboarding',
+                        'Create Account',
                         style: GoogleFonts.outfit(
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          color: Colors.white,
                         ),
                       ),
                       IconButton(
@@ -162,12 +182,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   const SizedBox(height: 16),
                   PrimaryContactDetailsCard(
                     fullNameController: _nameCtrl,
-                    phoneController: _phoneCtrl,
+                    emailController: _emailCtrl,
+                    passwordController: _passwordCtrl,
                     errorText: _error,
                   ),
-                  const SizedBox(height: 14),
-                  const ActiveLaneBanner(),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
                   // Continue to Verification Button
                   SizedBox(
@@ -220,7 +239,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
-                          'Already have a carrier profile? ',
+                          'Already have an account? ',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: AppColors.textSecondary,

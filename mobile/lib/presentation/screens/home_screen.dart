@@ -46,10 +46,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _refreshData() async {
     setState(() => _loading = true);
-    final loads = await _corridor.fetchRealLoads();
+    final loads = _userRole == 'SHIPPER'
+        ? await _corridor.fetchShipperLoads()
+        : await _corridor.fetchRealLoads();
     final shipments = await _corridor.fetchRealShipments();
+    final stats = await _corridor.fetchShipperStats();
     final vehicles = await _corridor.fetchVehiclesCount();
     if (!mounted) return;
+
+    // Only pick shipments that are currently active in transit
+    final activeShipments = shipments.where((s) {
+      final status = (s['status'] ?? '').toString().toUpperCase();
+      return status == 'IN_TRANSIT' ||
+          status == 'DISPATCHED' ||
+          status == 'PICKED_UP' ||
+          status == 'ASSIGNED';
+    }).toList();
+
     setState(() {
       _loads = loads;
       _activeShipment = shipments.isNotEmpty ? shipments.first : null;
@@ -66,8 +79,9 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (_) => PostLoadSheet(
         corridorService: _corridor,
         onPosted: () {
-          _snack('Load posted to PostgreSQL database successfully!');
+          _snack('Load broadcasted! Status: POSTED (Live on Transporter Load Board).');
           _refreshData();
+          setState(() => _currentTab = 1);
         },
       ),
     );
@@ -183,6 +197,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.share_location_rounded, color: AppColors.gold, size: 20),
+              title: const Text('Live Telemetry & GPS Tracking (Page 10)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page10LiveTracking);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.grid_view_rounded, color: AppColors.gold, size: 20),
               title: const Text('All 16 Corridor Modules Catalog', style: TextStyle(color: Colors.white, fontSize: 13)),
               onTap: () {
@@ -197,7 +221,13 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               await StorageService.clearAuthData();
-              if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
+              if (mounted) {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.login,
+                  (r) => false,
+                );
+              }
             },
             child: const Text('Sign Out', style: TextStyle(color: AppColors.error)),
           ),

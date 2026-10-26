@@ -10,9 +10,9 @@ class ActiveEscrowHeroCard extends StatelessWidget {
 
   const ActiveEscrowHeroCard({
     super.key,
-    this.activeLockedAmount = 150000.0,
-    this.releasedThisMonth = 890000.0,
-    this.activeConsignmentsCount = 2,
+    this.activeLockedAmount = 0.0,
+    this.releasedThisMonth = 0.0,
+    this.activeConsignmentsCount = 0,
     this.onManageVaults,
   });
 
@@ -299,7 +299,7 @@ class ActiveEscrowHeroCard extends StatelessWidget {
                     Expanded(
                       child: _vaultChip(
                         name: 'Telebirr Business',
-                        balance: '894,200 ETB',
+                        balance: 'Connected',
                         icon: Icons.phone_android_rounded,
                         accentColor: const Color(0xFF0072BC),
                       ),
@@ -308,7 +308,7 @@ class ActiveEscrowHeroCard extends StatelessWidget {
                     Expanded(
                       child: _vaultChip(
                         name: 'CBE Birr Transit',
-                        balance: '120,500 ETB',
+                        balance: 'Connected',
                         icon: Icons.account_balance_rounded,
                         accentColor: const Color(0xFF9333EA),
                       ),

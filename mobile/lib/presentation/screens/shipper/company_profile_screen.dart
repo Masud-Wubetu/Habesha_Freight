@@ -5,7 +5,9 @@ import 'package:mobile/core/services/shipper_service.dart';
 typedef CompanyProfileScreen = ShipperCompanyProfileScreen;
 
 class ShipperCompanyProfileScreen extends StatefulWidget {
-  const ShipperCompanyProfileScreen({super.key});
+  final Map<String, dynamic>? initialProfile;
+
+  const ShipperCompanyProfileScreen({super.key, this.initialProfile});
 
   @override
   State<ShipperCompanyProfileScreen> createState() =>
@@ -30,15 +32,166 @@ class _ShipperCompanyProfileScreenState
   int _totalLoads = 0;
   bool _isVerified = false;
 
-  // Define colors locally to match the dark theme in the screenshot
-  final Color _bgDark = const Color(0xFF0F172A);
-  final Color _bgCard = const Color(0xFF1E293B);
-  final Color _bgInput = const Color(0xFF0B1120);
-  final Color _textMain = const Color(0xFFF8FAFC);
-  final Color _textMuted = const Color(0xFF94A3B8);
-  final Color _accentGold = const Color(0xFFFBBF24);
-  final Color _accentGreen = const Color(0xFF10B981);
-  final Color _borderColor = const Color(0xFF334155);
+  // Local theme colors
+  static const Color _bgDark = Color(0xFF0F172A);
+  static const Color _bgCard = Color(0xFF1E293B);
+  static const Color _bgInput = Color(0xFF0B1120);
+  static const Color _textMain = Color(0xFFF8FAFC);
+  static const Color _textMuted = Color(0xFF94A3B8);
+  static const Color _accentGold = Color(0xFFFBBF24);
+  static const Color _accentGreen = Color(0xFF10B981);
+  static const Color _borderColor = Color(0xFF334155);
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialProfile != null) {
+      _profile = widget.initialProfile;
+    } else {
+      _loadProfile();
+    }
+  }
+
+  Future<void> _loadProfile() async {
+    final data = await _shipperService.getProfile();
+    if (!mounted) return;
+    setState(() {
+      _profile = data;
+    });
+  }
+
+  void _showEditProfileModal() {
+    final nameCtrl = TextEditingController(text: _profile?['full_name'] ?? '');
+    final emailCtrl = TextEditingController(text: _profile?['email'] ?? '');
+    final phoneCtrl = TextEditingController(text: _profile?['phone_number'] ?? '');
+    bool isSaving = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _bgDark,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Edit Shipper Profile',
+                        style: TextStyle(
+                          color: _textMain,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: _textMuted),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _modalField('Full Name / Dispatcher', nameCtrl),
+                  const SizedBox(height: 12),
+                  _modalField('Phone Number', phoneCtrl),
+                  const SizedBox(height: 12),
+                  _modalField('Official Email', emailCtrl),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: isSaving
+                          ? null
+                          : () async {
+                              setModalState(() => isSaving = true);
+                              final ok = await _shipperService.updateProfile(
+                                fullName: nameCtrl.text.trim(),
+                                email: emailCtrl.text.trim(),
+                                phoneNumber: phoneCtrl.text.trim(),
+                              );
+
+                              if (!ctx.mounted) return;
+                              Navigator.pop(ctx);
+
+                              if (!mounted) return;
+                              if (ok) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Profile updated successfully!'),
+                                    backgroundColor: _accentGreen,
+                                  ),
+                                );
+                                _loadProfile();
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Failed to update profile. Please try again.'),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _accentGold,
+                        foregroundColor: const Color(0xFF0F172A),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: isSaving
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0F172A)),
+                            )
+                          : const Text(
+                              'Save Changes',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _modalField(String label, TextEditingController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: _textMuted, fontSize: 11)),
+        const SizedBox(height: 4),
+        TextField(
+          controller: controller,
+          style: const TextStyle(color: _textMain, fontSize: 13),
+          decoration: InputDecoration(
+            isDense: true,
+            filled: true,
+            fillColor: _bgInput,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   void initState() {
@@ -193,6 +346,13 @@ class _ShipperCompanyProfileScreenState
 
   @override
   Widget build(BuildContext context) {
+    final fullName = _profile?['full_name'] ?? 'Shipper';
+    final companyName = _profile?['company_name'] ?? 'Commercial Shipper Enterprise';
+    final phone = _profile?['phone_number'] ?? 'Not set';
+    final email = _profile?['email'] ?? 'Not set';
+    final stats = _profile?['stats'] as Map<String, dynamic>? ?? {};
+    final totalLoads = stats['total_loads'] ?? 0;
+
     return Scaffold(
       backgroundColor: _bgDark,
       body: SafeArea(
@@ -223,11 +383,22 @@ class _ShipperCompanyProfileScreenState
                 ),
               ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: HabeshaBottomNavBar(
+        currentIndex: 0,
+        onTap: (idx) {
+          if (idx == 1) {
+            Navigator.pushNamed(context, AppRoutes.page24MyShipments);
+          } else if (idx == 2) {
+            Navigator.pushNamed(context, AppRoutes.page23PostCargo);
+          } else if (idx == 3) {
+            Navigator.pushNamed(context, AppRoutes.page08ReviewBids);
+          } else if (idx != 0) {
+            Navigator.pushReplacementNamed(context, AppRoutes.home);
+          }
+        },
+      ),
     );
   }
-
-  // --- Widget Builders ---
 
   Widget _buildHeader() {
     return Row(
@@ -249,7 +420,7 @@ class _ShipperCompanyProfileScreenState
               ),
             ),
             const SizedBox(width: 10),
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
@@ -262,7 +433,7 @@ class _ShipperCompanyProfileScreenState
                   ),
                 ),
                 Text(
-                  'LOGISTICS EXCHANGE',
+                  'COMPANY PROFILE',
                   style: TextStyle(
                     color: _textMuted,
                     fontSize: 9,
@@ -282,14 +453,9 @@ class _ShipperCompanyProfileScreenState
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: _borderColor),
               ),
-              child: Row(
-                children: [
-                  Text(
-                    'EN 文A',
-                    style: TextStyle(color: _textMain, fontSize: 12),
-                  ),
-                  const SizedBox(width: 4),
-                ],
+              child: const Text(
+                'EN',
+                style: TextStyle(color: _textMain, fontSize: 12),
               ),
             ),
             const SizedBox(width: 8),
@@ -312,7 +478,7 @@ class _ShipperCompanyProfileScreenState
     );
   }
 
-  Widget _buildHeroProfileCard() {
+  Widget _buildHeroProfileCard(String fullName, String companyName, dynamic totalLoads) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -336,7 +502,7 @@ class _ShipperCompanyProfileScreenState
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: _borderColor),
                     ),
-                    child: Icon(Icons.warehouse, color: _accentGold, size: 32),
+                    child: const Icon(Icons.warehouse, color: _accentGold, size: 32),
                   ),
                   Positioned(
                     bottom: 0,
@@ -364,24 +530,17 @@ class _ShipperCompanyProfileScreenState
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: _accentGreen.withOpacity(0.1),
+                  color: _accentGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: _accentGreen.withOpacity(0.3)),
+                  border: Border.all(color: _accentGreen.withValues(alpha: 0.3)),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: _accentGreen,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
+                    Icon(Icons.verified, color: _accentGreen, size: 12),
+                    SizedBox(width: 4),
                     Text(
-                      'FTA VERIFIED SHIPPER',
+                      'VERIFIED SHIPPER',
                       style: TextStyle(
                         color: _accentGreen,
                         fontSize: 10,
@@ -398,14 +557,14 @@ class _ShipperCompanyProfileScreenState
             _companyLabel.isNotEmpty ? _companyLabel : 'Shipper Account',
             style: TextStyle(
               color: _textMain,
-              fontSize: 20,
+              fontSize: 19,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 6),
           Row(
             children: [
-              Icon(Icons.verified_user_outlined, color: _textMuted, size: 14),
+              const Icon(Icons.account_circle_outlined, color: _textMuted, size: 14),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -440,13 +599,13 @@ class _ShipperCompanyProfileScreenState
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _accentGold.withOpacity(0.1),
+                          color: _accentGold.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Icon(Icons.star, color: _accentGold, size: 18),
+                        child: const Icon(Icons.star, color: _accentGold, size: 18),
                       ),
                       const SizedBox(width: 10),
-                      Column(
+                      const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -481,7 +640,7 @@ class _ShipperCompanyProfileScreenState
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
+                          color: Colors.blue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
@@ -519,70 +678,21 @@ class _ShipperCompanyProfileScreenState
     );
   }
 
-  Widget _buildCorridorPerformance() {
+  Widget _buildLegalRegister(String fullName, String phone, String email) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        const Row(
           children: [
+            Icon(Icons.badge_outlined, color: _accentGold, size: 18),
+            SizedBox(width: 8),
             Text(
-              'CORRIDOR PERFORMANCE',
+              'Account & Dispatch Information',
               style: TextStyle(
-                color: _textMuted,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-            Text(
-              '98.4% On-Time Transit',
-              style: TextStyle(
-                color: _accentGreen,
-                fontSize: 11,
+                color: _textMain,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(3),
-          child: LinearProgressIndicator(
-            value: 0.984,
-            backgroundColor: _bgInput,
-            valueColor: AlwaysStoppedAnimation<Color>(_accentGreen),
-            minHeight: 6,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLegalRegister() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.security, color: _accentGold, size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  'Legal & Regulatory Register',
-                  style: TextStyle(
-                    color: _textMain,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            Text(
-              'MOTI Validated',
-              style: TextStyle(color: _textMuted, fontSize: 11),
             ),
           ],
         ),
@@ -722,103 +832,74 @@ class _ShipperCompanyProfileScreenState
     );
   }
 
-  Widget _buildLegalRow({
-    required String leftLabel,
-    required String leftValue,
-    required Widget rightWidget,
-  }) {
+  Widget _buildInfoRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(color: _textMuted, fontSize: 11)),
+        Flexible(
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: _textMain,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreferencesSection() {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        const Row(
           children: [
-            Text(leftLabel, style: TextStyle(color: _textMuted, fontSize: 11)),
-            const SizedBox(height: 4),
+            Icon(Icons.tune, color: _accentGold, size: 18),
+            SizedBox(width: 8),
             Text(
-              leftValue,
+              'Corridor Preferences',
               style: TextStyle(
                 color: _textMain,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
         ),
-        rightWidget,
-      ],
-    );
-  }
-
-  Widget _buildDocumentsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.folder_open, color: _accentGold, size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  'Official Corridor Documents',
-                  style: TextStyle(
-                    color: _textMain,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            Text(
-              '3 Active',
-              style: TextStyle(color: _accentGold, fontSize: 11),
-            ),
-          ],
-        ),
         const SizedBox(height: 12),
-        _buildDocumentItem(
-          icon: Icons.description_outlined,
-          iconColor: _accentGold,
-          title: 'Commercial Trade License',
-          subtitle: 'Trade Bureau • Valid 2025',
-          tagText: 'PDF',
-          tagColor: _accentGreen,
-          tagIcon: Icons.check,
+        _buildToggleItem(
+          title: 'Corridor Dispatch Alerts',
+          subtitle: 'Receive real-time carrier arrival alerts',
+          value: _corridorNotifications,
+          onChanged: (val) => setState(() => _corridorNotifications = val),
         ),
         const SizedBox(height: 8),
-        _buildDocumentItem(
-          icon: Icons.article_outlined,
-          iconColor: Colors.blue,
-          title: 'Customs Transit Agreement',
-          subtitle: 'Ethiopian Customs Commission',
-          tagText: 'PDF',
-          tagColor: _accentGreen,
-          tagIcon: Icons.check,
+        _buildToggleItem(
+          title: 'Direct SMS Notifications',
+          subtitle: 'Instant phone SMS when driver confirms pickup',
+          value: _smsAlerts,
+          onChanged: (val) => setState(() => _smsAlerts = val),
         ),
         const SizedBox(height: 8),
-        _buildDocumentItem(
-          icon: Icons.settings_outlined,
-          iconColor: _accentGreen,
-          title: 'Transport Authority Compliance',
-          subtitle: 'FTA Heavy Haul Transit',
-          tagText: 'To 2027',
-          tagColor: _accentGold,
+        _buildToggleItem(
+          title: 'Escrow Auto-Receipts',
+          subtitle: 'Generate verified receipt upon milestone release',
+          value: _escrowAutoReceipts,
+          onChanged: (val) => setState(() => _escrowAutoReceipts = val),
         ),
       ],
     );
   }
 
-  Widget _buildDocumentItem({
-    required IconData icon,
-    required Color iconColor,
+  Widget _buildToggleItem({
     required String title,
     required String subtitle,
-    required String tagText,
-    required Color tagColor,
-    IconData? tagIcon,
+    required bool value,
+    required ValueChanged<bool> onChanged,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -829,22 +910,13 @@ class _ShipperCompanyProfileScreenState
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: _bgInput,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: iconColor, size: 18),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: _textMain,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -853,126 +925,7 @@ class _ShipperCompanyProfileScreenState
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(color: _textMuted, fontSize: 11),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: tagColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (tagIcon != null) ...[
-                  Icon(tagIcon, color: tagColor, size: 12),
-                  const SizedBox(width: 4),
-                ],
-                Text(
-                  tagText,
-                  style: TextStyle(
-                    color: tagColor,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPreferencesSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.tune, color: _textMuted, size: 18),
-            const SizedBox(width: 8),
-            Text(
-              'Corridor Dispatch Preferences',
-              style: TextStyle(
-                color: _textMain,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: _bgCard,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _borderColor),
-          ),
-          child: Column(
-            children: [
-              _buildPreferenceItem(
-                title: 'Corridor Notifications',
-                subtitle: 'Route deviations, weight checks & port hold alerts',
-                value: _corridorNotifications,
-                onChanged: (val) =>
-                    setState(() => _corridorNotifications = val),
-              ),
-              Divider(color: _borderColor, height: 1),
-              _buildPreferenceItem(
-                title: 'SMS Trip Telemetry Alerts',
-                subtitle: 'Direct driver check-in pings via Ethio Telecom',
-                value: _smsAlerts,
-                onChanged: (val) => setState(() => _smsAlerts = val),
-              ),
-              Divider(color: _borderColor, height: 1),
-              _buildPreferenceItem(
-                title: 'Escrow Auto-Receipts',
-                subtitle: 'Instant milestone settlement via Commercial Bank',
-                value: _escrowAutoReceipts,
-                onChanged: (val) => setState(() => _escrowAutoReceipts = val),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPreferenceItem({
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: _textMain,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: _textMuted,
-                    fontSize: 11,
-                    height: 1.3,
-                  ),
+                  style: const TextStyle(color: _textMuted, fontSize: 11),
                 ),
               ],
             ),
@@ -981,7 +934,6 @@ class _ShipperCompanyProfileScreenState
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: _bgDark,
             activeTrackColor: _accentGreen,
             inactiveThumbColor: _textMuted,
             inactiveTrackColor: _bgInput,
@@ -1051,84 +1003,12 @@ class _ShipperCompanyProfileScreenState
                   ],
                 ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return Container(
-      decoration: BoxDecoration(
-        color: _bgCard,
-        border: Border(top: BorderSide(color: _borderColor)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 70,
-          child: Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavItem(Icons.dashboard_outlined, 'Home', false),
-                  _buildNavItem(
-                    Icons.local_shipping_outlined,
-                    'Shipments',
-                    false,
-                  ),
-                  const SizedBox(width: 60), // Space for FAB
-                  _buildNavItem(Icons.gavel, 'Bids', false),
-                  _buildNavItem(Icons.location_on_outlined, 'Tracking', false),
-                ],
-              ),
-              Positioned(
-                top: -25,
-                child: FloatingActionButton(
-                  onPressed: () {},
-                  backgroundColor: _accentGold,
-                  elevation: 4,
-                  shape: const CircleBorder(),
-                  child: const Icon(
-                    Icons.add,
-                    color: Color(0xFF0F172A),
-                    size: 30,
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 10,
-                child: Text(
-                  'Post Load',
-                  style: TextStyle(
-                    color: _textMuted,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _accentGold,
+          foregroundColor: const Color(0xFF0F172A),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isActive) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: isActive ? _accentGold : _textMuted, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: isActive ? _accentGold : _textMuted,
-            fontSize: 10,
-          ),
-        ),
-      ],
     );
   }
 }

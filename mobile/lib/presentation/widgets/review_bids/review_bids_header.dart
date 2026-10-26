@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/routing/app_routes.dart';
 import '../../../core/theme/app_colors.dart';
 
 class ReviewBidsHeader extends StatelessWidget {
   final String language;
   final ValueChanged<String>? onLanguageChanged;
   final VoidCallback? onProfileTap;
+  final VoidCallback? onBack;
   final int activeBidsCount;
 
   const ReviewBidsHeader({
@@ -13,7 +15,8 @@ class ReviewBidsHeader extends StatelessWidget {
     this.language = 'EN',
     this.onLanguageChanged,
     this.onProfileTap,
-    this.activeBidsCount = 3,
+    this.onBack,
+    this.activeBidsCount = 0,
   });
 
   @override
@@ -25,59 +28,83 @@ class ReviewBidsHeader extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Brand Logo & Title
-            Row(
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F1A2D),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFF223554), width: 1.2),
+            // Back Button + Brand Logo & Title
+            Expanded(
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+                    onPressed: onBack ?? () {
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pushReplacementNamed(context, AppRoutes.home);
+                      }
+                    },
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    tooltip: 'Back to Home',
                   ),
-                  child: const Icon(
-                    Icons.local_shipping_outlined,
-                    color: AppColors.gold,
-                    size: 20,
+                  const SizedBox(width: 4),
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F1A2D),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF223554), width: 1.2),
+                    ),
+                    child: const Icon(
+                      Icons.local_shipping_outlined,
+                      color: AppColors.gold,
+                      size: 20,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    RichText(
-                      text: TextSpan(
-                        style: GoogleFonts.outfit(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.2,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        RichText(
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          text: TextSpan(
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.2,
+                            ),
+                            children: const [
+                              TextSpan(
+                                text: 'Habesha',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              TextSpan(
+                                text: 'Freight',
+                                style: TextStyle(color: AppColors.gold),
+                              ),
+                            ],
+                          ),
                         ),
-                        children: const [
-                          TextSpan(
-                            text: 'Habesha',
-                            style: TextStyle(color: Colors.white),
+                        Text(
+                          'ETHIOPIA NATIONAL LOGISTICS',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.6,
+                            color: const Color(0xFF94A3B8),
                           ),
-                          TextSpan(
-                            text: 'Freight',
-                            style: TextStyle(color: AppColors.gold),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'ETHIOPIA NATIONAL LOGISTICS',
-                      style: GoogleFonts.inter(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.8,
-                        color: const Color(0xFF94A3B8),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 6),
 
             // Language Switcher & Profile Avatar
             Row(
@@ -168,7 +195,7 @@ class ReviewBidsHeader extends StatelessWidget {
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        'PAGE 09: REVIEW CARGO BIDS',
+                        'CARGO BIDS & OFFERS',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.inter(
@@ -206,7 +233,9 @@ class ReviewBidsHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '$activeBidsCount Bids Active • Live Auction',
+                    activeBidsCount > 0
+                        ? '$activeBidsCount Active ${activeBidsCount == 1 ? "Bid" : "Bids"} • Live Tender'
+                        : 'Open Tender • Live on Board',
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,

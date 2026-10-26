@@ -166,10 +166,10 @@ class AuthService {
   /// Register a new user (from main).
   Future<AuthResponse> register({
     required String fullName,
-    required String phoneNumber,
+    required String email,
+    required String password,
     required String role,
-    String? email,
-    String? password,
+    String? phoneNumber,
   }) async {
     try {
       final uri = Uri.parse('${await _base()}${ApiConfig.register}');

@@ -17,13 +17,13 @@ class ShipperShellScreen extends StatefulWidget {
 class _ShipperShellScreenState extends State<ShipperShellScreen> {
   int _currentIndex = 0;
 
-  // Pages managed by the Shipper shell.
+  // Real production screens managed by the Shipper shell
   late final List<Widget> _pages = [
-    _buildHomePage(),
+    const ShipperActiveHubScreen(),
     const FreightHistoryScreen(),
-    _buildPostLoadPage(),
-    _buildBidsPage(),
-    _buildTrackingPage(),
+    const PostCargoRequestScreen(),
+    const Page09Screen(),
+    const Page10Screen(),
   ];
 
   @override

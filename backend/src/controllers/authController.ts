@@ -75,15 +75,29 @@ export async function register(req: Request, res: Response) {
     const initialKycStatus = isDriverOrFleet ? 'PENDING' : 'APPROVED';
     const initialStatus = isDriverOrFleet ? 'INACTIVE' : 'ACTIVE';
 
-    const generatedPhone = `+2519${Math.floor(10000000 + Math.random() * 90000000)}`;
-    const finalPhoneNumber = phone_number && phone_number.trim() ? phone_number.trim() : generatedPhone;
-
-    const existingPhone = await db('users').where({ phone_number: finalPhoneNumber }).first();
-    if (existingPhone) {
-      return res.status(409).json({
-        success: false,
-        message: 'A user with this phone number already exists. Use a different number or log in.',
-      });
+    let finalPhoneNumber = phone_number && phone_number.trim() ? phone_number.trim() : null;
+    if (!finalPhoneNumber) {
+      let attempts = 0;
+      while (attempts < 10) {
+        const candidate = `+2519${Math.floor(10000000 + Math.random() * 90000000)}`;
+        const exists = await db('users').where({ phone_number: candidate }).first();
+        if (!exists) {
+          finalPhoneNumber = candidate;
+          break;
+        }
+        attempts++;
+      }
+      if (!finalPhoneNumber) {
+        finalPhoneNumber = `+2519${Date.now().toString().slice(-8)}`;
+      }
+    } else {
+      const existingPhone = await db('users').where({ phone_number: finalPhoneNumber }).first();
+      if (existingPhone) {
+        return res.status(409).json({
+          success: false,
+          message: 'A user with this phone number already exists. Use a different number or log in.',
+        });
+      }
     }
 
     const insertData: Record<string, any> = {
@@ -140,6 +154,7 @@ export async function register(req: Request, res: Response) {
         : 'Registration successful. A 6-digit OTP has been sent to your email address. Check the backend console for the code in development.',
       data: {
         user: newUser,
+        demo_otp: otp,
         token: token || undefined,
         ...(shouldExposeDemoOtp() && !isDriverOrFleet ? { demo_otp: otp } : {}),
       },

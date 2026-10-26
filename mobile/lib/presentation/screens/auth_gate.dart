@@ -25,7 +25,6 @@ class _AuthGateState extends State<AuthGate> {
   final _api = ApiClient();
 
   bool _loading = true;
-  bool _backendUp = false;
   bool _authenticated = false;
   String? _status;
   String? _userLabel;

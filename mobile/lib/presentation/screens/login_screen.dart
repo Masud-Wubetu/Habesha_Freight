@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../core/routing/app_routes.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/storage_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/user_model.dart';
-import '../widgets/login/auth_tab_switcher.dart';
 import '../widgets/login/login_footer.dart';
 import '../widgets/login/login_header.dart';
-import '../widgets/login/otp_sheet.dart';
 import '../widgets/login/password_auth_view.dart';
-import '../widgets/login/phone_auth_view.dart';
 import '../widgets/login/telebirr_button.dart';
+import 'verify_otp_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
@@ -39,11 +39,34 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passCtrl = TextEditingController(text: 'Password123!');
   bool _obscurePass = true, _loading = false;
   String? _error;
+  String? _selectedDemoRole;
+
+  String? _activeSessionRole;
+  String? _activeSessionName;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkActiveSession();
+  }
+
+  Future<void> _checkActiveSession() async {
+    final token = await StorageService.getToken();
+    if (token != null && token.isNotEmpty) {
+      final role = await StorageService.getUserRole();
+      final name = await StorageService.getUserName();
+      if (mounted) {
+        setState(() {
+          _activeSessionRole = role;
+          _activeSessionName = name ?? 'User';
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
-    _phoneCtrl.dispose();
-    _passIdCtrl.dispose();
+    _emailCtrl.dispose();
     _passCtrl.dispose();
     super.dispose();
   }

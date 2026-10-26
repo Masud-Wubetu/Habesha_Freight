@@ -1,107 +1,275 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../core/routing/app_routes.dart';
+import '../../../core/services/bid_service.dart';
 import '../../../core/theme/app_colors.dart';
 
-class BidsView extends StatelessWidget {
+class BidsView extends StatefulWidget {
   final int activeLoadsCount;
   final VoidCallback onPostLoad;
 
   const BidsView({super.key, required this.activeLoadsCount, required this.onPostLoad});
 
   @override
+  State<BidsView> createState() => _BidsViewState();
+}
+
+class _BidsViewState extends State<BidsView> {
+  final BidService _bidService = BidService();
+  List<Map<String, dynamic>> _bids = [];
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBids();
+  }
+
+  Future<void> _loadBids() async {
+    setState(() => _loading = true);
+    final bids = await _bidService.fetchShipperBids();
+    if (!mounted) return;
+    setState(() {
+      _bids = bids;
+      _loading = false;
+    });
+  }
+
+  Future<void> _handleAccept(Map<String, dynamic> bid) async {
+    final loadId = bid['load_id']?.toString() ?? '';
+    final bidId = bid['id']?.toString() ?? '';
+    final ok = await _bidService.acceptBid(loadId: loadId, bidId: bidId);
+    if (!mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bid accepted! Transporter assigned for delivery.')),
+      );
+      _loadBids();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not accept bid. Please try again.')),
+      );
+    }
+  }
+
+  Future<void> _handleDecline(Map<String, dynamic> bid) async {
+    final loadId = bid['load_id']?.toString() ?? '';
+    final bidId = bid['id']?.toString() ?? '';
+    final ok = await _bidService.rejectBid(loadId: loadId, bidId: bidId);
+    if (!mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bid declined.')),
+      );
+      _loadBids();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Carrier Bids & Offers', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-          Text('Live market rates from Ethiopian transporters', style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary)),
-        ]),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.cardBorder)),
-          child: Text('Live Bidding', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.badgeGreenText)),
-        ),
-      ]),
-      const SizedBox(height: 16),
-      // Escrow & Settlement Vault quick banner
-      InkWell(
-        onTap: () => Navigator.pushNamed(context, AppRoutes.page21EscrowVault),
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0F2038), Color(0xFF0B1424)],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Carrier Bids & Quotes',
+                  style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+                ),
+                Text(
+                  'Transporter offers on your broadcasted cargo loads',
+                  style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
+                ),
+              ],
             ),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF223A5E)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(7),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.shield_rounded, color: AppColors.gold, size: 18),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.cardBorder),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text('ESCROW VAULT', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.gold, letterSpacing: 0.8)),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                          decoration: BoxDecoration(color: const Color(0xFF10B981).withValues(alpha: 0.2), borderRadius: BorderRadius.circular(4)),
-                          child: Text('NBE Secured', style: GoogleFonts.inter(fontSize: 8.5, fontWeight: FontWeight.w700, color: const Color(0xFF34D399))),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text('150,000 ETB Locked in Settlement Vaults', style: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
-                  ],
-                ),
+              child: Text(
+                '${_bids.length} Offers',
+                style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.gold),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: AppColors.gold),
-            ],
-          ),
+            ),
+          ],
         ),
+        const SizedBox(height: 16),
+        if (_loading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: CircularProgressIndicator(color: AppColors.gold)),
+          )
+        else if (_bids.isEmpty)
+          _emptyState()
+        else
+          ..._bids.map((b) => _bidTile(b)),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _emptyState() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
       ),
-      const SizedBox(height: 14),
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.cardBorder)),
-        child: Column(children: [
+      child: Column(
+        children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(color: AppColors.gold.withValues(alpha: 0.12), shape: BoxShape.circle),
             child: const Icon(Icons.gavel_rounded, color: AppColors.gold, size: 24),
           ),
           const SizedBox(height: 12),
-          Text('Direct Transporter Matching', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+          Text(
+            'No Active Bids Yet',
+            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+          ),
           const SizedBox(height: 6),
           Text(
-            activeLoadsCount > 0
-                ? '$activeLoadsCount loads are broadcasted to registered carriers. When transporters submit bids below corridor tariffs, they will appear here.'
-                : 'Post a cargo load on a corridor to receive competitive bids from verified truck drivers.',
+            widget.activeLoadsCount > 0
+                ? 'Your ${widget.activeLoadsCount} loads are live on the Transporter Load Board. When verified drivers submit quotes, they will appear here.'
+                : 'Broadcast a cargo load on an Ethiopian corridor to receive competitive carrier quotes.',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onPostLoad,
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold, foregroundColor: AppColors.textDark, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-            child: const Text('Post Load for Bids'),
+          ElevatedButton.icon(
+            onPressed: widget.onPostLoad,
+            icon: const Icon(Icons.add_box_rounded, size: 16),
+            label: const Text('Post Load for Bids'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gold,
+              foregroundColor: AppColors.textDark,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
           ),
-        ]),
+        ],
       ),
-      const SizedBox(height: 24),
-    ]);
+    );
+  }
+
+  Widget _bidTile(Map<String, dynamic> bid) {
+    final driverName = bid['driver_name']?.toString() ?? 'Transporter';
+    final origin = bid['origin_city']?.toString() ?? 'Origin';
+    final dest = bid['destination_city']?.toString() ?? 'Destination';
+    final cargo = bid['cargo_description']?.toString() ?? 'Cargo';
+    final amount = bid['bid_amount_etb']?.toString() ?? '0';
+    final vehicle = bid['vehicle_type']?.toString() ?? 'Truck';
+    final status = (bid['status'] ?? 'PENDING').toString().toUpperCase();
+    final isPending = status == 'PENDING';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.inputBackground,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.person_rounded, size: 18, color: AppColors.gold),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        driverName,
+                        style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                      Text(
+                        vehicle,
+                        style: GoogleFonts.inter(fontSize: 10.5, color: AppColors.textMuted),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Text(
+                '$amount ETB',
+                style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.gold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(Icons.route_rounded, size: 14, color: AppColors.gold),
+              const SizedBox(width: 6),
+              Text(
+                '$origin ➔ $dest',
+                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            cargo,
+            style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
+            overflow: TextOverflow.ellipsis,
+          ),
+          const Divider(color: AppColors.cardBorder, height: 20),
+          if (isPending)
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _handleAccept(bid),
+                    icon: const Icon(Icons.check_rounded, size: 16),
+                    label: const Text('Accept Bid'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.badgeGreenText,
+                      foregroundColor: AppColors.textDark,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      minimumSize: const Size(0, 36),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () => _handleDecline(bid),
+                  child: const Text('Decline', style: TextStyle(color: AppColors.error, fontSize: 12)),
+                ),
+              ],
+            )
+          else
+            Text(
+              'Status: $status',
+              style: TextStyle(
+                color: status == 'ACCEPTED' ? AppColors.badgeGreenText : AppColors.textMuted,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }

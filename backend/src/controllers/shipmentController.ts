@@ -15,6 +15,10 @@ export async function listShipments(req: AuthenticatedRequest, res: Response) {
       .join('loads', 'shipments.load_id', 'loads.id')
       .join('users as carrier', 'shipments.carrier_id', 'carrier.id')
       .join('users as shipper', 'loads.shipper_id', 'shipper.id')
+      .leftJoin('vehicles', function () {
+        this.on('shipments.vehicle_id', '=', 'vehicles.id')
+          .orOn('shipments.carrier_id', '=', 'vehicles.driver_id');
+      })
       .select(
         'shipments.*',
         'loads.cargo_description',
@@ -27,7 +31,12 @@ export async function listShipments(req: AuthenticatedRequest, res: Response) {
         'loads.destination_lng',
         'loads.offered_price_etb',
         'shipper.full_name as shipper_name',
-        'carrier.full_name as carrier_name'
+        'carrier.full_name as carrier_name',
+        'carrier.full_name as driver_name',
+        'carrier.phone_number as driver_phone',
+        'vehicles.plate_number',
+        'vehicles.vehicle_type',
+        'shipments.delivery_verified_at as delivered_at'
       );
 
     if (role === 'SHIPPER') {
@@ -63,6 +72,10 @@ export async function getShipmentDetails(req: AuthenticatedRequest, res: Respons
       .join('loads', 'shipments.load_id', 'loads.id')
       .join('users as carrier', 'shipments.carrier_id', 'carrier.id')
       .join('users as shipper', 'loads.shipper_id', 'shipper.id')
+      .leftJoin('vehicles', function () {
+        this.on('shipments.vehicle_id', '=', 'vehicles.id')
+          .orOn('shipments.carrier_id', '=', 'vehicles.driver_id');
+      })
       .select(
         'shipments.*',
         'loads.cargo_description',
@@ -77,7 +90,11 @@ export async function getShipmentDetails(req: AuthenticatedRequest, res: Respons
         'shipper.full_name as shipper_name',
         'shipper.phone_number as shipper_phone',
         'carrier.full_name as carrier_name',
-        'carrier.phone_number as carrier_phone'
+        'carrier.full_name as driver_name',
+        'carrier.phone_number as carrier_phone',
+        'carrier.phone_number as driver_phone',
+        'vehicles.plate_number',
+        'vehicles.vehicle_type'
       )
       .where('shipments.id', id)
       .first();

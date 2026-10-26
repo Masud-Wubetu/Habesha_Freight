@@ -13,6 +13,7 @@ class ShipmentsSearchAndFilterBar extends StatelessWidget {
   final int activeCount;
   final int biddingCount;
   final int deliveredCount;
+  final int awardedCount;
 
   const ShipmentsSearchAndFilterBar({
     super.key,
@@ -25,6 +26,7 @@ class ShipmentsSearchAndFilterBar extends StatelessWidget {
     this.activeCount = 3,
     this.biddingCount = 5,
     this.deliveredCount = 4,
+    this.awardedCount = 0,
   });
 
   @override
@@ -125,6 +127,14 @@ class ShipmentsSearchAndFilterBar extends StatelessWidget {
                 count: biddingCount,
                 isSelected: selectedTabIndex == 2,
                 highlightColor: AppColors.gold,
+              ),
+              const SizedBox(width: 8),
+              _buildFilterPill(
+                index: 4,
+                label: 'Awarded',
+                count: awardedCount,
+                isSelected: selectedTabIndex == 4,
+                highlightColor: const Color(0xFFA855F7),
               ),
               const SizedBox(width: 8),
               _buildFilterPill(

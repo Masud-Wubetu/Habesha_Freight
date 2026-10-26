@@ -1,13 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/core/theme/app_theme.dart';
+import 'package:mobile/data/models/corridor_bid_item.dart';
 import 'package:mobile/presentation/screens/shipper_features/page09.dart';
 
+final _sampleBids = [
+  const CorridorBidItem(
+    id: 'bid-girma',
+    driverName: 'Girma Tadesse',
+    driverInitials: 'GT',
+    rating: 4.9,
+    reviewsCount: 142,
+    truckSpec: 'Sinotruk HOWO 371 • Dry Bulk Grain Spec',
+    locationText: 'Kality Depot (11 km away)',
+    availabilityText: 'Ready 2:00 PM today',
+    bidAmountEtb: 38000,
+    badgeLabel: 'TOP MATCH • VERIFIED PRO',
+    badgeColor: Color(0xFFF59E0B),
+    isTopMatch: true,
+    isEscrowGuaranteed: true,
+    estTransit: '9h 45m',
+    gpsStatus: 'Live Active',
+    fuelIncluded: 'Yes (Full)',
+  ),
+  const CorridorBidItem(
+    id: 'bid-solomon',
+    driverName: 'Solomon Tekle',
+    driverInitials: 'ST',
+    rating: 4.8,
+    reviewsCount: 85,
+    truckSpec: 'FAW J6P 32T Heavy Semi-Trailer',
+    locationText: 'Akaki Dry Port (15 km away)',
+    availabilityText: 'Ready 4:30 PM',
+    bidAmountEtb: 36500,
+    badgeLabel: 'Lowest Fare Offered',
+    badgeColor: Color(0xFF10B981),
+    isTopMatch: false,
+    submittedAgo: 'Submitted 18m ago',
+  ),
+  const CorridorBidItem(
+    id: 'bid-bekele',
+    driverName: 'Bekele Wolde',
+    driverInitials: 'BW',
+    rating: 4.7,
+    reviewsCount: 64,
+    truckSpec: 'Mercedes Actros 3340 • Tarpaulin Covered',
+    locationText: 'Dukem Corridor (22 km away)',
+    availabilityText: 'Ready 8:00 AM tomorrow',
+    bidAmountEtb: 39200,
+    badgeLabel: 'High-Capacity Heavy Rig',
+    badgeColor: Color(0xFF38BDF8),
+    isTopMatch: false,
+    submittedAgo: 'Submitted 41m ago',
+  ),
+];
+
 void main() {
-  Widget createTestWidget() {
+  Widget createTestWidget({List<CorridorBidItem>? bids}) {
     return MaterialApp(
       theme: AppTheme.darkTheme,
-      home: const ReviewBidsScreen(),
+      home: ReviewBidsScreen(initialBids: bids ?? _sampleBids),
     );
   }
 
@@ -35,9 +87,9 @@ void main() {
     expect(find.text('ETHIOPIA NATIONAL LOGISTICS'), findsOneWidget);
     expect(find.text('EN'), findsOneWidget);
 
-    // Sub-header Ribbon (PAGE 09)
-    expect(find.text('PAGE 09: REVIEW CARGO BIDS'), findsOneWidget);
-    expect(find.text('3 Bids Active • Live Auction'), findsOneWidget);
+    // Sub-header Ribbon
+    expect(find.text('CARGO BIDS & OFFERS'), findsOneWidget);
+    expect(find.text('3 Active Bids • Live Tender'), findsOneWidget);
   });
 
   testWidgets('Page 09 renders active tender summary card with route and escrow banner',
@@ -62,11 +114,8 @@ void main() {
     expect(find.text('3'), findsOneWidget);
     expect(find.text('Drivers'), findsOneWidget);
 
-    // Escrow Protection Notice
-    expect(
-      find.text('Telebirr & Commercial Bank of Ethiopia (CBE) Protected'),
-      findsOneWidget,
-    );
+    // Clean bids status pill
+    expect(find.text('3 Carrier Bids'), findsOneWidget);
   });
 
   testWidgets('Page 09 renders Top Match Verified Pro bid card (Girma Tadesse)',
@@ -105,7 +154,7 @@ void main() {
     expect(find.text('Accept Bid'), findsOneWidget);
   });
 
-  testWidgets('Page 09 renders Standard Bid Cards and Broadcast Banner',
+  testWidgets('Page 09 renders Standard Bid Cards',
       (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
@@ -128,14 +177,20 @@ void main() {
     // Action buttons on standard cards
     expect(find.text('Counter Offer'), findsNWidgets(2));
     expect(find.text('Accept'), findsNWidgets(2));
+  });
 
-    // Broadcast Banner
-    expect(find.text('Need More Competitive Rates?'), findsOneWidget);
-    expect(
-      find.text('Broadcast tender to 45 verified trucks on this corridor.'),
-      findsOneWidget,
-    );
-    expect(find.text('Broadcast'), findsOneWidget);
+  testWidgets('Page 09 renders clean empty state when no bids exist',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(createTestWidget(bids: []));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No Active Bids Yet'), findsOneWidget);
+    expect(find.text('Post Cargo Load'), findsOneWidget);
   });
 
   testWidgets('Page 09 opens Counter Offer modal and recalculates discount',

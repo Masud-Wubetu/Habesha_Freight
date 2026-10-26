@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RecipientNumberCard extends StatelessWidget {
-  final String phone;
+  final String? phone;
+  final String? email;
   final VoidCallback? onEdit;
 
   const RecipientNumberCard({
     super.key,
-    required this.phone,
+    this.phone,
+    this.email,
     this.onEdit,
   });
 
@@ -22,6 +24,11 @@ class RecipientNumberCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isEmail = email != null && email!.trim().isNotEmpty;
+    final displayValue = isEmail ? email!.trim() : _formatPhone(phone ?? '');
+    final label = isEmail ? 'VERIFICATION EMAIL' : 'RECIPIENT NUMBER';
+    final iconData = isEmail ? Icons.mark_email_read_outlined : Icons.phone_android_rounded;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -31,7 +38,7 @@ class RecipientNumberCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Device Icon Badge
+          // Device / Email Icon Badge
           Container(
             width: 38,
             height: 38,
@@ -40,22 +47,22 @@ class RecipientNumberCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: const Color(0xFF223554), width: 1),
             ),
-            child: const Icon(
-              Icons.phone_android_rounded,
-              color: Color(0xFF94A3B8),
+            child: Icon(
+              iconData,
+              color: const Color(0xFF94A3B8),
               size: 20,
             ),
           ),
           const SizedBox(width: 12),
 
-          // Label and Number
+          // Label and Value
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'RECIPIENT NUMBER',
+                  label,
                   style: GoogleFonts.inter(
                     fontSize: 9.5,
                     fontWeight: FontWeight.w700,
@@ -65,12 +72,14 @@ class RecipientNumberCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _formatPhone(phone),
+                  displayValue,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.outfit(
-                    fontSize: 15.5,
+                    fontSize: 14.5,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
-                    letterSpacing: 0.4,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ],
@@ -78,37 +87,38 @@ class RecipientNumberCard extends StatelessWidget {
           ),
 
           // Edit Action Button
-          InkWell(
-            onTap: onEdit,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF162238),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF243656), width: 1),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.edit_outlined,
-                    size: 13,
-                    color: Color(0xFFCBD5E1),
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Edit',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFFCBD5E1),
+          if (onEdit != null)
+            InkWell(
+              onTap: onEdit,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF162238),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF243656), width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.edit_outlined,
+                      size: 13,
+                      color: Color(0xFFCBD5E1),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 5),
+                    Text(
+                      'Edit',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFCBD5E1),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

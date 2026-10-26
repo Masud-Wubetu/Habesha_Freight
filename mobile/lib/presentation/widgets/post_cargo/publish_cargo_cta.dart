@@ -11,7 +11,7 @@ class PublishCargoCta extends StatelessWidget {
   const PublishCargoCta({
     super.key,
     required this.onPublish,
-    this.availableTrucksCount = 42,
+    this.availableTrucksCount = 0,
     this.isLoading = false,
   });
 
@@ -66,7 +66,9 @@ class PublishCargoCta extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Request will be broadcasted to ~$availableTrucksCount available trucks on the corridor.',
+          availableTrucksCount > 0
+              ? 'Request will be broadcasted to $availableTrucksCount active vehicles on the corridor.'
+              : 'Request will be broadcasted live to active transport carriers.',
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             fontSize: 11.5,
