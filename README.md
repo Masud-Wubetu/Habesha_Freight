@@ -5,6 +5,7 @@
 ![Framework](https://img.shields.io/badge/Framework-Express%204.19-lightgrey)
 ![Database](https://img.shields.io/badge/Database-PostgreSQL%20%2B%20PostGIS-blue)
 ![Test Status](https://img.shields.io/badge/Tests-32%2F32%20Passing-brightgreen)
+[![Demo Video](https://img.shields.io/badge/Demo%20Video-Loom-625df5?logo=loom&logoColor=white)](https://www.loom.com/share/367f3e538258477484c957526c63ddb0)
 
 ## Group Member
 - 1, Masud Wubetu Hassen  CTC-6562-26
@@ -18,6 +19,14 @@
 **HabeshaFreight** is a digital freight marketplace engine tailored to the operational realities of Ethiopian regional road transport. It connects verified shippers with verified drivers and fleet owners, replacing fragmented phone-based coordination and multi-layer broker chains with a transparent, audited, and secure digital workflow.
 
 The core backend service provides multi-role authentication (OTP + JWT), role-based access control (RBAC), relational database modeling, and a feature-rich Admin Operations Suite.
+
+---
+
+## 🎥 Demo Video
+
+[![HabeshaFreight Project Demo](https://cdn.loom.com/sessions/thumbnails/367f3e538258477484c957526c63ddb0-a884cd746b770dea.jpg)](https://www.loom.com/share/367f3e538258477484c957526c63ddb0)
+
+> 📺 **Watch the project walkthrough on Loom:** [https://www.loom.com/share/367f3e538258477484c957526c63ddb0](https://www.loom.com/share/367f3e538258477484c957526c63ddb0)
 
 ---
 
