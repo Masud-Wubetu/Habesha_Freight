@@ -5,7 +5,7 @@
 ![Framework](https://img.shields.io/badge/Framework-Express%204.19-lightgrey)
 ![Database](https://img.shields.io/badge/Database-PostgreSQL%20%2B%20PostGIS-blue)
 ![Test Status](https://img.shields.io/badge/Tests-32%2F32%20Passing-brightgreen)
-[![Demo Video](https://img.shields.io/badge/Demo%20Video-Loom-625df5?logo=loom&logoColor=white)](https://www.loom.com/share/367f3e538258477484c957526c63ddb0)
+[![Demo Video](https://img.shields.io/badge/Demo%20Video-Awesome%20Screenshot-0080FF?logo=googlechrome&logoColor=white)](https://www.awesomescreenshot.com/video/57793490?key=44418869b6f6497f05378f28b54dbb83)
 
 ## Group Member
 - 1, Masud Wubetu Hassen  CTC-6562-26
@@ -24,9 +24,10 @@ The core backend service provides multi-role authentication (OTP + JWT), role-ba
 
 ## 🎥 Demo Video
 
-[![HabeshaFreight Project Demo](https://cdn.loom.com/sessions/thumbnails/367f3e538258477484c957526c63ddb0-a884cd746b770dea.jpg)](https://www.loom.com/share/367f3e538258477484c957526c63ddb0)
+[![Watch Project Demo](https://img.shields.io/badge/▶%20Watch%20Demo-Awesome%20Screenshot-0080FF?style=for-the-badge&logo=googlechrome&logoColor=white)](https://www.awesomescreenshot.com/video/57793490?key=44418869b6f6497f05378f28b54dbb83)
 
-> 📺 **Watch the project walkthrough on Loom:** [https://www.loom.com/share/367f3e538258477484c957526c63ddb0](https://www.loom.com/share/367f3e538258477484c957526c63ddb0)
+> 📺 **Watch the full project walkthrough demo:**  
+> 🔗 [https://www.awesomescreenshot.com/video/57793490?key=44418869b6f6497f05378f28b54dbb83](https://www.awesomescreenshot.com/video/57793490?key=44418869b6f6497f05378f28b54dbb83)
 
 ---
 
