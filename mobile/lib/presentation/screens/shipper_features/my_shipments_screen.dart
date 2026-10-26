@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/routing/app_routes.dart';
-import '../../../core/services/corridor_service.dart';
-import '../../../core/services/storage_service.dart';
+import '../../../core/services/api_client.dart';
+import '../../../core/services/shipper_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/corridor_shipment_item.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
@@ -22,70 +22,14 @@ class MyShipmentsScreen extends StatefulWidget {
 }
 
 class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
-  final CorridorService _corridorService = CorridorService();
+  final ShipperService _shipperService = ShipperService();
   String _selectedLanguage = 'EN';
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   int _selectedFilterTab = 0; // 0: All, 1: Active, 2: Bidding, 3: Delivered
   String _selectedCorridor = 'All Corridors';
   List<CorridorShipmentItem> _shipments = [];
-  bool _loading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.initialShipments != null) {
-      _shipments = List.from(widget.initialShipments!);
-    } else {
-      _loadShipments();
-    }
-  }
-
-  Future<void> _loadShipments() async {
-    setState(() => _loading = true);
-    final realLoads = await _corridorService.fetchShipperLoads();
-    final realShipments = await _corridorService.fetchRealShipments();
-
-    final List<CorridorShipmentItem> loaded = [];
-    final Set<String> seenIds = {};
-
-    for (final l in realLoads) {
-      final item = CorridorShipmentItem.fromLoadMap(l);
-      final key = l['id']?.toString() ?? item.id;
-      if (!seenIds.contains(key)) {
-        seenIds.add(key);
-        loaded.add(item);
-      }
-    }
-
-    for (final s in realShipments) {
-      final item = CorridorShipmentItem.fromLoadMap(s);
-      final key = s['load_id']?.toString() ?? s['id']?.toString() ?? item.id;
-      if (!seenIds.contains(key)) {
-        seenIds.add(key);
-        loaded.add(item);
-      }
-    }
-
-    if (mounted) {
-      setState(() {
-        _shipments = loaded;
-        _loading = false;
-      });
-    }
-  }
-
-  int get _activeCount =>
-      _shipments.where((item) => item.status == ShipmentStatus.inTransit).length;
-
-  int get _biddingCount =>
-      _shipments.where((item) => item.status == ShipmentStatus.bidding).length;
-
-  int get _deliveredCount =>
-      _shipments.where((item) => item.status == ShipmentStatus.delivered).length;
-
-  int get _awardedCount =>
-      _shipments.where((item) => item.status == ShipmentStatus.awaitingDispatch).length;
+  bool _loading = true;
 
   List<CorridorShipmentItem> get _filteredShipments {
     return _shipments.where((item) {
@@ -120,6 +64,113 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
       }
       return true;
     }).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final results = await Future.wait([
+        _shipperService.listShipments(),
+        _shipperService.listLoads(),
+      ]);
+      final shipments = results[0];
+      final loads = results[1];
+      final loadIdsLinked = shipments
+          .map((s) => s['load_id']?.toString())
+          .whereType<String>()
+          .toSet();
+
+      final mapped = <CorridorShipmentItem>[
+        ...shipments.map(_mapApiRow),
+        ...loads
+            .where((l) => !loadIdsLinked.contains(l['id']?.toString()))
+            .map(_mapApiRow),
+      ];
+
+      if (!mounted) return;
+      setState(() {
+        _shipments = mapped;
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _shipments = [];
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: const Color(0xFFEF4444)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _shipments = [];
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to load shipments'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+    }
+  }
+
+  ShipmentStatus _mapStatus(String? raw) {
+    final s = (raw ?? '').toUpperCase();
+    if (s == 'DELIVERED') return ShipmentStatus.delivered;
+    if (s == 'IN_TRANSIT' || s == 'DISPATCHED') return ShipmentStatus.inTransit;
+    if (s == 'BIDDING' || s == 'OPEN') return ShipmentStatus.bidding;
+    return ShipmentStatus.awaitingDispatch;
+  }
+
+  CorridorShipmentItem _mapApiRow(Map<String, dynamic> row) {
+    final rawId = row['id']?.toString() ?? '';
+    final short = rawId.length > 6 ? rawId.substring(0, 6).toUpperCase() : rawId.toUpperCase();
+    final status = _mapStatus(row['status']?.toString());
+    final origin = row['origin_city']?.toString() ?? '—';
+    final dest = row['destination_city']?.toString() ?? '—';
+    final cargo = row['cargo_description']?.toString() ?? 'Freight';
+    final weight = row['weight_tons'];
+    final weightLabel = weight != null ? '${weight}T · ' : '';
+    final driverName = row['driver_name']?.toString() ?? row['carrier_name']?.toString();
+    final initials = (driverName != null && driverName.isNotEmpty)
+        ? driverName
+            .split(' ')
+            .where((p) => p.isNotEmpty)
+            .take(2)
+            .map((p) => p[0].toUpperCase())
+            .join()
+        : null;
+
+    return CorridorShipmentItem(
+      id: '#HF-$short',
+      cargoType: '$weightLabel$cargo',
+      status: status,
+      origin: origin,
+      originDetail: row['origin_detail']?.toString() ?? origin,
+      destination: dest,
+      destinationDetail: row['destination_detail']?.toString() ?? dest,
+      viaRoute: row['via_route']?.toString() ?? '$origin → $dest',
+      distanceKm: (row['distance_km'] is num)
+          ? (row['distance_km'] as num).toInt()
+          : 0,
+      driverName: driverName,
+      driverInitials: initials,
+      carrierAssigned: row['carrier_name']?.toString() ?? driverName,
+      lowestOfferEtb: row['offered_price_etb'] is num
+          ? (row['offered_price_etb'] as num).toInt()
+          : null,
+      bidsCount: row['bids_count'] is num ? (row['bids_count'] as num).toInt() : null,
+      signedBy: row['signed_by']?.toString(),
+      deliveredDate: row['delivered_at']?.toString() ?? row['updated_at']?.toString(),
+    );
   }
 
   @override
@@ -675,48 +726,61 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
       backgroundColor: const Color(0xFF070D18),
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
-          onRefresh: _loadShipments,
-          color: AppColors.gold,
-          backgroundColor: const Color(0xFF0F172A),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ShipmentsHeader(
-                  language: _selectedLanguage,
-                  onLanguageChanged: _handleLanguageTap,
-                  onProfileTap: _handleProfileTap,
-                  liveEnRouteCount: _activeCount,
-                ),
-                const SizedBox(height: 16),
-                ShipmentsSearchAndFilterBar(
-                  searchController: _searchController,
-                  onSearchChanged: (val) => setState(() => _searchQuery = val),
-                  onFilterSettingsTap: _handleFilterSettings,
-                  selectedTabIndex: _selectedFilterTab,
-                  onTabSelected: (idx) => setState(() => _selectedFilterTab = idx),
-                  allCount: _shipments.length,
-                  activeCount: _activeCount,
-                  biddingCount: _biddingCount,
-                  deliveredCount: _deliveredCount,
-                  awardedCount: _awardedCount,
-                ),
-                const SizedBox(height: 16),
-                if (_loading)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 48),
-                    child: Center(
-                      child: CircularProgressIndicator(color: AppColors.gold),
-                    ),
-                  )
-                else
-                  _buildShipmentsList(),
-                const SizedBox(height: 100),
-              ],
-            ),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShipmentsHeader(
+                language: _selectedLanguage,
+                onLanguageChanged: _handleLanguageTap,
+                onProfileTap: _handleProfileTap,
+                liveEnRouteCount: _shipments
+                    .where((s) => s.status == ShipmentStatus.inTransit)
+                    .length,
+              ),
+              const SizedBox(height: 16),
+              ShipmentsSearchAndFilterBar(
+                searchController: _searchController,
+                onSearchChanged: (val) => setState(() => _searchQuery = val),
+                onFilterSettingsTap: _handleFilterSettings,
+                selectedTabIndex: _selectedFilterTab,
+                onTabSelected: (idx) => setState(() => _selectedFilterTab = idx),
+                allCount: _shipments.length,
+                activeCount: _shipments
+                    .where((s) => s.status == ShipmentStatus.inTransit)
+                    .length,
+                biddingCount: _shipments
+                    .where((s) => s.status == ShipmentStatus.bidding)
+                    .length,
+                deliveredCount: _shipments
+                    .where((s) => s.status == ShipmentStatus.delivered)
+                    .length,
+              ),
+              const SizedBox(height: 16),
+              CorridorTelemetryRadarCard(
+                onTap: _showLiveRadarModal,
+                originHub: 'Addis Ababa Hub (A)',
+                destinationHub: 'Dire Dawa (B)',
+                departureTime: '05:30 AM',
+                arrivalTime: '02:45 PM',
+                remainingKm: 112,
+                currentLat: '9.020',
+                currentLng: '39.800',
+                progress: 0.65,
+              ),
+              const SizedBox(height: 16),
+
+              if (_loading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 48),
+                  child: Center(child: CircularProgressIndicator(color: AppColors.gold)),
+                )
+              else
+                _buildShipmentsList(),
+              const SizedBox(height: 100),
+            ],
           ),
         ),
       ),

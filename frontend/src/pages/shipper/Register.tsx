@@ -137,9 +137,21 @@ export default function Register() {
         }
         navigate('/pending-approval');
       } else {
+        const demoOtp = res?.demo_otp != null ? String(res.demo_otp) : '';
         localStorage.setItem('registrationEmail', formData.email.trim());
         localStorage.setItem('registrationRole', selectedRole);
-        navigate('/verify-otp');
+        if (demoOtp) {
+          localStorage.setItem('registrationDemoOtp', demoOtp);
+          console.log(`🔑 Dev OTP for ${formData.email.trim()}: ${demoOtp}`);
+        } else {
+          localStorage.removeItem('registrationDemoOtp');
+        }
+        navigate('/verify-otp', {
+          state: {
+            email: formData.email.trim(),
+            demoOtp,
+          },
+        });
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Registration failed. Please try again.');

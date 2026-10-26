@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/routing/app_routes.dart';
-import '../../../core/services/shipper_service.dart';
-import '../../widgets/home/bottom_nav_bar.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/escrow_service.dart';
+import 'package:mobile/core/services/shipper_service.dart';
 
 class RateDriverScreen extends StatefulWidget {
   final String? driverId;
@@ -25,11 +25,21 @@ class RateDriverScreen extends StatefulWidget {
 
 class _RateDriverScreenState extends State<RateDriverScreen> {
   final ShipperService _shipperService = ShipperService();
-  final TextEditingController _commentController = TextEditingController();
+  final EscrowService _escrowService = EscrowService();
+  final TextEditingController _notesController = TextEditingController(
+    text:
+        'Solomon arrived ahead of schedule at Kaliti depot and unloaded punctually at Adama. Excellent transit updates throughout the corridor.',
+  );
 
-  int _rating = 5;
-  final List<bool> _selectedTags = [true, true, true, false, false];
-  bool _isSubmitting = false;
+  // Local State for interactions
+  int _rating = 4; // The screenshot shows 4 stars filled
+  final List<bool> _selectedTags = [true, true, true, true, false];
+  int _selectedTipIndex = 0;
+  bool _submitting = false;
+
+  String? _driverId;
+  String? _shipmentId;
+  bool _argsResolved = false;
 
   // Local theme colors
   static const Color _bgDark = Color(0xFF0B1120);
@@ -183,6 +193,94 @@ class _RateDriverScreenState extends State<RateDriverScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_argsResolved) return;
+    _argsResolved = true;
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map) {
+      _driverId = args['driverId']?.toString() ?? args['driver_id']?.toString();
+      _shipmentId =
+          args['shipmentId']?.toString() ?? args['shipment_id']?.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitRating({required bool releaseEscrow}) async {
+    final driverId = _driverId;
+    if (driverId == null || driverId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Missing driverId. Open this screen with route args.'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _submitting = true);
+    try {
+      final selectedTags = <String>[];
+      for (var i = 0; i < _tagLabels.length; i++) {
+        if (_selectedTags[i]) selectedTags.add(_tagLabels[i]);
+      }
+      final commentParts = <String>[
+        if (_notesController.text.trim().isNotEmpty) _notesController.text.trim(),
+        if (selectedTags.isNotEmpty) selectedTags.join(', '),
+      ];
+
+      await _shipperService.rateDriver(
+        driverId: driverId,
+        rating: _rating,
+        comment: commentParts.isEmpty ? null : commentParts.join(' · '),
+        shipmentId: _shipmentId,
+      );
+
+      if (releaseEscrow &&
+          _shipmentId != null &&
+          _shipmentId!.isNotEmpty) {
+        try {
+          await _escrowService.release(_shipmentId!);
+        } catch (_) {
+          // Rating succeeded; release is best-effort.
+        }
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            releaseEscrow
+                ? 'Rating submitted and escrow release requested'
+                : 'Rating submitted',
+          ),
+          backgroundColor: _accentGreen,
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: _errorRed),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Failed to submit rating'),
+          backgroundColor: _errorRed,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -563,12 +661,42 @@ class _RateDriverScreenState extends State<RateDriverScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Delivery Comments (Optional)',
-            style: TextStyle(
-              color: _textMain,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.chat_bubble_outline, color: _accentGold, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Corridor Dispatch Notes',
+                    style: TextStyle(
+                      color: _textMain,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                'Public on driver profile',
+                style: TextStyle(color: _textMuted, fontSize: 10),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _notesController,
+            maxLines: 4,
+            style: TextStyle(color: _textMain, fontSize: 13, height: 1.4),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: _bgInput,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.all(12),
             ),
           ),
           const SizedBox(height: 10),
@@ -592,44 +720,59 @@ class _RateDriverScreenState extends State<RateDriverScreen> {
   Widget _buildActionButtons(String escrowAmt) {
     return Column(
       children: [
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton.icon(
-            onPressed: _isSubmitting ? null : _handleSubmitRating,
-            icon: const Icon(Icons.lock_open, size: 20),
-            label: _isSubmitting
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF0F172A)),
-                  )
-                : Text(
-                    'Submit Rating & Release $escrowAmt',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _accentGold,
-              foregroundColor: const Color(0xFF0F172A),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ElevatedButton(
+          onPressed: _submitting
+              ? null
+              : () => _submitRating(releaseEscrow: true),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _accentGold,
+            foregroundColor: _bgDark,
+            minimumSize: const Size(double.infinity, 56),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
+          child: _submitting
+              ? const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.lock_open, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Submit Rating & Release Escrow',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(Icons.arrow_forward, size: 20),
+                  ],
+                ),
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: OutlinedButton.icon(
-            onPressed: _showDisputeModal,
-            icon: const Icon(Icons.warning_amber_rounded, color: _errorRed, size: 18),
-            label: const Text(
-              'Report Transit Dispute',
-              style: TextStyle(color: _textMain, fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: _borderColor),
-              backgroundColor: _bgCard,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        OutlinedButton(
+          onPressed: _submitting
+              ? null
+              : () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Dispute reporting will open from shipment details.',
+                      ),
+                    ),
+                  );
+                },
+          style: OutlinedButton.styleFrom(
+            foregroundColor: _textMain,
+            side: BorderSide(color: _borderColor),
+            backgroundColor: _bgCard,
+            minimumSize: const Size(double.infinity, 56),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
         ),

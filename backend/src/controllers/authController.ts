@@ -6,6 +6,24 @@ import { AuthenticatedRequest } from '../middleware/auth';
 import { FileService } from '../services/fileService';
 import { emailService } from '../services/emailService';
 
+/** Print OTP in the backend terminal so local/dev registration is easy to test. */
+function logOtpToConsole(context: string, email: string, otp: string) {
+  console.log('\n========================================');
+  console.log(`🔑 [${context}] OTP for ${email}`);
+  console.log(`🔑 CODE: ${otp}`);
+  console.log('========================================\n');
+}
+
+/** Expose OTP in API/UI when email isn't really delivered (no SMTP) or DEMO_OTP=true. */
+function shouldExposeDemoOtp(): boolean {
+  if (process.env.DEMO_OTP === 'false') return false;
+  if (process.env.DEMO_OTP === 'true') return true;
+  if (process.env.NODE_ENV !== 'production') return true;
+  // Docker/production without SMTP still needs a visible OTP for testing
+  const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+  return !hasSmtp;
+}
+
 export async function register(req: Request, res: Response) {
   try {
     const {
@@ -116,18 +134,29 @@ export async function register(req: Request, res: Response) {
         })
       : null;
 
-    // Send real Email OTP via Nodemailer
-    emailService.sendOtpEmail(normalizedEmail, otp, full_name).catch((err) => {
-      console.error('❌ [BACKGROUND EMAIL ERROR]:', err);
-    });
+    // Always print OTP in the server console (dev-friendly)
+    logOtpToConsole('REGISTER', normalizedEmail, otp);
+
+    if (!isDriverOrFleet) {
+      // Shipper: send email OTP (await so console logs appear before response)
+      try {
+        await emailService.sendOtpEmail(normalizedEmail, otp, full_name);
+      } catch (err) {
+        console.error('❌ [EMAIL ERROR]:', err);
+        logOtpToConsole('REGISTER FALLBACK (email failed)', normalizedEmail, otp);
+      }
+    }
 
     return res.status(201).json({
       success: true,
-      message: 'Registration successful. A 6-digit OTP has been sent to your email address.',
+      message: isDriverOrFleet
+        ? 'Registration successful. Your account has been submitted for Admin approval.'
+        : 'Registration successful. A 6-digit OTP has been sent to your email address. Check the backend console for the code in development.',
       data: {
         user: newUser,
         demo_otp: otp,
         token: token || undefined,
+        ...(shouldExposeDemoOtp() && !isDriverOrFleet ? { demo_otp: otp } : {}),
       },
     });
   } catch (error: any) {
@@ -261,16 +290,19 @@ export async function resendOtp(req: Request, res: Response) {
       .where({ id: user.id })
       .update({ otp_code: otp, otp_expires_at: expiresAt });
 
-    emailService.sendOtpEmail(user.email, otp, user.full_name).catch((err) => {
-      console.error('❌ [BACKGROUND RESEND EMAIL ERROR]:', err);
-    });
+    logOtpToConsole('RESEND OTP', user.email, otp);
+
+    try {
+      await emailService.sendOtpEmail(user.email, otp, user.full_name);
+    } catch (err) {
+      console.error('❌ [RESEND EMAIL ERROR]:', err);
+      logOtpToConsole('RESEND FALLBACK (email failed)', user.email, otp);
+    }
 
     return res.status(200).json({
       success: true,
-      message: 'New OTP code sent to your email address.',
-      data: {
-        demo_otp: otp,
-      },
+      message: 'New OTP code sent to your email address. Check the backend console for the code in development.',
+      data: shouldExposeDemoOtp() ? { demo_otp: otp } : undefined,
     });
   } catch (error) {
     console.error('Resend OTP Error:', error);

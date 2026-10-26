@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:mobile/presentation/screens/shipper/freight_history_screen.dart';
-import 'package:mobile/presentation/screens/shipper_features/page06.dart';
+import 'package:mobile/presentation/screens/shipper/preferred_fleet_directory.dart';
+import 'package:mobile/presentation/screens/shipper_features/my_shipments_screen.dart';
 import 'package:mobile/presentation/screens/shipper_features/page09.dart';
-import 'package:mobile/presentation/screens/shipper_features/page10.dart';
 import 'package:mobile/presentation/screens/shipper_features/page23.dart';
 import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
 
@@ -42,4 +42,98 @@ class _ShipperShellScreenState extends State<ShipperShellScreen> {
       ),
     );
   }
+
+  Widget _buildHomePage() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0A111F),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0A111F),
+        title: const Text(
+          'HabeshaFreight',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Welcome, Shipper',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Manage your freight and find trusted carriers.',
+              style: TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 24),
+            _homeAction(
+              icon: Icons.people_alt_outlined,
+              title: 'Preferred Directory',
+              description: 'Browse your preferred transport partners.',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => PreferredFleetScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            _homeAction(
+              icon: Icons.history,
+              title: 'Freight History',
+              description: 'View completed shipments and receipts.',
+              onTap: () {
+                setState(() {
+                  _currentIndex = 1;
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _homeAction({
+    required IconData icon,
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      color: const Color(0xFF131C31),
+      child: ListTile(
+        leading: Icon(icon, color: const Color(0xFFFFB300), size: 30),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          description,
+          style: const TextStyle(color: Colors.white70),
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios,
+          color: Colors.white54,
+          size: 16,
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _buildPostLoadPage() => const PostCargoRequestScreen();
+
+  Widget _buildBidsPage() => const ReviewBidsScreen();
+
+  Widget _buildTrackingPage() => const MyShipmentsScreen();
 }

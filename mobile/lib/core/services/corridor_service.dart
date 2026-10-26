@@ -34,16 +34,25 @@ class CorridorService {
     return customUrl ?? ApiConfig.baseUrl;
   }
 
-  /// Real database loads from GET /api/loads
+  /// Real database loads from GET /api/loads (`{ success, data: [...] }`).
   Future<List<Map<String, dynamic>>> fetchRealLoads() async {
     try {
       final base = await _getBaseUrl();
-      final res = await _client.get(Uri.parse('$base${ApiConfig.loads}'), headers: await _authHeaders());
+      final res = await _client.get(
+        Uri.parse('$base${ApiConfig.loads}'),
+        headers: await _authHeaders(),
+      );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         if (data is List) return List<Map<String, dynamic>>.from(data);
-        if (data is Map && data['data'] is List) return List<Map<String, dynamic>>.from(data['data']);
-        if (data is Map && data['loads'] is List) return List<Map<String, dynamic>>.from(data['loads']);
+        if (data is Map) {
+          if (data['data'] is List) {
+            return List<Map<String, dynamic>>.from(data['data']);
+          }
+          if (data['loads'] is List) {
+            return List<Map<String, dynamic>>.from(data['loads']);
+          }
+        }
       }
       return [];
     } catch (_) {

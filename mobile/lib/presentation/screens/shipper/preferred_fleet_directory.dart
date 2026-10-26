@@ -1,58 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/routing/app_routes.dart';
-import '../../../core/services/shipper_service.dart';
-import '../../widgets/shipper_bottom_navbar.dart';
-
-class PreferredCarrier {
-  const PreferredCarrier({
-    required this.id,
-    required this.name,
-    required this.type,
-    required this.route,
-    required this.tag,
-    required this.rating,
-    required this.trips,
-    required this.badge,
-    required this.category,
-    required this.phone,
-    required this.icon,
-  });
-
-  final String id;
-  final String name;
-  final String type;
-  final String route;
-  final String tag;
-  final String rating;
-  final String trips;
-  final String badge;
-  final String category;
-  final String phone;
-  final IconData icon;
-
-  factory PreferredCarrier.fromMap(Map<String, dynamic> map) {
-    final name = map['company_name'] ?? map['full_name'] ?? 'Transport Carrier';
-    final fleet = map['fleet_size'] ?? map['vehicle_count'] ?? 12;
-    final available = map['available_trucks'] ?? fleet;
-    final rating = (map['avg_rating'] ?? 4.8).toString();
-    final trips = (map['review_count'] ?? map['completed_deliveries'] ?? 85).toString();
-    final isVerified = map['is_verified'] == true || map['kyc_status'] == 'APPROVED';
-
-    return PreferredCarrier(
-      id: map['id']?.toString() ?? '',
-      name: name,
-      type: 'Commercial Carrier • $available Available Trucks',
-      route: 'Ethio-Djibouti & Regional Corridors',
-      tag: '$available Trucks',
-      rating: rating,
-      trips: trips,
-      badge: isVerified ? 'Verified Operator' : 'Active Fleet',
-      category: 'Heavy Trailers',
-      phone: map['phone_number'] ?? '+251 91 100 0000',
-      icon: Icons.local_shipping,
-    );
-  }
-}
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/shipper_service.dart';
+import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
 
 class PreferredFleetScreen extends StatefulWidget {
   final List<PreferredCarrier>? initialCarriers;
@@ -75,30 +24,111 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   String _selectedCategory = 'All';
-  bool _isLoading = true;
-  List<PreferredCarrier> _carriers = [];
+  List<_PreferredCarrier> _carriers = [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialCarriers != null) {
-      _carriers = widget.initialCarriers!;
-      _isLoading = false;
-    } else {
-      _loadCarriers();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final rows = await _shipperService.listCompanies();
+      final mapped = rows.map(_mapCompany).toList();
+      if (!mounted) return;
+      setState(() {
+        _carriers = mapped;
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _carriers = [];
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _carriers = [];
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to load preferred fleet')),
+      );
     }
   }
 
-  Future<void> _loadCarriers() async {
-    setState(() => _isLoading = true);
-    final list = await _shipperService.getFleetCompanies(
-      search: _searchController.text.trim(),
+  _PreferredCarrier _mapCompany(Map<String, dynamic> row) {
+    final name = row['name']?.toString() ??
+        row['full_name']?.toString() ??
+        row['company_name']?.toString() ??
+        'Carrier';
+    final fleetSize = row['fleet_size'] ?? row['available_trucks'] ?? 0;
+    final types = row['vehicle_types'];
+    final typeLabel = types is List && types.isNotEmpty
+        ? types.take(2).join(', ')
+        : 'Enterprise Fleet';
+    final rating = row['average_rating'] ?? row['rating'] ?? '4.8';
+    final trips = row['completed_trips'] ?? row['review_count'] ?? fleetSize;
+    final verified = row['is_verified'] == true ||
+        row['kyc_status']?.toString().toUpperCase() == 'APPROVED';
+    final hasReefer = types is List &&
+        types.any((t) => t.toString().toUpperCase().contains('REEFER') ||
+            t.toString().toUpperCase().contains('COLD'));
+
+    return _PreferredCarrier(
+      id: row['id']?.toString() ?? '',
+      name: name,
+      type: '$typeLabel • $fleetSize Units',
+      route: row['description']?.toString() ??
+          'Nationwide Ethiopian corridors',
+      tag: '${row['available_trucks'] ?? fleetSize} Available',
+      rating: rating.toString(),
+      trips: trips.toString(),
+      badge: verified ? 'FTA Certified' : 'Registered Carrier',
+      category: hasReefer ? 'Cold Chain' : 'Heavy Trailers',
+      icon: hasReefer ? Icons.ac_unit : Icons.local_shipping,
     );
-    if (!mounted) return;
-    setState(() {
-      _carriers = list.map((m) => PreferredCarrier.fromMap(m)).toList();
-      _isLoading = false;
-    });
+  }
+
+  Future<void> _requestQuote(_PreferredCarrier carrier) async {
+    if (carrier.id.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Company id missing for quote request')),
+      );
+      return;
+    }
+    try {
+      await _shipperService.createFleetRequest({
+        'company_id': carrier.id,
+        'origin_city': 'Addis Ababa',
+        'destination_city': 'Modjo',
+        'cargo_description': 'Preferred fleet quote request',
+        'weight_tons': 20,
+        'offered_price_etb': 25000,
+        'trucks_needed': 1,
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Quote request sent to ${carrier.name}')),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to send quote request')),
+      );
+    }
   }
 
   @override
@@ -390,14 +420,101 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
         ],
       ),
       body: SafeArea(
-        child: RefreshIndicator(
-          color: yellow,
-          backgroundColor: card,
-          onRefresh: _loadCarriers,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            children: [
-              Row(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.circle, color: yellow, size: 7),
+                const SizedBox(width: 6),
+                const Expanded(
+                  child: Text(
+                    'VERIFIED LOGISTICS NETWORK',
+                    style: TextStyle(
+                      color: Color(0xFFFFC16B),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: inner,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Text(
+                    '⚙ ${_carriers.length} Active Partners',
+                    style: const TextStyle(color: muted, fontSize: 10),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Preferred Fleet Directory',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 27,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.6,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Trusted drivers and transport enterprises across your key industrial corridors.',
+              style: TextStyle(color: muted, fontSize: 14, height: 1.45),
+            ),
+            const SizedBox(height: 22),
+
+            TextField(
+              controller: _searchController,
+              onChanged: (_) => setState(() {}),
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Search carrier, vehicle, or route...',
+                hintStyle: const TextStyle(color: muted, fontSize: 14),
+                prefixIcon: const Icon(Icons.search, color: muted),
+                suffixIcon: const Icon(Icons.mic_none, color: muted),
+                filled: true,
+                fillColor: card,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 15),
+
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _categoryChip('All', '${_carriers.length}'),
+                  _categoryChip(
+                    'Heavy Trailers',
+                    '${_carriers.where((c) => c.category == 'Heavy Trailers').length}',
+                  ),
+                  _categoryChip(
+                    'Cold Chain',
+                    '${_carriers.where((c) => c.category == 'Cold Chain').length}',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: card,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Row(
                 children: [
                   const Icon(Icons.circle, color: yellow, size: 7),
                   const SizedBox(width: 6),
@@ -448,51 +565,44 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Search Bar
-              Container(
-                decoration: BoxDecoration(
-                  color: card,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  onChanged: (_) => setState(() {}),
-                  decoration: const InputDecoration(
-                    hintText: 'Search carrier name or corridor...',
-                    hintStyle: TextStyle(color: muted, fontSize: 12),
-                    prefixIcon: Icon(Icons.search, color: muted, size: 20),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 14),
+            if (_loading)
+              const Padding(
+                padding: EdgeInsets.all(40),
+                child: Center(child: CircularProgressIndicator(color: yellow)),
+              )
+            else if (filteredCarriers.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(
+                  child: Text(
+                    'No carriers found.',
+                    style: TextStyle(color: muted),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+              )
+            else
+              ...filteredCarriers.map(_carrierCard),
 
-              // Category Pills
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    'All',
-                    'Heavy Trailers',
-                    'Cold Chain',
-                    'Container',
-                  ].map((category) {
-                    final isSelected = _selectedCategory == category;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: InkWell(
-                        onTap: () {
-                          setState(() {
-                            _selectedCategory = category;
-                          });
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: card,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '♙ FAST ADD',
+                          style: TextStyle(
+                            color: Color(0xFFFFC16B),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
                           ),
                           decoration: BoxDecoration(
                             color: isSelected ? yellow : card,
@@ -728,8 +838,8 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _showDirectRequestModal(carrier),
-                  icon: const Icon(Icons.send_rounded, size: 16),
+                  onPressed: () => _requestQuote(carrier),
+                  icon: const Icon(Icons.outgoing_mail, size: 18),
                   label: const Text('Request Quote'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: yellow,
@@ -781,4 +891,30 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
       ),
     );
   }
+}
+
+class _PreferredCarrier {
+  const _PreferredCarrier({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.route,
+    required this.tag,
+    required this.rating,
+    required this.trips,
+    required this.badge,
+    required this.category,
+    required this.icon,
+  });
+
+  final String id;
+  final String name;
+  final String type;
+  final String route;
+  final String tag;
+  final String rating;
+  final String trips;
+  final String badge;
+  final String category;
+  final IconData icon;
 }

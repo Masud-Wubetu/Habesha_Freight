@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/routing/app_routes.dart';
-import 'package:mobile/core/services/storage_service.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/driver_service.dart';
+import 'package:mobile/core/services/message_service.dart';
+import 'package:mobile/presentation/screens/driver/available_loads_screen.dart';
+import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -10,33 +14,196 @@ class DriverHomeScreen extends StatefulWidget {
 }
 
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
-  bool _isAvailable = true;
-  String _driverName = 'Kebede Tadesse';
+  final DriverService _driverService = DriverService();
+  final MessageService _messageService = MessageService();
+  bool _loading = true;
+  int _conversationCount = 0;
+
+  Map<String, dynamic> _stats = {};
+  List<Map<String, dynamic>> _shipments = [];
+  List<Map<String, dynamic>> _bids = [];
+  Map<String, dynamic>? _activeShipment;
+  Map<String, dynamic>? _urgentLoad;
+
+  static const Color navy = Color(0xFF0F172A);
+  static const Color gold = Color(0xFFFFB300);
+  static const Color muted = Color(0xFF94A3B8);
+  static const Color green = Color(0xFF239B70);
+  static const Color cardColor = Color(0xFF1E293B);
+  static const Color textWhite = Colors.white;
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _load();
   }
 
-  Future<void> _loadProfile() async {
-    final name = await StorageService.getUserName();
-    if (mounted && name != null && name.isNotEmpty) {
-      setState(() => _driverName = name);
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final results = await Future.wait([
+        _driverService.getStats(),
+        _driverService.listShipments(),
+        _driverService.listBids(),
+        _driverService.listAvailableLoads(),
+      ]);
+      await _refreshConversationBadge();
+      final stats = results[0] as Map<String, dynamic>;
+      final shipments = results[1] as List<Map<String, dynamic>>;
+      final bids = results[2] as List<Map<String, dynamic>>;
+      final loads = results[3] as List<Map<String, dynamic>>;
+
+      Map<String, dynamic>? active;
+      for (final s in shipments) {
+        final status = (s['status']?.toString() ?? '').toUpperCase();
+        if (status == 'IN_TRANSIT' || status == 'DISPATCHED' || status == 'ASSIGNED') {
+          active = s;
+          break;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _stats = stats;
+        _shipments = shipments;
+        _bids = bids;
+        _activeShipment = active;
+        _urgentLoad = loads.isNotEmpty ? loads.first : null;
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _stats = {};
+        _shipments = [];
+        _bids = [];
+        _activeShipment = null;
+        _urgentLoad = null;
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _stats = {};
+        _shipments = [];
+        _bids = [];
+        _activeShipment = null;
+        _urgentLoad = null;
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to load driver home')),
+      );
     }
   }
 
-  // EXACT COLORS FROM YOUR PROVIDED CODE
-  static const Color navy = Color(0xFF0F172A);
-  static const Color gold = Color(0xFFFFB300);
-  static const Color background = Color(0xFF0B1120);
-  static const Color muted = Color(0xFF94A3B8);
-  static const Color blue = Color(0xFF4385D7);
-  static const Color green = Color(0xFF239B70);
+  /// Stub entry for messaging: fetches conversations for badge/count snackbar.
+  Future<void> _refreshConversationBadge() async {
+    try {
+      final conversations = await _messageService.listConversations();
+      if (!mounted) return;
+      setState(() => _conversationCount = conversations.length);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _conversationCount = 0);
+    }
+  }
 
-  // NEW COLORS FOR DARK UI
-  static const Color cardColor = Color(0xFF1E293B);
-  static const Color textWhite = Colors.white;
+  Future<void> _showConversationsStub() async {
+    try {
+      final conversations = await _messageService.listConversations();
+      if (!mounted) return;
+      setState(() => _conversationCount = conversations.length);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            conversations.isEmpty
+                ? 'No conversations yet'
+                : '${conversations.length} conversations',
+          ),
+        ),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to load conversations')),
+      );
+    }
+  }
+
+  void _openAvailableLoads() {
+    Navigator.push(
+      context,
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 280),
+        reverseTransitionDuration: const Duration(milliseconds: 240),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const AvailableFreightLoadsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final curvedAnimation = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          );
+          return FadeTransition(
+            opacity: curvedAnimation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.04, 0),
+                end: Offset.zero,
+              ).animate(curvedAnimation),
+              child: child,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _handleDriverNavigation(int index) {
+    switch (index) {
+      case 0: // Load
+        _openAvailableLoads();
+        break;
+      case 1: // Offer
+        Navigator.pushNamed(context, AppRoutes.page18DirectOffers);
+        break;
+      case 2: // Home
+        break;
+      case 3: // Bids — open available loads (bid board)
+        _openAvailableLoads();
+        break;
+      case 4: // Tracking
+        if (_activeShipment != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Tracking ${_activeShipment!['origin_city'] ?? ''} → ${_activeShipment!['destination_city'] ?? ''}',
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No active shipment to track')),
+          );
+        }
+        break;
+    }
+  }
+
+  String _fmt(num? n) {
+    if (n == null) return '0';
+    return n.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,42 +213,39 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         child: Column(
           children: [
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(),
-                    const SizedBox(height: 16),
-                    _buildAvailabilityCard(),
-                    const SizedBox(height: 16),
-                    _buildUrgentMatchCard(),
-                    const SizedBox(height: 16),
-                    _buildStatsGrid(),
-                    const SizedBox(height: 16),
-                    _buildActiveDelivery(),
-                    const SizedBox(height: 20),
-                    _buildSectionTitle('CARRIER ACTIONS', null),
-                    const SizedBox(height: 12),
-                    _buildQuickActions(),
-                    const SizedBox(height: 20),
-                    _buildActiveBidPipeline(),
-                    const SizedBox(height: 30),
-                  ],
-                ),
-              ),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator(color: gold))
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(),
+                          const SizedBox(height: 16),
+                          _buildAvailabilityCard(),
+                          const SizedBox(height: 16),
+                          _buildUrgentMatchCard(),
+                          const SizedBox(height: 16),
+                          _buildStatsGrid(),
+                          const SizedBox(height: 16),
+                          _buildActiveDelivery(),
+                          const SizedBox(height: 20),
+                          _buildSectionTitle('CARRIER ACTIONS', null),
+                          const SizedBox(height: 12),
+                          _buildQuickActions(),
+                          const SizedBox(height: 20),
+                          _buildActiveBidPipeline(),
+                          const SizedBox(height: 30),
+                        ],
+                      ),
+                    ),
             ),
           ],
         ),
       ),
-      // Bottom navigation with custom floating action button
-      bottomNavigationBar: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.topCenter,
-        children: [
-          _buildBottomNavBar(),
-          Positioned(top: -24, child: _buildCustomFAB()),
-        ],
+      bottomNavigationBar: DriverBottomNavBar(
+        currentIndex: 2,
+        onTap: _handleDriverNavigation,
       ),
     );
   }
@@ -139,6 +303,15 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+        IconButton(
+          tooltip: 'Messages',
+          onPressed: _showConversationsStub,
+          icon: Badge(
+            isLabelVisible: _conversationCount > 0,
+            label: Text('$_conversationCount'),
+            child: const Icon(Icons.chat_outlined, color: muted),
           ),
         ),
         Container(
@@ -269,12 +442,15 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               children: [
                 Row(
                   children: [
-                    Text(
-                      'Selam, ${_driverName.split(' ').first}',
-                      style: const TextStyle(
-                        color: textWhite,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                    const Flexible(
+                      child: Text(
+                        'Selam, Solomo...',
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: textWhite,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -324,6 +500,31 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   }
 
   Widget _buildUrgentMatchCard() {
+    final load = _urgentLoad;
+    if (load == null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          'No urgent corridor matches right now. Check available loads.',
+          style: TextStyle(color: muted, fontSize: 13),
+        ),
+      );
+    }
+
+    final origin = load['origin_city']?.toString() ?? '—';
+    final dest = load['destination_city']?.toString() ?? '—';
+    final cargo = load['cargo_description']?.toString() ?? 'Freight';
+    final priceRaw = load['offered_price_etb'];
+    final price = priceRaw is num
+        ? priceRaw.toDouble()
+        : double.tryParse(priceRaw?.toString() ?? '') ?? 0;
+    final loadId = load['id']?.toString() ?? '';
+
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -340,62 +541,36 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const Row(
                       children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.local_fire_department,
-                              size: 14,
+                        Icon(Icons.local_fire_department, size: 14, color: gold),
+                        SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            'CORRIDOR URGENT MATCH',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
                               color: gold,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'CORRIDOR URGENT MATCH',
-                              style: TextStyle(
-                                color: gold,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: navy,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.access_time, size: 10, color: muted),
-                              SizedBox(width: 4),
-                              Text(
-                                '42m left',
-                                style: TextStyle(color: muted, fontSize: 10),
-                              ),
-                            ],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 10),
-                    const Text(
-                      'Hawassa ➔ Modjo Dry Port',
-                      style: TextStyle(
+                    Text(
+                      '$origin ➔ $dest',
+                      style: const TextStyle(
                         color: textWhite,
                         fontSize: 17,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      '28T Export Washed Grade-1 Sidama Coffee',
-                      style: TextStyle(color: muted, fontSize: 11),
+                    Text(
+                      cargo,
+                      style: const TextStyle(color: muted, fontSize: 11),
                     ),
                     const SizedBox(height: 14),
                     Row(
@@ -415,22 +590,19 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                             ),
                             const SizedBox(height: 2),
                             RichText(
-                              text: const TextSpan(
+                              text: TextSpan(
                                 children: [
                                   TextSpan(
-                                    text: '45,000 ',
-                                    style: TextStyle(
+                                    text: '${_fmt(price)} ',
+                                    style: const TextStyle(
                                       color: gold,
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  TextSpan(
+                                  const TextSpan(
                                     text: 'ETB',
-                                    style: TextStyle(
-                                      color: muted,
-                                      fontSize: 11,
-                                    ),
+                                    style: TextStyle(color: muted, fontSize: 11),
                                   ),
                                 ],
                               ),
@@ -438,7 +610,36 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                           ],
                         ),
                         ElevatedButton.icon(
-                          onPressed: () {},
+                          onPressed: loadId.isEmpty
+                              ? null
+                              : () async {
+                                  try {
+                                    await _driverService.placeBid(
+                                      loadId: loadId,
+                                      amountEtb: price > 0 ? price : 1,
+                                    );
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Quick bid submitted'),
+                                        backgroundColor: green,
+                                      ),
+                                    );
+                                    _load();
+                                  } on ApiException catch (e) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(e.message)),
+                                    );
+                                  } catch (_) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Bid failed'),
+                                      ),
+                                    );
+                                  }
+                                },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: gold,
                             foregroundColor: Colors.black,
@@ -473,6 +674,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   }
 
   Widget _buildStatsGrid() {
+    final earnings = _stats['totalEarningsEtb'];
+    final pendingBids = _stats['pendingBids'] ?? _bids.length;
+    final activeJobs = _stats['activeJobs'] ?? (_activeShipment != null ? 1 : 0);
+    final rating = _stats['avgRating'] ?? 4.9;
+    final trips = _stats['totalTrips'] ?? _shipments.length;
+
     return Row(
       children: [
         Expanded(
@@ -481,7 +688,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               _buildStatCardDark(
                 title: 'TELEBIRR WALLET',
                 icon: Icons.account_balance_wallet_outlined,
-                mainValue: '42,500',
+                mainValue: _fmt(earnings is num ? earnings : 0),
                 unit: 'ETB',
                 subWidget: const Row(
                   children: [
@@ -498,11 +705,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               _buildStatCardDark(
                 title: "TODAY'S BIDS",
                 icon: Icons.gavel,
-                mainValue: '3',
+                mainValue: '$pendingBids',
                 suffixText: 'Active',
-                subWidget: const Text(
-                  '1 Under Final Review',
-                  style: TextStyle(color: muted, fontSize: 10),
+                subWidget: Text(
+                  '${_bids.length} total bids',
+                  style: const TextStyle(color: muted, fontSize: 10),
                 ),
               ),
             ],
@@ -515,15 +722,22 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               _buildStatCardDark(
                 title: 'ACTIVE RUN',
                 icon: Icons.local_shipping_outlined,
-                mainValue: '1',
+                mainValue: '$activeJobs',
                 suffixText: 'Trip',
-                subWidget: const Row(
+                subWidget: Row(
                   children: [
-                    Icon(Icons.play_arrow, size: 12, color: gold),
-                    SizedBox(width: 4),
+                    Icon(
+                      Icons.play_arrow,
+                      size: 12,
+                      color: activeJobs > 0 ? gold : muted,
+                    ),
+                    const SizedBox(width: 4),
                     Text(
-                      'In Progress',
-                      style: TextStyle(color: gold, fontSize: 10),
+                      activeJobs > 0 ? 'In Progress' : 'Idle',
+                      style: TextStyle(
+                        color: activeJobs > 0 ? gold : muted,
+                        fontSize: 10,
+                      ),
                     ),
                   ],
                 ),
@@ -532,11 +746,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               _buildStatCardDark(
                 title: 'SAFETY RATING',
                 icon: Icons.star_border,
-                mainValue: '4.85',
+                mainValue: '$rating',
                 starIcon: true,
-                subWidget: const Text(
-                  '89 Verified Trips',
-                  style: TextStyle(color: muted, fontSize: 10),
+                subWidget: Text(
+                  '$trips Verified Trips',
+                  style: const TextStyle(color: muted, fontSize: 10),
                 ),
               ),
             ],
@@ -556,6 +770,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     required Widget subWidget,
   }) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: cardColor,
@@ -567,13 +782,16 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: muted,
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
+              Expanded(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: muted,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
               Icon(icon, size: 14, color: muted),
@@ -620,6 +838,56 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   }
 
   Widget _buildActiveDelivery() {
+    final active = _activeShipment;
+    if (active == null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'No active delivery',
+              style: TextStyle(
+                color: textWhite,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'When you are assigned a run it will appear here.',
+              style: TextStyle(color: muted, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _openAvailableLoads,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: gold,
+                foregroundColor: Colors.black,
+              ),
+              child: const Text('Browse Available Loads'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final rawId = active['id']?.toString() ?? '';
+    final short = rawId.length > 6
+        ? rawId.substring(0, 6).toUpperCase()
+        : rawId.toUpperCase();
+    final origin = active['origin_city']?.toString() ?? '—';
+    final dest = active['destination_city']?.toString() ?? '—';
+    final cargo = active['cargo_description']?.toString() ?? 'Freight';
+    final weight = active['weight_tons'];
+    final cargoLabel = weight != null ? '${weight}T $cargo' : cargo;
+    final status = active['status']?.toString() ?? 'IN_TRANSIT';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -632,26 +900,24 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: green,
-                      shape: BoxShape.circle,
+              Flexible(
+                child: Row(
+                  children: [
+                    const Icon(Icons.circle, size: 8, color: green),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        'ACTIVE TRIP: #HF-$short',
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: textWhite,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'ACTIVE TRIP: #HF-9012',
-                    style: TextStyle(
-                      color: textWhite,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -659,53 +925,38 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   color: navy,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
-                  'Dire Dawa Route',
-                  style: TextStyle(color: muted, fontSize: 10),
+                child: Text(
+                  status,
+                  style: const TextStyle(color: muted, fontSize: 10),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 flex: 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'ORIGIN',
-                      style: TextStyle(color: muted, fontSize: 9),
-                    ),
+                    const Text('ORIGIN', style: TextStyle(color: muted, fontSize: 9)),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Addis Ababa',
-                      style: TextStyle(
+                    Text(
+                      origin,
+                      style: const TextStyle(
                         color: textWhite,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Kality Freight Depot',
-                      style: TextStyle(color: muted, fontSize: 10),
-                    ),
                   ],
                 ),
               ),
-              Expanded(
-                flex: 1,
+              const Expanded(
                 child: Column(
                   children: [
-                    const Icon(Icons.arrow_forward, color: gold, size: 18),
-                    const SizedBox(height: 4),
-                    const Text(
-                      '452 km',
-                      style: TextStyle(color: muted, fontSize: 9),
-                    ),
+                    Icon(Icons.arrow_forward, color: gold, size: 18),
                   ],
                 ),
               ),
@@ -719,18 +970,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                       style: TextStyle(color: muted, fontSize: 9),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Dire Dawa',
-                      style: TextStyle(
+                    Text(
+                      dest,
+                      style: const TextStyle(
                         color: textWhite,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    const Text(
-                      'Industrial Free Zone',
-                      style: TextStyle(color: muted, fontSize: 10),
                     ),
                   ],
                 ),
@@ -739,114 +985,27 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.speed, size: 14, color: green),
-                  SizedBox(width: 4),
-                  Text(
-                    '68 km/h Live Cruise',
-                    style: TextStyle(color: green, fontSize: 11),
-                  ),
-                ],
-              ),
-              const Row(
-                children: [
-                  Icon(Icons.inventory_2_outlined, size: 14, color: gold),
-                  SizedBox(width: 4),
-                  Text(
-                    '28T Teff & Grain',
-                    style: TextStyle(color: muted, fontSize: 11),
-                  ),
-                ],
+              const Icon(Icons.inventory_2_outlined, size: 14, color: gold),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  cargoLabel,
+                  style: const TextStyle(color: muted, fontSize: 11),
+                ),
               ),
             ],
-          ),
-          const SizedBox(height: 14),
-          // Map Simulation
-          Container(
-            height: 120,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFE2E8F0), Color(0xFF94A3B8)],
-              ),
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  bottom: 10,
-                  left: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: navy.withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.location_on, size: 14, color: Colors.white),
-                        SizedBox(width: 4),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Passing Awash Checkpoint',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'ETA Dire Dawa: 3h 15m',
-                              style: TextStyle(color: Colors.grey, fontSize: 8),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 10,
-                  right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: navy.withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.circle, size: 6, color: green),
-                        SizedBox(width: 4),
-                        Text(
-                          'GPS Synced',
-                          style: TextStyle(color: Colors.white, fontSize: 9),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
           const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Tracking $origin → $dest')),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: gold,
                     foregroundColor: Colors.black,
@@ -866,7 +1025,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Waybill #HF-$short')),
+                    );
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: textWhite,
                     side: const BorderSide(color: Colors.white24),
@@ -924,18 +1087,20 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
   Widget _buildQuickActions() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         _buildActionButton(
           icon: Icons.list_alt,
           label: 'Available\nLoads',
-          badgeCount: '13',
+          badgeCount: _urgentLoad != null ? '1+' : null,
+          onTap: _openAvailableLoads,
         ),
         _buildActionButton(
           icon: Icons.local_offer,
           label: 'Direct\nOffers',
-          badgeCount: '2',
+          badgeCount: _bids.isNotEmpty ? '${_bids.length}' : null,
           iconColor: green,
+          onTap: () =>
+              Navigator.pushNamed(context, AppRoutes.page18DirectOffers),
         ),
         _buildActionButton(
           icon: Icons.account_balance_wallet_outlined,
@@ -950,63 +1115,70 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     required String label,
     String? badgeCount,
     Color? iconColor,
+    VoidCallback? onTap,
   }) {
     return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(
-                    color: navy,
-                    shape: BoxShape.circle,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: const BoxDecoration(
+                      color: navy,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, color: iconColor ?? gold, size: 22),
                   ),
-                  child: Icon(icon, color: iconColor ?? gold, size: 22),
-                ),
-                if (badgeCount != null)
-                  Positioned(
-                    top: -4,
-                    right: -4,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: gold,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        badgeCount,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
+                  if (badgeCount != null)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: gold,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          badgeCount,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: textWhite, fontSize: 10),
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: textWhite, fontSize: 10),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildActiveBidPipeline() {
+    final pipeline = _bids.take(3).toList();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1033,34 +1205,55 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   ),
                 ],
               ),
-              const Text(
-                'View All',
-                style: TextStyle(
-                  color: gold,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
+              GestureDetector(
+                onTap: _openAvailableLoads,
+                child: const Text(
+                  'View All',
+                  style: TextStyle(
+                    color: gold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          _buildBidItem(
-            route: 'Hawassa ➔ A...',
-            status: 'Reviewing',
-            statusColor: gold,
-            price: '36,500',
-            shipper: 'Shipper: Sidama Farmers Coop • 2...',
-            time: '18 mins ago',
-          ),
-          const Divider(color: Colors.white12, height: 24),
-          _buildBidItem(
-            route: 'Mojo ➔ ...',
-            status: 'Counter-Offer',
-            statusColor: green,
-            price: '78,000',
-            shipper: 'Shipper: Ethio Logistics S.C. • 3...',
-            subText: 'Shipper offered 74k',
-          ),
+          if (pipeline.isEmpty)
+            const Text(
+              'No active bids yet. Place a bid on available loads.',
+              style: TextStyle(color: muted, fontSize: 12),
+            )
+          else
+            ...pipeline.asMap().entries.map((entry) {
+              final bid = entry.value;
+              final origin = bid['origin_city']?.toString() ?? '—';
+              final dest = bid['destination_city']?.toString() ?? '—';
+              final status = (bid['status']?.toString() ?? 'PENDING').toUpperCase();
+              final amount = bid['bid_amount_etb'];
+              final priceNum = amount is num
+                  ? amount.toDouble()
+                  : double.tryParse(amount?.toString() ?? '') ?? 0;
+              final shipper = bid['shipper_name']?.toString() ?? 'Shipper';
+              final statusColor = status.contains('COUNTER')
+                  ? green
+                  : status == 'ACCEPTED'
+                      ? green
+                      : gold;
+              return Column(
+                children: [
+                  if (entry.key > 0)
+                    const Divider(color: Colors.white12, height: 24),
+                  _buildBidItem(
+                    route: '$origin ➔ $dest',
+                    status: status,
+                    statusColor: statusColor,
+                    price: _fmt(priceNum),
+                    shipper: 'Shipper: $shipper',
+                  ),
+                ],
+              );
+            }),
         ],
       ),
     );
@@ -1079,10 +1272,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Flexible(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1176,85 +1368,4 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       ],
     );
   }
-
-  Widget _buildBottomNavBar() {
-    return BottomAppBar(
-      color: navy,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8.0,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.dashboard_outlined, 'Home', isActive: true),
-            _buildNavItem(Icons.inventory_2_outlined, 'Shipments'),
-            const SizedBox(width: 64),
-            _buildNavItem(Icons.gavel, 'Bids'),
-            _buildNavItem(Icons.location_on_outlined, 'Tracking'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, {bool isActive = false}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: isActive ? gold : muted, size: 22),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: isActive ? gold : muted,
-            fontSize: 9,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Custom FAB Widget with Label
-  Widget _buildCustomFAB() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          onTap: () {
-            // Handle Post Load action
-          },
-          child: Container(
-            height: 54,
-            width: 54,
-            decoration: BoxDecoration(
-              color: gold,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.add, size: 30, color: Colors.black),
-          ),
-        ),
-        const SizedBox(height: 3),
-        const Text(
-          'Post Load',
-          style: TextStyle(
-            color: gold,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
 }
-
-// Use your project's existing main.dart to launch the app.

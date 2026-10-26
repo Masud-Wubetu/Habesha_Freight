@@ -1,8 +1,29 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobile/core/config/api_config.dart';
 import 'package:mobile/core/services/escrow_service.dart';
 import 'package:mobile/core/services/fleet_service.dart';
 
 void main() {
+  group('ApiConfig fleet mutation paths', () {
+    test('company accept/decline/assign and escrow release paths', () {
+      expect(
+        ApiConfig.companyFleetRequestAccept('abc'),
+        '/company/fleet-requests/abc/accept',
+      );
+      expect(
+        ApiConfig.companyFleetRequestDecline('abc'),
+        '/company/fleet-requests/abc/decline',
+      );
+      expect(
+        ApiConfig.companyFleetRequestAssign('abc'),
+        '/company/fleet-requests/abc/assign',
+      );
+      expect(ApiConfig.escrowRelease('s1'), '/escrow/s1/release');
+      expect(ApiConfig.loads, '/loads');
+      expect(ApiConfig.bids, '/bids');
+    });
+  });
+
   group('FleetService parsers', () {
     test('CompanyStats.fromJson maps nested company stats payload', () {
       final stats = CompanyStats.fromJson({

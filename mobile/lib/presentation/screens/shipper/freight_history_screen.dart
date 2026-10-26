@@ -1,61 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/routing/app_routes.dart';
-import '../../../core/services/shipper_service.dart';
-import '../../widgets/shipper_bottom_navbar.dart';
-
-class ShipmentHistoryEntry {
-  const ShipmentHistoryEntry({
-    required this.id,
-    required this.date,
-    required this.routeFrom,
-    required this.routeTo,
-    required this.cargo,
-    required this.amount,
-    required this.status,
-    required this.driverName,
-    required this.truckInfo,
-    required this.rating,
-  });
-
-  final String id;
-  final String date;
-  final String routeFrom;
-  final String routeTo;
-  final String cargo;
-  final String amount;
-  final String status;
-  final String driverName;
-  final String truckInfo;
-  final String rating;
-
-  factory ShipmentHistoryEntry.fromMap(Map<String, dynamic> map) {
-    final weight = map['weight_tons'] != null ? '${map['weight_tons']}T ' : '';
-    final desc = map['cargo_description'] ?? 'Commercial Cargo';
-    final rawDate = map['created_at']?.toString() ?? '';
-    final dateStr = rawDate.isNotEmpty ? rawDate.split('T').first : 'Recent';
-    final price = map['offered_price_etb'] != null
-        ? (map['offered_price_etb'] as num).toInt().toString().replaceAllMapped(
-              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-              (m) => '${m[1]},',
-            )
-        : '0';
-
-    return ShipmentHistoryEntry(
-      id: map['id']?.toString() ?? 'WB-${map['request_id'] ?? 'HIST'}',
-      date: dateStr,
-      routeFrom: map['origin_city'] ?? 'Addis Ababa',
-      routeTo: map['destination_city'] ?? 'Dire Dawa',
-      cargo: '$weight$desc',
-      amount: price,
-      status: (map['status'] ?? 'Delivered').toString().toUpperCase(),
-      driverName: map['driver_name'] ?? 'Corridor Carrier Driver',
-      truckInfo: map['license_plate'] != null
-          ? 'Rig • ${map['license_plate']}'
-          : 'Standard Freight Rig',
-      rating: map['rating'] != null ? '${map['rating']}' : '5.0',
-    );
-  }
-}
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/shipper_service.dart';
+import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
 
 class FreightHistoryScreen extends StatefulWidget {
   final List<ShipmentHistoryEntry>? initialShipments;
@@ -67,49 +13,105 @@ class FreightHistoryScreen extends StatefulWidget {
 }
 
 class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
-  static const Color bgColor = Color(0xFF0A111F);
-  static const Color cardColor = Color(0xFF131C31);
-  static const Color innerCardColor = Color(0xFF1A243B);
-  static const Color primaryYellow = Color(0xFFFFB300);
-  static const Color textMuted = Color(0xFF8B95A5);
-  static const Color textLight = Color(0xFFE2E8F0);
-  static const Color greenAccent = Color(0xFF2EBD85);
-
   final ShipperService _shipperService = ShipperService();
   final TextEditingController _searchController = TextEditingController();
-
-  String _selectedFilter = 'All Time';
-  bool _isLoading = true;
-  List<ShipmentHistoryEntry> _shipments = [];
-  Map<String, dynamic>? _profile;
+  String _selectedFilter = 'Last 30 Days';
+  List<_ShipmentHistoryEntry> _shipments = [];
+  bool _loading = true;
+  double _totalDisbursed = 0;
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialShipments != null) {
-      _shipments = widget.initialShipments!;
-      _isLoading = false;
-    } else {
-      _loadHistoryData();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final rows = await _shipperService.listShipments();
+      final delivered = rows
+          .where((r) =>
+              (r['status']?.toString() ?? '').toUpperCase() == 'DELIVERED')
+          .map(_mapShipment)
+          .toList();
+      final total = delivered.fold<double>(
+        0,
+        (sum, s) => sum + (double.tryParse(s.amount.replaceAll(',', '')) ?? 0),
+      );
+      if (!mounted) return;
+      setState(() {
+        _shipments = delivered;
+        _totalDisbursed = total;
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _shipments = [];
+        _totalDisbursed = 0;
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _shipments = [];
+        _totalDisbursed = 0;
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to load freight history')),
+      );
     }
   }
 
-  Future<void> _loadHistoryData() async {
-    setState(() => _isLoading = true);
-    final results = await Future.wait([
-      _shipperService.getShipmentRequests(),
-      _shipperService.getProfile(),
-    ]);
+  _ShipmentHistoryEntry _mapShipment(Map<String, dynamic> row) {
+    final rawId = row['id']?.toString() ?? '';
+    final short = rawId.length > 6
+        ? rawId.substring(0, 6).toUpperCase()
+        : rawId.toUpperCase();
+    final price = row['offered_price_etb'] ?? row['amount_etb'] ?? 0;
+    final amountNum = price is num ? price.toDouble() : double.tryParse(price.toString()) ?? 0;
+    final amount = amountNum.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        );
+    final created = row['delivered_at'] ?? row['updated_at'] ?? row['created_at'];
+    String dateLabel = '—';
+    if (created != null) {
+      final dt = DateTime.tryParse(created.toString());
+      if (dt != null) {
+        const months = [
+          'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+        ];
+        dateLabel = '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+      }
+    }
+    final weight = row['weight_tons'];
+    final cargo = row['cargo_description']?.toString() ?? 'Freight';
+    final cargoLabel = weight != null ? '${weight}T $cargo' : cargo;
+    final driver = row['driver_name']?.toString() ??
+        row['carrier_name']?.toString() ??
+        'Carrier';
+    final plate = row['plate_number']?.toString();
+    final vehicle = row['vehicle_type']?.toString() ?? 'Heavy Rig';
 
-    if (!mounted) return;
-    final requests = results[0] as List<Map<String, dynamic>>;
-    final profile = results[1] as Map<String, dynamic>?;
-
-    setState(() {
-      _shipments = requests.map((m) => ShipmentHistoryEntry.fromMap(m)).toList();
-      _profile = profile;
-      _isLoading = false;
-    });
+    return _ShipmentHistoryEntry(
+      id: 'WB-$short',
+      date: dateLabel,
+      routeFrom: row['origin_city']?.toString() ?? '—',
+      routeTo: row['destination_city']?.toString() ?? '—',
+      cargo: cargoLabel,
+      amount: amount,
+      status: 'Delivered',
+      driverName: driver,
+      truckInfo: plate != null ? '$vehicle • Plate $plate' : vehicle,
+      rating: row['driver_rating']?.toString() ?? '—',
+    );
   }
 
   @override
@@ -231,27 +233,117 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
         ],
       ),
       body: SafeArea(
-        child: RefreshIndicator(
-          color: primaryYellow,
-          backgroundColor: cardColor,
-          onRefresh: _loadHistoryData,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Freight History',
-                      style: TextStyle(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Freight History',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: innerCardColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${_shipments.length} Completed',
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Archived delivery records & verified digital proof-of-delivery receipts',
+                style: TextStyle(color: textMuted, fontSize: 12, height: 1.4),
+              ),
+              const SizedBox(height: 20),
+
+              // Total Disbursed Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: innerCardColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF222E4A),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        Icons.account_balance_wallet_outlined,
+                        color: textLight,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'TOTAL DISBURSED',
+                            style: TextStyle(
+                              color: textMuted,
+                              fontSize: 10,
+                              letterSpacing: 1,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                _totalDisbursed.toStringAsFixed(0).replaceAllMapped(
+                                      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                      (m) => '${m[1]},',
+                                    ),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 2),
+                                child: Text(
+                                  'ETB',
+                                  style: TextStyle(
+                                    color: primaryYellow.withOpacity(0.8),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                     Container(
@@ -346,89 +438,66 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
                           ],
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: greenAccent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.verified, color: greenAccent, size: 14),
-                            SizedBox(width: 4),
-                            Text(
-                              'Verified POD',
-                              style: TextStyle(
-                                color: greenAccent,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Shipment List
+              if (_loading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(
+                    child: CircularProgressIndicator(color: primaryYellow),
+                  ),
+                )
+              else ...[
+                ...filteredShipments.map(
+                  (shipment) => _buildShipmentCard(
+                    shipment,
+                    cardColor,
+                    innerCardColor,
+                    primaryYellow,
+                    textMuted,
+                    greenAccent,
                   ),
                 ),
-                const SizedBox(height: 20),
-
-                // Search Field
-                TextField(
-                  controller: _searchController,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: 'Search Waybill #, corridor, or commodity...',
-                    hintStyle: const TextStyle(color: textMuted, fontSize: 13),
-                    prefixIcon: const Icon(Icons.search, color: textMuted),
-                    filled: true,
-                    fillColor: innerCardColor,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
+                if (filteredShipments.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 30),
+                    child: Center(
+                      child: Text(
+                        'No shipments found.',
+                        style: TextStyle(color: textMuted),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+              ],
 
-                // Date Filters
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: _load,
+                  style: TextButton.styleFrom(
+                    backgroundColor: innerCardColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   child: Row(
-                    children: ['Last 30 Days', 'This Quarter', 'All Time'].map((
-                      filter,
-                    ) {
-                      final isSelected = _selectedFilter == filter;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _selectedFilter = filter;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected ? primaryYellow : innerCardColor,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              filter,
-                              style: TextStyle(
-                                color: isSelected ? Colors.black : textLight,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.refresh, color: textLight, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Refresh History',
+                        style: TextStyle(
+                          color: textLight,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
                       );
                     }).toList(),

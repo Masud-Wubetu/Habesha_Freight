@@ -1,170 +1,106 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'api_client.dart';
 import '../config/api_config.dart';
-import 'storage_service.dart';
 
+/// Shipper-facing API helpers (`/shipper/*`, `/loads`, `/shipments`).
 class ShipperService {
-  final http.Client _client;
+  ShipperService({ApiClient? client}) : _api = client ?? ApiClient();
 
-  ShipperService({http.Client? client}) : _client = client ?? http.Client();
+  final ApiClient _api;
 
-  Future<String> _getBaseUrl() async {
-    final customUrl = await StorageService.getBaseUrl();
-    return customUrl ?? ApiConfig.baseUrl;
+  Future<Map<String, dynamic>> getProfile() async {
+    final res = await _api.get(ApiConfig.shipperProfile);
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? {};
   }
 
-  Future<Map<String, String>> _authHeaders() async {
-    final token = await StorageService.getToken();
-    final headers = {'Content-Type': 'application/json'};
-    if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $token';
-    }
-    return headers;
+  Future<List<Map<String, dynamic>>> listCompanies() async {
+    final res = await _api.get(ApiConfig.shipperCompanies);
+    return _asList(res['data']);
   }
 
-  /// Get authenticated shipper profile & database statistics
-  Future<Map<String, dynamic>?> getProfile() async {
-    try {
-      final base = await _getBaseUrl();
-      final res = await _client
-          .get(Uri.parse('$base/shippers/profile'), headers: await _authHeaders())
-          .timeout(const Duration(seconds: 8));
-      if (res.statusCode == 200) {
-        final body = jsonDecode(res.body);
-        if (body is Map && body['data'] is Map) {
-          return Map<String, dynamic>.from(body['data']);
-        }
-      }
-      return null;
-    } catch (_) {
-      return null;
-    }
+  Future<List<Map<String, dynamic>>> listRequests() async {
+    final res = await _api.get(ApiConfig.shipperRequests);
+    return _asList(res['data']);
   }
 
-  /// Update authenticated shipper profile
-  Future<bool> updateProfile({
-    String? fullName,
-    String? email,
-    String? phoneNumber,
+  Future<List<Map<String, dynamic>>> listShipments() async {
+    final res = await _api.get(ApiConfig.shipments);
+    return _asList(res['data']);
+  }
+
+  Future<List<Map<String, dynamic>>> listLoads() async {
+    final res = await _api.get(ApiConfig.loads);
+    return _asList(res['data']);
+  }
+
+  Future<Map<String, dynamic>> acceptBid({
+    required String requestId,
+    required String bidId,
   }) async {
-    try {
-      final base = await _getBaseUrl();
-      final payload = <String, dynamic>{};
-      if (fullName != null && fullName.isNotEmpty) payload['full_name'] = fullName;
-      if (email != null && email.isNotEmpty) payload['email'] = email;
-      if (phoneNumber != null && phoneNumber.isNotEmpty) payload['phone_number'] = phoneNumber;
-
-      final res = await _client
-          .put(
-            Uri.parse('$base/shippers/profile'),
-            headers: await _authHeaders(),
-            body: jsonEncode(payload),
-          )
-          .timeout(const Duration(seconds: 8));
-      return res.statusCode == 200;
-    } catch (_) {
-      return false;
-    }
+    final res = await _api.patch(ApiConfig.shipperAcceptBid(requestId, bidId));
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? res;
   }
 
-  /// Get all requests posted by current shipper
-  Future<List<Map<String, dynamic>>> getShipmentRequests() async {
-    try {
-      final base = await _getBaseUrl();
-      final res = await _client
-          .get(Uri.parse('$base/shippers/requests'), headers: await _authHeaders())
-          .timeout(const Duration(seconds: 8));
-      if (res.statusCode == 200) {
-        final body = jsonDecode(res.body);
-        if (body is Map && body['data'] is List) {
-          return List<Map<String, dynamic>>.from(body['data']);
-        }
-      }
-      return [];
-    } catch (_) {
-      return [];
-    }
-  }
-
-  /// Search real fleet transport companies from PostgreSQL
-  Future<List<Map<String, dynamic>>> getFleetCompanies({String? search}) async {
-    try {
-      final base = await _getBaseUrl();
-      final uri = search != null && search.isNotEmpty
-          ? Uri.parse('$base/shippers/companies?search=${Uri.encodeComponent(search)}')
-          : Uri.parse('$base/shippers/companies');
-      final res = await _client
-          .get(uri, headers: await _authHeaders())
-          .timeout(const Duration(seconds: 8));
-      if (res.statusCode == 200) {
-        final body = jsonDecode(res.body);
-        if (body is Map && body['data'] is List) {
-          return List<Map<String, dynamic>>.from(body['data']);
-        }
-      }
-      return [];
-    } catch (_) {
-      return [];
-    }
-  }
-
-  /// Submit a direct fleet request to a transport company
-  Future<bool> createFleetRequest({
-    required String companyId,
-    required String originCity,
-    required String destinationCity,
-    required String cargoDescription,
-    required double weightTons,
-    required double offeredPriceEtb,
-    int trucksNeeded = 1,
+  Future<Map<String, dynamic>> counterBid({
+    required String requestId,
+    required String bidId,
+    required num amountEtb,
   }) async {
-    try {
-      final base = await _getBaseUrl();
-      final res = await _client
-          .post(
-            Uri.parse('$base/shippers/fleet-requests'),
-            headers: await _authHeaders(),
-            body: jsonEncode({
-              'company_id': companyId,
-              'origin_city': originCity,
-              'destination_city': destinationCity,
-              'cargo_description': cargoDescription,
-              'weight_tons': weightTons,
-              'offered_price_etb': offeredPriceEtb,
-              'trucks_needed': trucksNeeded,
-            }),
-          )
-          .timeout(const Duration(seconds: 10));
-      return res.statusCode == 200 || res.statusCode == 201;
-    } catch (_) {
-      return false;
-    }
+    final res = await _api.post(
+      ApiConfig.shipperCounterBid(requestId, bidId),
+      body: {'counter_amount_etb': amountEtb},
+    );
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? res;
   }
 
-  /// Rate a carrier driver upon completed consignment
-  Future<bool> rateDriver({
+  Future<Map<String, dynamic>> rejectBid({
+    required String requestId,
+    required String bidId,
+  }) async {
+    final res = await _api.patch(ApiConfig.shipperRejectBid(requestId, bidId));
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? res;
+  }
+
+  Future<List<Map<String, dynamic>>> listBids() async {
+    final res = await _api.get('/shipper/bids');
+    return _asList(res['data']);
+  }
+
+  Future<Map<String, dynamic>> createFleetRequest(Map<String, dynamic> body) async {
+    final res = await _api.post(ApiConfig.shipperFleetRequests, body: body);
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? res;
+  }
+
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> body) async {
+    final res = await _api.patch(ApiConfig.shipperProfile, body: body);
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? res;
+  }
+
+  Future<Map<String, dynamic>> rateDriver({
     required String driverId,
-    required String deliveryId,
     required int rating,
     String? comment,
+    String? shipmentId,
   }) async {
-    try {
-      final base = await _getBaseUrl();
-      final res = await _client
-          .post(
-            Uri.parse('$base/shippers/ratings/driver'),
-            headers: await _authHeaders(),
-            body: jsonEncode({
-              'driver_id': driverId,
-              'delivery_id': deliveryId,
-              'rating': rating,
-              'comment': comment ?? '',
-            }),
-          )
-          .timeout(const Duration(seconds: 8));
-      return res.statusCode == 200 || res.statusCode == 201;
-    } catch (_) {
-      return false;
-    }
+    final res = await _api.post(
+      ApiConfig.shipperRatings,
+      body: {
+        'driver_id': driverId,
+        'rating': rating,
+        if (comment != null) 'comment': comment,
+        if (shipmentId != null) 'shipment_id': shipmentId,
+      },
+    );
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? res;
   }
+}
+
+List<Map<String, dynamic>> _asList(dynamic raw) {
+  if (raw is List) {
+    return raw
+        .whereType<Map>()
+        .map((e) => e.cast<String, dynamic>())
+        .toList();
+  }
+  if (raw is Map && raw['items'] is List) return _asList(raw['items']);
+  return const [];
 }

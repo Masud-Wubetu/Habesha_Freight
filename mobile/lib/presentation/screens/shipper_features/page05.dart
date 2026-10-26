@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/routing/app_routes.dart';
+import '../../../core/services/api_client.dart';
 import '../../../core/services/corridor_service.dart';
-import '../../../core/services/storage_service.dart';
+import '../../../core/services/escrow_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/home/bottom_nav_bar.dart';
 import '../../widgets/post_load/post_load_sheet.dart';
@@ -24,23 +25,103 @@ class ShipperEscrowVaultScreen extends StatefulWidget {
 
 class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
   final CorridorService _corridorService = CorridorService();
+  final EscrowService _escrowService = EscrowService();
   String _selectedLanguage = 'EN';
   int _activeTabIndex = 0; // 0: Active Escrow, 1: Invoices, 2: Disputes
-  double _activeLockedAmount = 0.0;
-  double _releasedThisMonth = 0.0;
+  double _activeLockedAmount = 0;
+  double _releasedThisMonth = 0;
   List<ConsignmentEscrowItem> _consignments = [];
-  bool _loading = false;
-  String _userName = 'Shipper';
+  final Map<String, String> _shipmentIdByConsignmentId = {};
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    if (widget.initialConsignments != null) {
-      _consignments = List.from(widget.initialConsignments!);
-      _recalculateBalances();
-    } else {
-      _loadEscrow();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final ledger = await _escrowService.getLedger();
+      final mapped = <ConsignmentEscrowItem>[];
+      _shipmentIdByConsignmentId.clear();
+      for (final item in ledger.items) {
+        final card = _mapEscrowItem(item);
+        mapped.add(card);
+        if (item.shipmentId.isNotEmpty) {
+          _shipmentIdByConsignmentId[card.id] = item.shipmentId;
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _consignments = mapped;
+        _activeLockedAmount = ledger.totalLocked;
+        _releasedThisMonth = ledger.totalReleased;
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _consignments = [];
+        _activeLockedAmount = 0;
+        _releasedThisMonth = 0;
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: const Color(0xFFEF4444)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _consignments = [];
+        _activeLockedAmount = 0;
+        _releasedThisMonth = 0;
+        _loading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to load escrow ledger'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
     }
+  }
+
+  EscrowCardStatus _mapEscrowStatus(String status) {
+    final s = status.toUpperCase();
+    if (s == 'RELEASED') return EscrowCardStatus.settled;
+    if (s == 'PENDING') return EscrowCardStatus.pendingPodOtp;
+    return EscrowCardStatus.inTransit;
+  }
+
+  ConsignmentEscrowItem _mapEscrowItem(EscrowItem item) {
+    final short = item.shipmentId.isNotEmpty
+        ? (item.shipmentId.length > 6
+            ? item.shipmentId.substring(0, 6).toUpperCase()
+            : item.shipmentId.toUpperCase())
+        : (item.id.length > 6 ? item.id.substring(0, 6).toUpperCase() : item.id);
+    final status = _mapEscrowStatus(item.status);
+    final provider = item.gatewayReference != null &&
+            item.gatewayReference!.toLowerCase().contains('cbe')
+        ? 'CBE Birr Escrow'
+        : 'Telebirr Escrow';
+    return ConsignmentEscrowItem(
+      id: '#HF-$short',
+      escrowProvider: provider,
+      amountEtb: item.grossAmount,
+      status: status,
+      origin: item.origin ?? '—',
+      destination: item.destination ?? '—',
+      carrierName: item.carrierName ?? 'Carrier',
+      telemetryText: status == EscrowCardStatus.settled
+          ? 'Settled · ${item.status}'
+          : '${item.origin ?? ''} → ${item.destination ?? ''} · ${item.status}',
+      cargoDetails: item.cargo ?? 'Freight consignment',
+      taxInvoiceNo: status == EscrowCardStatus.settled
+          ? (item.gatewayReference ?? 'INV-$short')
+          : null,
+    );
   }
 
   void _recalculateBalances() {
@@ -245,7 +326,29 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
     PodOtpReleaseModal.show(
       context,
       item: item,
-      onConfirmedRelease: (otpCode) {
+      onConfirmedRelease: (otpCode) async {
+        final shipmentId = _shipmentIdByConsignmentId[item.id];
+        if (shipmentId != null && shipmentId.isNotEmpty) {
+          try {
+            await _escrowService.release(shipmentId);
+          } on ApiException catch (e) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(e.message), backgroundColor: const Color(0xFFEF4444)),
+            );
+            return;
+          } catch (_) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Escrow release failed'),
+                backgroundColor: Color(0xFFEF4444),
+              ),
+            );
+            return;
+          }
+        }
+        if (!mounted) return;
         setState(() {
           final idx = _consignments.indexWhere((c) => c.id == item.id);
           if (idx != -1) {
@@ -587,25 +690,25 @@ class _ShipperEscrowVaultScreenState extends State<ShipperEscrowVaultScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Status Filter Tabs (Active Escrow, Invoices, Disputes)
-                EscrowStatusFilterTabs(
-                  selectedIndex: _activeTabIndex,
-                  onTabSelected: _onTabSelected,
-                  activeEscrowCount: activeCount,
-                  invoicesCount: settledCount,
-                  disputesCount: 0,
-                ),
-                const SizedBox(height: 16),
+              // Status Filter Tabs (Active Escrow, Invoices, Disputes)
+              EscrowStatusFilterTabs(
+                selectedIndex: _activeTabIndex,
+                onTabSelected: _onTabSelected,
+                activeEscrowCount: _consignments.where((c) => c.status != EscrowCardStatus.settled).length,
+                invoicesCount: _consignments.where((c) => c.status == EscrowCardStatus.settled).length,
+                disputesCount: 0,
+              ),
+              const SizedBox(height: 16),
 
-                if (_loading)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 48),
-                    child: Center(
-                      child: CircularProgressIndicator(color: AppColors.gold),
-                    ),
-                  )
-                else
-                  _buildConsignmentsList(),
+              // Consignment Escrow Cards list
+              if (_loading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 48),
+                  child: Center(child: CircularProgressIndicator(color: AppColors.gold)),
+                )
+              else
+                _buildConsignmentsList(),
+              const SizedBox(height: 16),
 
                 const SizedBox(height: 100),
               ],

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Wrapper: Cursor AppImage pollutes APPIMAGE/LD_LIBRARY_PATH and breaks docker-compose.
+# Usage (from repo root):
+#   ./dc logs -f
+#   ./dc ps
+#   ./dc up -d --build
+#   ./dc down
+set -euo pipefail
+cd "$(dirname "$0")"
+
+exec env -u APPIMAGE -u APPDIR -u LD_LIBRARY_PATH -u GSETTINGS_SCHEMA_DIR -u PERLLIB \
+  PATH=/usr/bin:/bin:/usr/local/bin \
+  HOME="${HOME}" \
+  DOCKER_HOST="${DOCKER_HOST:-}" \
+  /usr/local/bin/docker-compose -f docker-compose.yml "$@"

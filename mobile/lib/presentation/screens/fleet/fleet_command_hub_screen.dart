@@ -85,13 +85,13 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
   Widget build(BuildContext context) {
     final stats = _stats;
     final activeRigs = stats == null
-        ? '24 / 28'
+        ? '—'
         : '${stats.vehiclesActive} / ${stats.vehiclesTotal == 0 ? stats.vehiclesActive : stats.vehiclesTotal}';
     final escrowValue = stats == null
-        ? 'ETB 1.84M'
+        ? '—'
         : (_lockedEscrow > 0 ? _etb(_lockedEscrow) : _etb(stats.totalEarnings));
-    final companyName = _profile?.name ?? 'Nile Trans-Ethiopia Logistics Corp';
-    final tin = _profile?.tin ?? '00928374-B';
+    final companyName = _profile?.name ?? (_live ? 'Fleet company' : '—');
+    final tin = _profile?.tin ?? '—';
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -210,7 +210,9 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                     PageRibbon(
                       page: '27',
                       title: 'FLEET OPERATIONS COMMAND HUB',
-                      status: _live ? 'API Synced' : 'Design Preview',
+                      status: _live
+                          ? 'API Synced'
+                          : (_error != null ? 'API Error' : 'Empty'),
                     ),
                     const SizedBox(height: 12),
                     _ApiStatusBanner(
@@ -224,11 +226,11 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                     _KpiGrid(
                       activeRigs: activeRigs,
                       dispatched: stats == null
-                          ? '768 MT'
+                          ? '—'
                           : '${stats.shipmentsInTransit + stats.shipmentsDelivered} trips',
                       escrowRevenue: escrowValue,
                       telemetry: stats == null
-                          ? '1 Alert'
+                          ? '—'
                           : '${stats.driversActive} drivers',
                     ),
                     const SizedBox(height: 12),
@@ -307,7 +309,7 @@ class _ApiStatusBanner extends StatelessWidget {
               live
                   ? 'Connected to HabeshaFreight API (/company/* + /escrow)'
                   : (error ??
-                        'Using stitch demo data — sign in as fleet owner to sync'),
+                        'No fleet data — sign in as fleet owner and pull to refresh'),
               style: TextStyle(
                 fontSize: 12,
                 color: live ? AppColors.secondary : AppColors.onSurfaceVariant,
@@ -488,7 +490,7 @@ class _EnterpriseHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'TIN: $tin  ·  Fleet Tier: 1 Platinum',
+                      tin == '—' ? 'TIN unavailable' : 'TIN: $tin',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.onSurfaceVariant,

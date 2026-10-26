@@ -19,6 +19,37 @@ class ApiClient {
 
   Future<String> _base() async {
     final custom = await StorageService.getBaseUrl();
+    if (custom != null && custom.isNotEmpty) return custom;
+    return ApiConfig.baseUrl;
+  }
+
+  /// Prefer a reachable API (local :5000, Docker :5001, or custom).
+  Future<String> resolveHealthyBaseUrl() async {
+    final custom = await StorageService.getBaseUrl();
+    final candidates = <String>[
+      if (custom != null && custom.isNotEmpty) custom,
+      ApiConfig.baseUrl,
+      if (!ApiConfig.baseUrl.contains(':5001'))
+        ApiConfig.baseUrl.replaceFirst(':5000', ':5001'),
+      if (!ApiConfig.baseUrl.contains(':5000'))
+        ApiConfig.baseUrl.replaceFirst(':5001', ':5000'),
+    ];
+
+    for (final base in candidates.toSet()) {
+      try {
+        final root = base.replaceAll(RegExp(r'/api/?$'), '');
+        final response = await _client
+            .get(Uri.parse('$root${ApiConfig.health}'))
+            .timeout(const Duration(seconds: 4));
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          if (base != ApiConfig.baseUrl) {
+            await StorageService.setBaseUrl(base);
+            ApiConfig.baseUrl = base;
+          }
+          return base;
+        }
+      } catch (_) {}
+    }
     return custom ?? ApiConfig.baseUrl;
   }
 
@@ -66,9 +97,27 @@ class ApiClient {
     return _decode(response);
   }
 
+  Future<Map<String, dynamic>> patch(
+    String path, {
+    Map<String, dynamic>? body,
+    bool auth = true,
+  }) async {
+    final base = await _base();
+    final uri = Uri.parse('$base$path');
+    final response = await _client
+        .patch(
+          uri,
+          headers: await _headers(auth: auth),
+          body: body == null ? null : jsonEncode(body),
+        )
+        .timeout(const Duration(seconds: 20));
+    return _decode(response);
+  }
+
   /// Health is mounted at /health (not under /api).
   Future<bool> pingHealth() async {
     try {
+      await resolveHealthyBaseUrl();
       final base = await _base();
       final root = base.replaceAll(RegExp(r'/api/?$'), '');
       final uri = Uri.parse('$root${ApiConfig.health}');

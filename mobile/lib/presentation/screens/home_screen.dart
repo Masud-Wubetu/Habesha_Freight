@@ -25,7 +25,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = false;
   List<Map<String, dynamic>> _loads = [];
   Map<String, dynamic>? _activeShipment;
-  Map<String, dynamic>? _shipperStats;
   int _vehiclesCount = 0;
   String _userName = 'Shipper';
   String _userRole = 'SHIPPER';
@@ -66,9 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _loads = loads;
-      _activeShipment = activeShipments.isNotEmpty ? activeShipments.first : null;
-      _shipperStats = stats;
-      _vehiclesCount = vehicles > 0 ? vehicles : 0;
+      _activeShipment = shipments.isNotEmpty ? shipments.first : null;
+      _vehiclesCount = vehicles;
       _loading = false;
     });
   }
@@ -254,24 +252,45 @@ class _HomeScreenState extends State<HomeScreen> {
       case 4:
         return TrackingView(activeShipment: _activeShipment, verifiedVehicles: _vehiclesCount);
       default:
-        return HomeDashboardView(
-          language: _lang,
-          onLanguageChanged: (l) => setState(() => _lang = l),
-          onProfileTap: _showProfileModal,
-          userName: _userName,
-          loadCount: _loads.length,
-          isLoadingLoads: _loading,
-          onFindLoad: _openPostLoadSheet,
-          onFindTrucks: () => setState(() => _currentTab = 1),
-          activeShipment: _activeShipment,
-          shipperStats: _shipperStats,
-          corridors: _corridor.getCorridors(),
-          selectedCorridor: _selectedCorridor,
-          onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
-          weight: _weight,
-          onWeightChanged: (w) => setState(() => _weight = w),
-          corridorService: _corridor,
-          onRequestTrucks: _openPostLoadSheet,
+        // Parent is a SingleChildScrollView (unbounded height) — no Expanded here.
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (!_loading && _loads.isEmpty)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: const Text(
+                  'No loads yet — post a cargo request to get started.',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+              ),
+            HomeDashboardView(
+              language: _lang,
+              onLanguageChanged: (l) => setState(() => _lang = l),
+              onProfileTap: _showProfileModal,
+              loadCount: _loads.length,
+              isLoadingLoads: _loading,
+              onFindLoad: () => setState(() => _currentTab = 1),
+              onFindTrucks: () => setState(() => _currentTab = 4),
+              activeShipment: _activeShipment,
+              corridors: _corridor.getCorridors(),
+              selectedCorridor: _selectedCorridor,
+              onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
+              weight: _weight,
+              onWeightChanged: (w) => setState(() => _weight = w),
+              corridorService: _corridor,
+              onRequestTrucks: _openPostLoadSheet,
+              vehiclesCount: _vehiclesCount,
+            ),
+          ],
         );
     }
   }

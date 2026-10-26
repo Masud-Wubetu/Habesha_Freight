@@ -150,7 +150,7 @@ export default function IncomingRequests() {
     }
 
     try {
-      await post(`/driver/loads/${request.id}/accept`, {});
+      await post(`/drivers/loads/${request.id}/accept`, {});
       setActionSuccess(`Load accepted! Shipment assigned for ${request.origin_city} → ${request.destination_city}.`);
       refresh();
       setTimeout(() => setActionSuccess(null), 5000);
