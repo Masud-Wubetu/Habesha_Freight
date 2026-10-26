@@ -6,6 +6,7 @@ class StorageService {
   static const String _keyUserRole = 'user_role';
   static const String _keyUserName = 'user_name';
   static const String _keyUserPhone = 'user_phone';
+  static const String _keyUserEmail = 'user_email';
   static const String _keyBaseUrl = 'custom_base_url';
 
   // Save auth data
@@ -15,6 +16,7 @@ class StorageService {
     required String role,
     required String name,
     required String phone,
+    String? email,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyToken, token);
@@ -22,6 +24,9 @@ class StorageService {
     await prefs.setString(_keyUserRole, role);
     await prefs.setString(_keyUserName, name);
     await prefs.setString(_keyUserPhone, phone);
+    if (email != null && email.isNotEmpty) {
+      await prefs.setString(_keyUserEmail, email);
+    }
   }
 
   static Future<String?> getToken() async {
@@ -49,6 +54,11 @@ class StorageService {
     return prefs.getString(_keyUserPhone);
   }
 
+  static Future<String?> getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyUserEmail);
+  }
+
   static Future<String?> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_keyBaseUrl);
@@ -71,5 +81,6 @@ class StorageService {
     await prefs.remove(_keyUserRole);
     await prefs.remove(_keyUserName);
     await prefs.remove(_keyUserPhone);
+    await prefs.remove(_keyUserEmail);
   }
 }

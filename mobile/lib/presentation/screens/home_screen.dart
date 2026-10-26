@@ -25,53 +25,11 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = false;
   List<Map<String, dynamic>> _loads = [];
   Map<String, dynamic>? _activeShipment;
-  int _vehiclesCount = 42;
+  int _vehiclesCount = 0;
   String _userName = 'Shipper';
   String _userRole = 'SHIPPER';
   late EthiopianCorridor _selectedCorridor;
   double _weight = 14.0;
-
-  static final List<Map<String, dynamic>> _fallbackLoads = [
-    {
-      'id': '9840-a1',
-      'origin_city': 'Addis Ababa',
-      'destination_city': 'Djibouti Port',
-      'weight_tons': 32,
-      'offered_price_etb': 76000,
-      'cargo_description': 'Export Yirgacheffe Coffee Grade 1',
-      'status': 'POSTED',
-    },
-    {
-      'id': '8821-b2',
-      'origin_city': 'Mojo Dry Port',
-      'destination_city': 'Mekelle Hub',
-      'weight_tons': 28,
-      'offered_price_etb': 64500,
-      'cargo_description': 'Industrial Steel & Construction Billets',
-      'status': 'POSTED',
-    },
-    {
-      'id': '7730-c3',
-      'origin_city': 'Dire Dawa',
-      'destination_city': 'Galafi Border Post',
-      'weight_tons': 24,
-      'offered_price_etb': 52000,
-      'cargo_description': 'Refined Perishable Cold Chain Cargo',
-      'status': 'MATCHED',
-    },
-  ];
-
-  static final Map<String, dynamic> _fallbackShipment = {
-    'id': 'SHP-ETH-902',
-    'origin_city': 'Addis Ababa',
-    'destination_city': 'Djibouti Port',
-    'truck_plate': '3-ET-A88291',
-    'driver_name': 'Abebe Tadesse',
-    'speed_kmh': 72,
-    'eta_hours': 5,
-    'distance_remaining_km': 280,
-    'status': 'IN_TRANSIT',
-  };
 
   @override
   void initState() {
@@ -81,21 +39,34 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _checkAuthAndLoadData() async {
-    _userName = await StorageService.getUserName() ?? 'Demo Shipper';
+    _userName = await StorageService.getUserName() ?? 'Shipper';
     _userRole = await StorageService.getUserRole() ?? 'SHIPPER';
     await _refreshData();
   }
 
   Future<void> _refreshData() async {
     setState(() => _loading = true);
-    final loads = await _corridor.fetchRealLoads();
+    final loads = _userRole == 'SHIPPER'
+        ? await _corridor.fetchShipperLoads()
+        : await _corridor.fetchRealLoads();
     final shipments = await _corridor.fetchRealShipments();
+    final stats = await _corridor.fetchShipperStats();
     final vehicles = await _corridor.fetchVehiclesCount();
     if (!mounted) return;
+
+    // Only pick shipments that are currently active in transit
+    final activeShipments = shipments.where((s) {
+      final status = (s['status'] ?? '').toString().toUpperCase();
+      return status == 'IN_TRANSIT' ||
+          status == 'DISPATCHED' ||
+          status == 'PICKED_UP' ||
+          status == 'ASSIGNED';
+    }).toList();
+
     setState(() {
-      _loads = loads.isNotEmpty ? loads : _fallbackLoads;
-      _activeShipment = shipments.isNotEmpty ? shipments.first : _fallbackShipment;
-      _vehiclesCount = vehicles > 0 ? vehicles : 42;
+      _loads = loads;
+      _activeShipment = shipments.isNotEmpty ? shipments.first : null;
+      _vehiclesCount = vehicles;
       _loading = false;
     });
   }
@@ -108,8 +79,9 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (_) => PostLoadSheet(
         corridorService: _corridor,
         onPosted: () {
-          _snack('Load posted to PostgreSQL database successfully!');
+          _snack('Load broadcasted! Status: POSTED (Live on Transporter Load Board).');
           _refreshData();
+          setState(() => _currentTab = 1);
         },
       ),
     );
@@ -175,6 +147,66 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.shield_rounded, color: AppColors.gold, size: 20),
+              title: const Text('Escrow & Settlement Vaults (Page 05)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page05EscrowVault);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.dashboard_rounded, color: Color(0xFF38BDF8), size: 20),
+              title: const Text('Shipper Active Hub & Ops (Page 06)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page06ShipperHub);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.post_add_rounded, color: AppColors.gold, size: 20),
+              title: const Text('Post Cargo Request (Page 07 / 23)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page07PostCargo);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.local_shipping_rounded, color: Color(0xFF38BDF8), size: 20),
+              title: const Text('My Shipments & Active Fleet (Page 08)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page08MyShipments);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.gavel_rounded, color: AppColors.gold, size: 20),
+              title: const Text('Review Cargo Bids & Live Auction (Page 09)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page09ReviewBids);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.share_location_rounded, color: AppColors.gold, size: 20),
+              title: const Text('Live Telemetry & GPS Tracking (Page 10)', style: TextStyle(color: Colors.white, fontSize: 13)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, AppRoutes.page10LiveTracking);
+              },
+            ),
+            ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.grid_view_rounded, color: AppColors.gold, size: 20),
               title: const Text('All 16 Corridor Modules Catalog', style: TextStyle(color: Colors.white, fontSize: 13)),
               onTap: () {
@@ -189,7 +221,13 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               await StorageService.clearAuthData();
-              if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
+              if (mounted) {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.login,
+                  (r) => false,
+                );
+              }
             },
             child: const Text('Sign Out', style: TextStyle(color: AppColors.error)),
           ),
@@ -214,23 +252,45 @@ class _HomeScreenState extends State<HomeScreen> {
       case 4:
         return TrackingView(activeShipment: _activeShipment, verifiedVehicles: _vehiclesCount);
       default:
-        return HomeDashboardView(
-          language: _lang,
-          onLanguageChanged: (l) => setState(() => _lang = l),
-          onProfileTap: _showProfileModal,
-          loadCount: _loads.length,
-          isLoadingLoads: _loading,
-          onFindLoad: () => setState(() => _currentTab = 1),
-          onFindTrucks: () => setState(() => _currentTab = 4),
-          activeShipment: _activeShipment,
-          corridors: _corridor.getCorridors(),
-          selectedCorridor: _selectedCorridor,
-          onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
-          weight: _weight,
-          onWeightChanged: (w) => setState(() => _weight = w),
-          corridorService: _corridor,
-          onRequestTrucks: _openPostLoadSheet,
-          vehiclesCount: _vehiclesCount,
+        // Parent is a SingleChildScrollView (unbounded height) — no Expanded here.
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (!_loading && _loads.isEmpty)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: const Text(
+                  'No loads yet — post a cargo request to get started.',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+              ),
+            HomeDashboardView(
+              language: _lang,
+              onLanguageChanged: (l) => setState(() => _lang = l),
+              onProfileTap: _showProfileModal,
+              loadCount: _loads.length,
+              isLoadingLoads: _loading,
+              onFindLoad: () => setState(() => _currentTab = 1),
+              onFindTrucks: () => setState(() => _currentTab = 4),
+              activeShipment: _activeShipment,
+              corridors: _corridor.getCorridors(),
+              selectedCorridor: _selectedCorridor,
+              onSelectCorridor: (c) => setState(() => _selectedCorridor = c),
+              weight: _weight,
+              onWeightChanged: (w) => setState(() => _weight = w),
+              corridorService: _corridor,
+              onRequestTrucks: _openPostLoadSheet,
+              vehiclesCount: _vehiclesCount,
+            ),
+          ],
         );
     }
   }

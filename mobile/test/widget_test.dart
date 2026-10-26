@@ -25,7 +25,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('AuthGate shows HabeshaFreight Mobile branding', (tester) async {
+  testWidgets('AuthGate shows login connected to backend flow', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.darkTheme,
@@ -33,14 +33,14 @@ void main() {
       ),
     );
     await tester.pump();
-    // Loading or gate UI
     expect(find.textContaining('Habesha'), findsWidgets);
     await tester.pump(const Duration(seconds: 2));
     expect(
-      find.text('HabeshaFreight Mobile').evaluate().isNotEmpty ||
-          find.textContaining('Checking').evaluate().isNotEmpty ||
-          find.textContaining('Browse UI').evaluate().isNotEmpty ||
-          find.textContaining('Fleet').evaluate().isNotEmpty,
+      find.textContaining('Sign In').evaluate().isNotEmpty ||
+          find.textContaining('Connecting').evaluate().isNotEmpty ||
+          find.textContaining('Carrier').evaluate().isNotEmpty ||
+          find.textContaining('Fleet').evaluate().isNotEmpty ||
+          find.textContaining('API').evaluate().isNotEmpty,
       isTrue,
     );
   });

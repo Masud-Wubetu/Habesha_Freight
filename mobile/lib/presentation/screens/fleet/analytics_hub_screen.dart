@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/fleet_service.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
@@ -15,6 +18,47 @@ class AnalyticsHubScreen extends StatefulWidget {
 
 class _AnalyticsHubScreenState extends State<AnalyticsHubScreen> {
   int _horizon = 0; // 0=30d, 1=Q3, 2=YTD
+  final _fleet = FleetService();
+  CompanyStats? _stats;
+  bool _loading = true;
+  bool _live = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final stats = await _fleet.getStats();
+      if (!mounted) return;
+      setState(() {
+        _stats = stats;
+        _live = true;
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.message;
+        _live = false;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Unable to sync company stats';
+        _live = false;
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,20 +66,33 @@ class _AnalyticsHubScreenState extends State<AnalyticsHubScreen> {
       title: 'Freight Company Analytics & Corridor Performance Hub',
       actions: [
         IconButton(
+          icon: const Icon(Icons.refresh, size: 22),
+          color: AppColors.onSurfaceVariant,
+          tooltip: 'Refresh stats',
+          onPressed: _load,
+        ),
+        IconButton(
           icon: const Icon(Icons.notifications_outlined, size: 22),
           color: AppColors.onSurfaceVariant,
           onPressed: () {},
         ),
       ],
-      body: ListView(
+      body: RefreshIndicator(
+        color: AppColors.primaryContainer,
+        onRefresh: _load,
+        child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: PageRibbon(
                   page: '34',
                   title: 'Freight Analytics',
+                  status: _live
+                      ? 'Live company stats'
+                      : (_error != null ? 'Design preview' : null),
                   textColor: AppColors.primary,
                   dotColor: AppColors.primaryContainer,
                 ),
@@ -48,14 +105,20 @@ class _AnalyticsHubScreenState extends State<AnalyticsHubScreen> {
                   color: AppColors.surfaceContainer,
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.calendar_month, size: 13, color: AppColors.tertiary),
-                    SizedBox(width: 4),
+                    Icon(
+                      _live ? Icons.cloud_done : Icons.calendar_month,
+                      size: 13,
+                      color: AppColors.tertiary,
+                    ),
+                    const SizedBox(width: 4),
                     Text(
-                      'Monthly Report: Oct 2024',
-                      style: TextStyle(
+                      _live
+                          ? '${_stats!.shipmentsTotal} shipments · ${_stats!.driversActive} drivers'
+                          : 'Monthly Report: Oct 2024',
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                         color: AppColors.tertiary,
@@ -66,6 +129,14 @@ class _AnalyticsHubScreenState extends State<AnalyticsHubScreen> {
               ),
             ],
           ),
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: LinearProgressIndicator(
+                color: AppColors.primaryContainer,
+                backgroundColor: AppColors.surfaceHigh,
+              ),
+            ),
           const SizedBox(height: 8),
           Text(
             'Corridor profitability, fuel economy benchmarks, driver turnaround times, and revenue growth across federal transit arteries.',
@@ -81,12 +152,12 @@ class _AnalyticsHubScreenState extends State<AnalyticsHubScreen> {
             onChanged: (i) => setState(() => _horizon = i),
           ),
           const SizedBox(height: 16),
-          _RevenueBanner(),
+          _RevenueBanner(stats: _stats, live: _live),
           const SizedBox(height: 20),
           _SectionHeader(
             icon: Icons.alt_route,
             title: 'Corridor Benchmarks',
-            trailing: 'Real-time Telemetry',
+            trailing: _live ? 'Company API' : 'Real-time Telemetry',
           ),
           const SizedBox(height: 12),
           _DjiboutiCorridorCard(),
@@ -220,6 +291,7 @@ class _AnalyticsHubScreenState extends State<AnalyticsHubScreen> {
             style: TextButton.styleFrom(foregroundColor: AppColors.tertiary),
           ),
         ],
+        ),
       ),
     );
   }
@@ -274,8 +346,22 @@ class _HorizonSelector extends StatelessWidget {
 }
 
 class _RevenueBanner extends StatelessWidget {
+  const _RevenueBanner({this.stats, this.live = false});
+
+  final CompanyStats? stats;
+  final bool live;
+
+  String _money(num n) =>
+      NumberFormat.currency(symbol: 'ETB ', decimalDigits: 0).format(n);
+
   @override
   Widget build(BuildContext context) {
+    final earnings = stats?.totalEarnings ?? 4820500;
+    final delivered = stats?.shipmentsDelivered ?? 0;
+    final inTransit = stats?.shipmentsInTransit ?? 0;
+    final activeRigs = stats?.vehiclesActive ?? 0;
+    final rating = stats?.averageRating ?? 0;
+
     return HfCard(
       color: AppColors.surfaceLow,
       child: Column(
@@ -289,7 +375,7 @@ class _RevenueBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'MONTHLY FLEET REVENUE',
+                      live ? 'COMPANY EARNINGS (API)' : 'MONTHLY FLEET REVENUE',
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -298,25 +384,12 @@ class _RevenueBanner extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: 'ETB 4,820,500',
-                            style: GoogleFonts.outfit(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.onSurface,
-                            ),
-                          ),
-                          TextSpan(
-                            text: '.00',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: AppColors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
+                    Text(
+                      live ? _money(earnings) : 'ETB 4,820,500.00',
+                      style: GoogleFonts.outfit(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.onSurface,
                       ),
                     ),
                   ],
@@ -329,13 +402,19 @@ class _RevenueBanner extends StatelessWidget {
                   color: AppColors.secondaryContainer.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.trending_up, size: 15, color: AppColors.secondary),
-                    SizedBox(width: 4),
+                    Icon(
+                      live ? Icons.cloud_done : Icons.trending_up,
+                      size: 15,
+                      color: AppColors.secondary,
+                    ),
+                    const SizedBox(width: 4),
                     Text(
-                      '+24.8% MoM',
-                      style: TextStyle(
+                      live
+                          ? '${stats!.shipmentsTotal} trips · ★${rating.toStringAsFixed(1)}'
+                          : '+24.8% MoM',
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: AppColors.secondary,
@@ -359,9 +438,9 @@ class _RevenueBanner extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Net Operating Margin',
-                        style: TextStyle(
+                      Text(
+                        live ? 'Active Rigs' : 'Net Operating Margin',
+                        style: const TextStyle(
                           fontSize: 10,
                           color: AppColors.onSurfaceVariant,
                         ),
@@ -372,7 +451,7 @@ class _RevenueBanner extends StatelessWidget {
                         textBaseline: TextBaseline.alphabetic,
                         children: [
                           Text(
-                            '38.6%',
+                            live ? '$activeRigs' : '38.6%',
                             style: GoogleFonts.outfit(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -380,9 +459,11 @@ class _RevenueBanner extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Text(
-                            'Target 35%',
-                            style: TextStyle(
+                          Text(
+                            live
+                                ? 'of ${stats!.vehiclesTotal} total'
+                                : 'Target 35%',
+                            style: const TextStyle(
                               fontSize: 10,
                               color: AppColors.secondary,
                             ),
@@ -396,16 +477,18 @@ class _RevenueBanner extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Net Contribution',
-                        style: TextStyle(
+                      Text(
+                        live ? 'Delivered / In transit' : 'Net Contribution',
+                        style: const TextStyle(
                           fontSize: 10,
                           color: AppColors.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'ETB 1,860,700',
+                        live
+                            ? '$delivered / $inTransit'
+                            : 'ETB 1,860,700',
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,

@@ -1,6 +1,6 @@
 /**
  * useAvailableLoads – fetches POSTED loads available for the logged-in driver to bid on.
- * Backend endpoint: GET /api/driver/loads/available
+ * Backend endpoint: GET /api/drivers/loads/available
  */
 import { useEffect, useState, useCallback } from 'react';
 import { get } from '../services/api';
@@ -56,7 +56,7 @@ export function useAvailableLoads(params?: LoadFilterParams) {
       }
       if (params?.destination_city) queryParams.destination_city = params.destination_city;
 
-      const result = await get<any>('/driver/loads/available', queryParams);
+      const result = await get<any>('/drivers/loads/available', queryParams);
       // Backend returns { success, count, driver_location, data: [...] } or an array directly
       const raw: any[] = Array.isArray(result)
         ? result

@@ -205,6 +205,27 @@ class FleetService {
     final res = await _api.get(ApiConfig.companyFleetRequests);
     return _asList(res['data']);
   }
+
+  Future<Map<String, dynamic>> acceptFleetRequest(String requestId) async {
+    final res = await _api.patch(ApiConfig.companyFleetRequestAccept(requestId));
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? {};
+  }
+
+  Future<Map<String, dynamic>> declineFleetRequest(String requestId) async {
+    final res = await _api.patch(ApiConfig.companyFleetRequestDecline(requestId));
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? {};
+  }
+
+  Future<Map<String, dynamic>> assignDriverToRequest({
+    required String requestId,
+    required String driverId,
+  }) async {
+    final res = await _api.post(
+      ApiConfig.companyFleetRequestAssign(requestId),
+      body: {'driver_id': driverId},
+    );
+    return (res['data'] as Map?)?.cast<String, dynamic>() ?? {};
+  }
 }
 
 List<Map<String, dynamic>> _asList(dynamic raw) {

@@ -2,9 +2,19 @@ class AppRoutes {
   static const login = '/login';
   static const register = '/register';
   static const page04VerifyOtp = '/auth/verify-otp';
+  static const page05EscrowVault = '/shipper/escrow';
+  static const page06ShipperHub = '/shipper/active-hub';
+  static const page07PostCargo = '/shipper/post-cargo';
+  static const page08MyShipments = '/shipper/shipments';
+  static const page09ReviewBids = '/shipper/review-bids';
+  static const page08ReviewBids = page09ReviewBids;
+  static const page10LiveTracking = '/shipper/live-tracking';
+  static const page23PostCargo = '/shipper/post-cargo-wizard';
+  static const page24MyShipments = '/shipper/my-shipments';
   static const home = '/home';
   static const fleetHub = '/fleet';
   static const page20SubmitBid = '/shipper/bid';
+  static const page21EscrowVault = '/shipper/escrow-vault';
 
 static const String shipperHome = '/shipper/home';
 static const String page11FreightHistory = '/shipper/history';

@@ -67,70 +67,31 @@ class _OtpResendRowState extends State<OtpResendRow> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F1A2D),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF1E2E4A), width: 1),
-      ),
-      child: Row(
-        children: [
-          // Gold Tag
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: AppColors.gold,
-              borderRadius: BorderRadius.circular(1.5),
-            ),
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(
+          "Didn't receive the code? ",
+          style: GoogleFonts.inter(
+            fontSize: 12.5,
+            color: AppColors.textSecondary,
           ),
-          const SizedBox(width: 6),
-          Text(
-            'PAGE 04: VERIFY OTP',
+        ),
+        InkWell(
+          onTap: _remaining == 0 && !_isResending ? _handleResend : null,
+          child: Text(
+            _isResending
+                ? 'Sending…'
+                : (_remaining == 0 ? 'Resend' : 'Resend in ${_remaining}s'),
             style: GoogleFonts.inter(
-              fontSize: 9.5,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.8,
-              color: AppColors.gold,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: _remaining == 0 ? AppColors.gold : const Color(0xFF64748B),
             ),
           ),
-          const SizedBox(width: 6),
-          Container(
-            width: 3,
-            height: 3,
-            decoration: const BoxDecoration(
-              color: AppColors.textMuted,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              'Secure 6-Digit Verification',
-              style: GoogleFonts.inter(
-                fontSize: 9.5,
-                color: const Color(0xFF94A3B8),
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          // Resend Button or Timer
-          InkWell(
-            onTap: _remaining == 0 && !_isResending ? _handleResend : null,
-            child: Text(
-              _isResending
-                  ? 'Sending…'
-                  : (_remaining == 0 ? 'Resend Now' : 'Resend (${_remaining}s)'),
-              style: GoogleFonts.inter(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
-                color: _remaining == 0 ? AppColors.gold : const Color(0xFF64748B),
-              ),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

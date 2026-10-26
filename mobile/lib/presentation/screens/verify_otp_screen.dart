@@ -7,13 +7,13 @@ import '../../data/models/user_model.dart';
 import '../widgets/otp/otp_code_boxes.dart';
 import '../widgets/otp/otp_numeric_keypad.dart';
 import '../widgets/otp/otp_resend_row.dart';
-import '../widgets/otp/otp_security_badge.dart';
 import '../widgets/otp/otp_step_header.dart';
 import '../widgets/otp/recipient_number_card.dart';
 
 /// PAGE 04: VERIFY OTP — Secure 6-Digit Verification
 class VerifyOtpScreen extends StatefulWidget {
-  final String phone;
+  final String? email;
+  final String? phone;
   final String? demoOtp;
   final String? role;
   final String? fullName;
@@ -21,7 +21,8 @@ class VerifyOtpScreen extends StatefulWidget {
 
   const VerifyOtpScreen({
     super.key,
-    this.phone = '+251 911 234 567',
+    this.email,
+    this.phone,
     this.demoOtp,
     this.role,
     this.fullName,
@@ -80,6 +81,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     });
 
     final res = await _auth.verifyOtp(
+      email: widget.email,
       phoneNumber: widget.phone,
       otpCode: code,
     );
@@ -106,37 +108,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       return;
     }
 
-    // Dev fallback if user enters the demo OTP or 123456 when backend is mock/offline
-    if (code == _demoOtp || code == '123456') {
-      final mockUser = UserModel(
-        id: 'usr-dev-9941',
-        fullName: widget.fullName ?? 'Dawit Bekele',
-        phoneNumber: widget.phone,
-        role: widget.role ?? 'SHIPPER',
-        isVerified: true,
-      );
-      setState(() => _loading = false);
-      if (widget.onVerified != null) {
-        widget.onVerified!(mockUser, 'mock-jwt-token-verified');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Transit account authorized (verified)!'),
-            backgroundColor: AppColors.card,
-          ),
-        );
-        if (widget.role == 'FLEET_ENTERPRISE') {
-          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.fleetHub, (r) => false);
-        } else {
-          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (r) => false);
-        }
-      }
-      return;
-    }
-
+    // Only allow demo-OTP auto-fill when the backend returned a demo_otp;
+    // never invent a mock JWT when verification failed.
     setState(() {
       _loading = false;
-      _error = res.message.isNotEmpty ? res.message : 'Invalid verification code. Please check SMS.';
+      _error = res.message.isNotEmpty
+          ? res.message
+          : 'Invalid verification code. Please check SMS.';
     });
   }
 
@@ -170,13 +148,13 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                         });
                       },
                     ),
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 20),
 
                     // Main Title
                     Text(
-                      'Enter 6-Digit Code',
+                      'Enter Verification Code',
                       style: GoogleFonts.outfit(
-                        fontSize: 26,
+                        fontSize: 24,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                         letterSpacing: -0.3,
@@ -186,39 +164,50 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
                     // Subtitle
                     Text(
-                      'We sent a one-time transit verification code to authorize your fleet dispatch account.',
+                      widget.email != null && widget.email!.isNotEmpty
+                          ? 'Please enter the 6-digit verification code sent to your email address.'
+                          : 'Please enter the 6-digit code sent to your phone to complete verification.',
                       style: GoogleFonts.inter(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         color: const Color(0xFF94A3B8),
                         height: 1.45,
                       ),
                     ),
                     const SizedBox(height: 18),
 
-                    // Recipient Number Card (Micro-task 2)
+                    // Recipient Number / Email Card
                     RecipientNumberCard(
+                      email: widget.email,
                       phone: widget.phone,
                       onEdit: () => Navigator.maybePop(context),
                     ),
                     const SizedBox(height: 22),
 
-                    // 6-Digit Code Input Boxes (Micro-task 3)
+                    // 6-Digit Code Input Boxes
                     OtpCodeBoxes(code: _enteredCode),
                     const SizedBox(height: 18),
 
-                    // Resend Ribbon Row (Micro-task 3)
+                    // Resend Row
                     OtpResendRow(
                       onResend: () async {
-                        final res = await _auth.sendOtp(phoneNumber: widget.phone);
+                        final messenger = ScaffoldMessenger.of(context);
+                        final res = await _auth.resendOtp(
+                          email: widget.email,
+                          phoneNumber: widget.phone,
+                        );
+                        if (!mounted) return;
                         if (res.success && res.demoOtp != null) {
                           setState(() => _demoOtp = res.demoOtp);
                         }
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(res.message.isNotEmpty ? res.message : 'New verification code sent!'),
+                            backgroundColor: AppColors.card,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
                       },
                     ),
-                    const SizedBox(height: 16),
-
-                    // Security Badge (Micro-task 3)
-                    const OtpSecurityBadge(),
                     const SizedBox(height: 18),
 
                     if (_error != null)
@@ -240,41 +229,55 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
                     // Dev OTP auto-fill hint
                     if (_demoOtp != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _enteredCode = _demoOtp!;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.gold.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
-                            ),
-                            child: Text(
-                              'Dev OTP: $_demoOtp (tap to auto-fill, current: $_enteredCode)',
-                              style: GoogleFonts.inter(fontSize: 11, color: AppColors.gold),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                _enteredCode = _demoOtp!;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: AppColors.gold.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.flash_on_rounded, size: 14, color: AppColors.gold),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Fill Test OTP: $_demoOtp',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.gold,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 6),
 
-                    // Custom In-App Numeric Keypad (Micro-task 4)
+                    // Custom In-App Numeric Keypad
                     OtpNumericKeypad(
                       onDigit: onDigitPressed,
                       onBackspace: onBackspacePressed,
                     ),
                     const SizedBox(height: 22),
 
-                    // Bottom CTA Button (Micro-task 5)
+                    // Bottom CTA Button
                     SizedBox(
                       width: double.infinity,
-                      height: 52,
+                      height: 50,
                       child: ElevatedButton(
                         onPressed: _loading ? null : () => _verifyCode(),
                         style: ElevatedButton.styleFrom(
@@ -284,7 +287,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          elevation: 3,
+                          elevation: 2,
                         ),
                         child: _loading
                             ? const SizedBox(
@@ -299,9 +302,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Verify Cargo Dispatch',
+                                    'Verify & Continue',
                                     style: GoogleFonts.outfit(
-                                      fontSize: 15.5,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.w700,
                                       color: const Color(0xFF0F172A),
                                     ),
@@ -309,7 +312,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                                   const SizedBox(width: 8),
                                   const Icon(
                                     Icons.arrow_forward_rounded,
-                                    size: 18,
+                                    size: 16,
                                     color: Color(0xFF0F172A),
                                   ),
                                 ],

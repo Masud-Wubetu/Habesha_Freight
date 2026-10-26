@@ -76,6 +76,67 @@ class _EscrowBatchScreenState extends State<EscrowBatchScreen> {
   String _etb(num n) =>
       NumberFormat.currency(symbol: 'ETB ', decimalDigits: 2).format(n);
 
+  bool _disbursing = false;
+
+  Future<void> _disburseSelected() async {
+    if (!_live || _selected.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Select ledger rows ready to settle first.'),
+          backgroundColor: AppColors.surfaceBright,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _disbursing = true);
+    final selectedItems = (_ledger?.items ?? const <EscrowItem>[])
+        .where((i) => _selected.contains(i.id))
+        .toList();
+    var released = 0;
+    var denied = 0;
+    String? lastError;
+
+    for (final item in selectedItems) {
+      final shipmentId = item.shipmentId;
+      if (shipmentId.isEmpty) continue;
+      try {
+        await _escrow.release(shipmentId);
+        released++;
+      } on ApiException catch (e) {
+        lastError = e.message;
+        if (e.statusCode == 403 || e.statusCode == 401) {
+          denied++;
+        }
+      } catch (_) {
+        lastError = 'Release failed';
+      }
+    }
+
+    if (!mounted) return;
+    setState(() => _disbursing = false);
+
+    final sum = selectedItems.fold<double>(0, (a, b) => a + b.netPayout);
+    final String message;
+    if (released > 0) {
+      message = 'Released $released escrow row(s) · ${_etb(sum)}.';
+      await _load();
+    } else if (denied > 0) {
+      message =
+          'Escrow release is shipper/admin-only. ${_etb(sum)} stays locked — fleet views the ledger; shipper releases payout.';
+    } else {
+      message = lastError ??
+          '${_etb(sum)} queued for ${_selected.length} selected rows (simulated).';
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.surfaceBright,
+      ),
+    );
+  }
+
   List<EscrowItem> get _filteredItems {
     final items = _ledger?.items ?? const <EscrowItem>[];
     switch (_filter) {
@@ -159,26 +220,35 @@ class _EscrowBatchScreenState extends State<EscrowBatchScreen> {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton.icon(
-                        onPressed: () {
-                          final sum = _filteredItems
-                              .where((i) => _selected.contains(i.id))
-                              .fold<double>(0, (a, b) => a + b.netPayout);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                _live
-                                    ? '${_etb(sum)} queued for ${_selected.length} selected ledger rows (simulated escrow).'
-                                    : 'ETB 211,055 disbursed across selected drivers via CBE Birr Bulk API.',
-                              ),
-                              backgroundColor: AppColors.surfaceBright,
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.bolt, size: 20),
+                        onPressed: _disbursing
+                            ? null
+                            : () {
+                                if (_live) {
+                                  _disburseSelected();
+                                  return;
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'ETB 211,055 disbursed across selected drivers via CBE Birr Bulk API.',
+                                    ),
+                                    backgroundColor: AppColors.surfaceBright,
+                                  ),
+                                );
+                              },
+                        icon: _disbursing
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.bolt, size: 20),
                         label: Text(
-                          _live
-                              ? 'Disburse Batch Payout (${_selected.length} selected) →'
-                              : 'Disburse Batch Payout (14 Completed Trips) →',
+                          _disbursing
+                              ? 'Submitting release…'
+                              : _live
+                                  ? 'Disburse Batch Payout (${_selected.length} selected) →'
+                                  : 'Disburse Batch Payout (14 Completed Trips) →',
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryContainer,

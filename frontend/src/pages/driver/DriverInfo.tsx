@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { get } from '../../services/api';
+import { axiosInstance, get } from '../../services/api';
 import ErrorState from '../../components/ErrorState';
 
 interface DriverProfileResponse {
@@ -40,7 +40,7 @@ const DriverInfo: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await get<any>('/driver/profile');
+      const res = await get<any>('/drivers/profile');
       const data = res?.data ?? res;
       setProfile(data);
     } catch (err: any) {
@@ -55,10 +55,20 @@ const DriverInfo: React.FC = () => {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
-    fileInput.onchange = (e) => {
+    fileInput.onchange = async (e) => {
       const target = e.target as HTMLInputElement;
-      if (target.files && target.files[0]) {
-        alert(`Photo "${target.files[0].name}" selected for upload`);
+      const file = target.files?.[0];
+      if (!file) return;
+      try {
+        const form = new FormData();
+        form.append('photo', file);
+        await axiosInstance.post('/drivers/profile/photo', form, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        await loadUserData();
+        alert('Profile photo uploaded.');
+      } catch (err: any) {
+        alert(err?.message || 'Photo upload failed');
       }
     };
     fileInput.click();

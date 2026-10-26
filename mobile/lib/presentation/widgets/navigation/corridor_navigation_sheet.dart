@@ -185,6 +185,63 @@ class CorridorNavigationSheet extends StatelessWidget {
                 ),
                 _navTile(
                   context,
+                  title: 'Shipper Escrow & Settlement Vaults',
+                  subtitle: 'NBE & Telebirr locked funds, POD release, batch funding',
+                  badge: 'Page 05',
+                  icon: Icons.shield_rounded,
+                  route: AppRoutes.page05EscrowVault,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
+                  title: 'Shipper Active Hub & Operations',
+                  subtitle: 'Live transit radar, 2x2 corridor telemetry & driver tracking',
+                  badge: 'Page 06',
+                  icon: Icons.dashboard_rounded,
+                  route: AppRoutes.page06ShipperHub,
+                  color: const Color(0xFF38BDF8),
+                ),
+                _navTile(
+                  context,
+                  title: 'Post Cargo Request (Step 1)',
+                  subtitle: 'Waypoints routing, weight stepper, transit seal & dispatch',
+                  badge: 'Page 07 / 23',
+                  icon: Icons.post_add_rounded,
+                  route: AppRoutes.page07PostCargo,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
+                  title: 'My Shipments & Active Telemetry',
+                  subtitle:
+                      'Real-time GPS corridor tracking & cargo negotiation hub',
+                  badge: 'Page 08',
+                  icon: Icons.local_shipping_rounded,
+                  route: AppRoutes.page08MyShipments,
+                  color: const Color(0xFF38BDF8),
+                ),
+                _navTile(
+                  context,
+                  title: 'Review Cargo Bids & Live Auction',
+                  subtitle:
+                      'Live corridor tender, driver bids, counter-offer & escrow award',
+                  badge: 'Page 09',
+                  icon: Icons.gavel_rounded,
+                  route: AppRoutes.page09ReviewBids,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
+                  title: 'Live Telemetry & GPS Tracking',
+                  subtitle:
+                      'Real-time vehicle radar, Awash corridor speed & IoT e-seal',
+                  badge: 'Page 10',
+                  icon: Icons.share_location_rounded,
+                  route: AppRoutes.page10LiveTracking,
+                  color: AppColors.gold,
+                ),
+                _navTile(
+                  context,
                   title: 'Submit Freight Bid Screen',
                   subtitle:
                       'Dynamic corridor bidding, gate slots, and tariff rates',
@@ -192,6 +249,16 @@ class CorridorNavigationSheet extends StatelessWidget {
                   icon: Icons.gavel_rounded,
                   route: AppRoutes.page20SubmitBid,
                   color: AppColors.badgeGreenText,
+                ),
+                _navTile(
+                  context,
+                  title: 'E-POD Signature & Handover',
+                  subtitle:
+                      'Receiver QR verification & digital waypoint sign-off',
+                  badge: 'Page 24',
+                  icon: Icons.draw_rounded,
+                  route: AppRoutes.page24MyShipments,
+                  color: const Color(0xFF38BDF8),
                 ),
                 _navTile(
                   context,

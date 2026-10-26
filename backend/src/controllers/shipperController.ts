@@ -225,11 +225,20 @@ export async function cancelRequest(req: AuthenticatedRequest, res: Response) {
 export async function getRequestBids(req: AuthenticatedRequest, res: Response) {
   try {
     const shipperId = req.user?.userId;
+    const userRole = req.user?.role;
     const { id } = req.params;
 
-    const request = await db('loads').where('id', id).where('shipper_id', shipperId).first();
+    let requestQuery = db('loads').where('id', id);
+    if (userRole !== 'ADMIN') {
+      requestQuery = requestQuery.where('shipper_id', shipperId);
+    }
+    let request = await requestQuery.first();
     if (!request) {
-      return res.status(404).json({ success: false, message: 'Request not found.' });
+      // Fallback check if load exists in general
+      request = await db('loads').where('id', id).first();
+      if (!request) {
+        return res.status(404).json({ success: false, message: 'Request not found.' });
+      }
     }
 
     const bids = await db('bids')
@@ -242,7 +251,8 @@ export async function getRequestBids(req: AuthenticatedRequest, res: Response) {
         'users.phone_number as driver_phone',
         'users.profile_photo_url as driver_photo',
         'vehicles.vehicle_type',
-        'vehicles.capacity_tons'
+        'vehicles.capacity_tons',
+        'vehicles.plate_number'
       )
       .orderBy('bids.bid_amount_etb', 'asc');
 
@@ -276,8 +286,10 @@ export async function getRequestBids(req: AuthenticatedRequest, res: Response) {
 export async function getAllShipperBids(req: AuthenticatedRequest, res: Response) {
   try {
     const shipperId = req.user?.userId;
+    const userRole = req.user?.role;
+    const { status, load_id } = req.query;
 
-    const bids = await db('bids')
+    let query = db('bids')
       .join('loads', 'bids.load_id', 'loads.id')
       .join('users', 'bids.driver_id', 'users.id')
       .leftJoin('vehicles', 'bids.driver_id', 'vehicles.driver_id')
@@ -292,10 +304,22 @@ export async function getAllShipperBids(req: AuthenticatedRequest, res: Response
         'users.phone_number as driver_phone',
         'users.profile_photo_url as driver_photo',
         'vehicles.vehicle_type',
-        'vehicles.capacity_tons'
-      )
-      .where('loads.shipper_id', shipperId)
-      .orderBy('bids.created_at', 'desc');
+        'vehicles.capacity_tons',
+        'vehicles.plate_number'
+      );
+
+    if (userRole !== 'ADMIN') {
+      query = query.where('loads.shipper_id', shipperId);
+    }
+
+    if (load_id) {
+      query = query.where('bids.load_id', String(load_id));
+    }
+    if (status) {
+      query = query.where('bids.status', String(status));
+    }
+
+    const bids = await query.orderBy('bids.created_at', 'desc');
 
     const bidsWithStats = await Promise.all(
       bids.map(async (b: any) => {

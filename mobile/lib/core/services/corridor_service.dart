@@ -34,19 +34,65 @@ class CorridorService {
     return customUrl ?? ApiConfig.baseUrl;
   }
 
-  /// Real database loads from GET /api/loads
+  /// Real database loads from GET /api/loads (`{ success, data: [...] }`).
   Future<List<Map<String, dynamic>>> fetchRealLoads() async {
     try {
       final base = await _getBaseUrl();
-      final res = await _client.get(Uri.parse('$base${ApiConfig.loads}'), headers: await _authHeaders());
+      final res = await _client.get(
+        Uri.parse('$base${ApiConfig.loads}'),
+        headers: await _authHeaders(),
+      );
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         if (data is List) return List<Map<String, dynamic>>.from(data);
-        if (data is Map && data['loads'] is List) return List<Map<String, dynamic>>.from(data['loads']);
+        if (data is Map) {
+          if (data['data'] is List) {
+            return List<Map<String, dynamic>>.from(data['data']);
+          }
+          if (data['loads'] is List) {
+            return List<Map<String, dynamic>>.from(data['loads']);
+          }
+        }
       }
       return [];
     } catch (_) {
       return [];
+    }
+  }
+
+  /// Real database loads specifically for the logged-in shipper from GET /api/loads/shipper
+  Future<List<Map<String, dynamic>>> fetchShipperLoads() async {
+    try {
+      final base = await _getBaseUrl();
+      final res = await _client.get(Uri.parse('$base/loads/shipper'), headers: await _authHeaders());
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data is Map && data['data'] is List) return List<Map<String, dynamic>>.from(data['data']);
+        if (data is List) return List<Map<String, dynamic>>.from(data);
+      }
+      return await fetchRealLoads();
+    } catch (_) {
+      return await fetchRealLoads();
+    }
+  }
+
+  /// Real database shipper stats from GET /api/loads/shipper/stats
+  Future<Map<String, dynamic>?> fetchShipperStats() async {
+    try {
+      final base = await _getBaseUrl();
+      final res = await _client.get(
+        Uri.parse('$base/loads/shipper/stats'),
+        headers: await _authHeaders(),
+      );
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        if (body is Map && body['data'] is Map) {
+          return Map<String, dynamic>.from(body['data']);
+        }
+      }
+      return null;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -73,6 +119,7 @@ class CorridorService {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         if (data is List) return data.length;
+        if (data is Map && data['count'] is num) return (data['count'] as num).toInt();
         if (data is Map && data['data'] is List) return (data['data'] as List).length;
       }
       return 0;
@@ -87,6 +134,7 @@ class CorridorService {
     required String destinationCity,
     required double weightTons,
     required double offeredPriceEtb,
+    String? cargoDescription,
   }) async {
     try {
       final base = await _getBaseUrl();
@@ -94,7 +142,9 @@ class CorridorService {
         Uri.parse('$base${ApiConfig.loads}'),
         headers: await _authHeaders(),
         body: jsonEncode({
-          'cargo_description': 'Corridor Container Freight ($originCity to $destinationCity)',
+          'cargo_description': (cargoDescription != null && cargoDescription.trim().isNotEmpty)
+              ? cargoDescription.trim()
+              : 'Corridor Container Freight ($originCity to $destinationCity)',
           'weight_tons': weightTons,
           'origin_city': originCity,
           'destination_city': destinationCity,

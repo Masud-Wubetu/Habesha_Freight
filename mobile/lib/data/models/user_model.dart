@@ -58,6 +58,7 @@ class AuthResponse {
   final UserModel? user;
   final String? demoOtp;
   final bool requiresOtpVerification;
+  final String? pendingEmail;
 
   AuthResponse({
     required this.success,
@@ -66,6 +67,7 @@ class AuthResponse {
     this.user,
     this.demoOtp,
     this.requiresOtpVerification = false,
+    this.pendingEmail,
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
@@ -92,6 +94,7 @@ class AuthResponse {
       user: user,
       demoOtp: demoOtp,
       requiresOtpVerification: json['requires_otp_verification'] == true,
+      pendingEmail: json['email']?.toString(),
     );
   }
 

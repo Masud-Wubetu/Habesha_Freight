@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/routing/app_routes.dart';
+import 'package:mobile/core/services/api_client.dart';
+import 'package:mobile/core/services/driver_service.dart';
 import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
 import 'package:mobile/presentation/widgets/home/home_header.dart';
 
@@ -22,14 +24,56 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
   static const Color _muted = Color(0xFF91A4BC);
   static const Color _white = Color(0xFFF4F7FC);
 
-  bool _standbyEnabled = true;
-  bool _offerDeclined = false;
-  bool _offerAccepted = false;
-  bool _showCounterForm = false;
+  final DriverService _driverService = DriverService();
+  final TextEditingController _counterController = TextEditingController();
 
-  final TextEditingController _counterController = TextEditingController(
-    text: '36000',
-  );
+  bool _standbyEnabled = true;
+  bool _loading = true;
+  bool _submitting = false;
+  String? _error;
+  List<Map<String, dynamic>> _offers = [];
+  final Set<String> _declinedIds = {};
+  final Set<String> _acceptedIds = {};
+  String? _counterLoadId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOffers();
+  }
+
+  Future<void> _loadOffers() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final rows = await _driverService.listAvailableLoads();
+      if (!mounted) return;
+      setState(() {
+        _offers = rows;
+        _loading = false;
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _offers = [];
+        _error = e.message;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _offers = [];
+        _error = 'Unable to load direct offers';
+        _loading = false;
+      });
+    }
+  }
+
+  List<Map<String, dynamic>> get _visibleOffers => _offers
+      .where((o) => !_declinedIds.contains(o['id']?.toString()))
+      .toList();
 
   void _handleDriverNavigation(int index) {
     switch (index) {
@@ -54,14 +98,14 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
         if (widget.onNavigate != null) {
           widget.onNavigate!.call('bids');
         } else {
-          _showMessage('Bids screen is not connected yet.');
+          Navigator.pushNamed(context, AppRoutes.page17AvailableLoads);
         }
         break;
       case 4:
         if (widget.onNavigate != null) {
           widget.onNavigate!.call('tracking');
         } else {
-          _showMessage('Tracking screen is not connected yet.');
+          Navigator.pushNamed(context, AppRoutes.page16DriverHome);
         }
         break;
     }
@@ -79,8 +123,56 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
     );
   }
 
+  num _priceOf(Map<String, dynamic> load) {
+    final raw = load['offered_price_etb'];
+    if (raw is num) return raw;
+    return num.tryParse(raw?.toString() ?? '') ?? 0;
+  }
+
+  String _fmt(num n) => n.toStringAsFixed(0).replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (m) => '${m[1]},',
+      );
+
+  Future<void> _placeBidFor(Map<String, dynamic> load, {num? amount}) async {
+    final loadId = load['id']?.toString() ?? '';
+    if (loadId.isEmpty) {
+      _showMessage('Missing load id');
+      return;
+    }
+    final bidAmount = amount ?? _priceOf(load);
+    if (bidAmount <= 0) {
+      _showMessage('Enter a valid bid amount');
+      return;
+    }
+    setState(() => _submitting = true);
+    try {
+      await _driverService.placeBid(loadId: loadId, amountEtb: bidAmount);
+      if (!mounted) return;
+      setState(() {
+        _acceptedIds.add(loadId);
+        _counterLoadId = null;
+        _submitting = false;
+      });
+      _showMessage('Bid of ${_fmt(bidAmount)} ETB submitted');
+      await _loadOffers();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      _showMessage(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      _showMessage('Failed to place bid');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final visible = _visibleOffers;
+    final primary = visible.isNotEmpty ? visible.first : null;
+    final secondary = visible.length > 1 ? visible[1] : null;
+
     return Scaffold(
       backgroundColor: _background,
       body: SafeArea(
@@ -124,6 +216,86 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            onPressed: _loading ? null : _loadOffers,
+            icon: const Icon(Icons.refresh, color: _muted),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: _surface,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              children: [
+                Text(
+                  'EN',
+                  style: TextStyle(color: _gold, fontWeight: FontWeight.w700),
+                ),
+                SizedBox(width: 4),
+                Icon(Icons.translate, size: 16, color: _muted),
+              ],
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(left: 8, right: 16),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: _gold,
+              child: Icon(Icons.person, size: 19, color: Color(0xFF472A00)),
+            ),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: _gold))
+            : RefreshIndicator(
+                color: _gold,
+                onRefresh: _loadOffers,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildNotificationBanner(visible.length),
+                      const SizedBox(height: 16),
+                      if (_error != null)
+                        _buildStatusMessage(
+                          icon: Icons.cloud_off,
+                          title: 'Unable to load offers',
+                          subtitle: _error!,
+                          color: Colors.redAccent,
+                        )
+                      else if (visible.isEmpty)
+                        _buildStatusMessage(
+                          icon: Icons.inbox_outlined,
+                          title: 'No direct offers',
+                          subtitle:
+                              'Available loads will appear here when shippers post to the corridor.',
+                          color: _muted,
+                        )
+                      else ...[
+                        if (primary != null) _buildPriorityOfferCard(primary),
+                        if (secondary != null) ...[
+                          const SizedBox(height: 16),
+                          _buildSecondaryOfferCard(secondary),
+                        ],
+                      ],
+                      const SizedBox(height: 16),
+                      _buildStandbyCard(),
+                      if (_counterLoadId != null) ...[
+                        const SizedBox(height: 16),
+                        _buildCounterForm(),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
       ),
       bottomNavigationBar: DriverBottomNavBar(
         currentIndex: 1,
@@ -132,7 +304,7 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
     );
   }
 
-  Widget _buildNotificationBanner() {
+  Widget _buildNotificationBanner(int count) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -158,12 +330,12 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                   runSpacing: 6,
                   children: [
                     _badge(
-                      '2 Urgent Requests',
+                      count > 0 ? '$count Open Loads' : 'No Open Loads',
                       background: const Color(0xFFF59E0B),
                       foreground: const Color(0xFF472A00),
                     ),
                     _badge(
-                      '●  Telemetry Synced',
+                      '●  Live API',
                       background: const Color(0x334EDEA3),
                       foreground: _green,
                     ),
@@ -202,7 +374,17 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
     );
   }
 
-  Widget _buildPriorityOfferCard() {
+  Widget _buildPriorityOfferCard(Map<String, dynamic> load) {
+    final loadId = load['id']?.toString() ?? '';
+    final accepted = _acceptedIds.contains(loadId);
+    final origin = load['origin_city']?.toString() ?? '—';
+    final dest = load['destination_city']?.toString() ?? '—';
+    final cargo = load['cargo_description']?.toString() ?? 'Freight';
+    final shipper = load['shipper_name']?.toString() ?? 'Shipper';
+    final weight = load['weight_tons'];
+    final price = _priceOf(load);
+    final cargoLine = weight != null ? '${weight}T $cargo' : cargo;
+
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -247,27 +429,27 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                       child: const Icon(Icons.corporate_fare, color: _gold),
                     ),
                     const SizedBox(width: 9),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Abyssinia Logistics PLC',
+                            shipper,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: _white,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          SizedBox(height: 3),
-                          Row(
+                          const SizedBox(height: 3),
+                          const Row(
                             children: [
                               Icon(Icons.verified, color: _green, size: 13),
                               SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  'FTA Tier-1 Enterprise',
+                                  'Verified shipper',
                                   style: TextStyle(color: _green, fontSize: 10),
                                 ),
                               ),
@@ -276,75 +458,51 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0x33F59E0B),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.timer_outlined, color: _gold, size: 14),
-                          SizedBox(width: 4),
-                          Text(
-                            '12:42',
-                            style: TextStyle(
-                              color: _gold,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 14),
-                _buildRoutePanel(),
+                _buildRoutePanel(origin, dest),
                 const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
                       child: _buildSpecCard(
                         title: 'CARGO & RIG',
-                        value: '20T Portland Cement',
-                        detail: 'Dry Sino / FAW 371',
+                        value: cargoLine,
+                        detail: load['status']?.toString() ?? 'POSTED',
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _buildSpecCard(
                         title: 'LOADING SLOT',
-                        value: 'Today 17:00 PM',
-                        detail: 'Bay 4, Gate 2 Terminal',
+                        value: 'As posted',
+                        detail: 'Open for bids',
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                _buildPayoutPanel(),
+                _buildPayoutPanel(price),
                 const SizedBox(height: 12),
-                if (_offerAccepted)
+                if (accepted)
                   _buildStatusMessage(
                     icon: Icons.check_circle,
-                    title: 'Offer Assigned',
-                    subtitle: 'Waybill creation confirmed in this preview.',
+                    title: 'Bid Submitted',
+                    subtitle: 'Your bid was sent to the shipper.',
                     color: _green,
                   )
                 else ...[
                   SizedBox(
                     height: 46,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() => _offerAccepted = true);
-                        _showMessage('Offer accepted in the screen preview.');
-                      },
+                      onPressed: _submitting
+                          ? null
+                          : () => _placeBidFor(load),
                       icon: const Icon(Icons.arrow_forward_rounded, size: 20),
-                      label: const Text('Accept Offer Immediately'),
+                      label: Text(
+                        _submitting ? 'Submitting…' : 'Accept Offer Immediately',
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _gold,
                         foregroundColor: const Color(0xFF472A00),
@@ -364,7 +522,9 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            setState(() => _showCounterForm = true);
+                            _counterController.text =
+                                price > 0 ? price.toStringAsFixed(0) : '';
+                            setState(() => _counterLoadId = loadId);
                           },
                           icon: const Icon(Icons.edit_outlined, size: 17),
                           label: const Text('Counter Fare'),
@@ -381,7 +541,12 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () {
-                            setState(() => _offerDeclined = true);
+                            setState(() {
+                              _declinedIds.add(loadId);
+                              if (_counterLoadId == loadId) {
+                                _counterLoadId = null;
+                              }
+                            });
                           },
                           icon: const Icon(Icons.close, size: 17),
                           label: const Text('Decline Offer'),
@@ -405,7 +570,7 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
     );
   }
 
-  Widget _buildRoutePanel() {
+  Widget _buildRoutePanel(String origin, String dest) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -414,9 +579,9 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
       ),
       child: Column(
         children: [
-          Row(
+          const Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
                   'DIRECT CORRIDOR',
                   style: TextStyle(
@@ -425,17 +590,6 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                     letterSpacing: 1,
                     fontWeight: FontWeight.w600,
                   ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF28354A),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: const Text(
-                  '98 km • Express Highway',
-                  style: TextStyle(color: _white, fontSize: 10),
                 ),
               ),
             ],
@@ -461,22 +615,22 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Addis Ababa (Kaliti Depot)',
-                      style: TextStyle(
+                      origin,
+                      style: const TextStyle(
                         color: _white,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SizedBox(height: 17),
+                    const SizedBox(height: 17),
                     Text(
-                      'Adama Industrial Park',
-                      style: TextStyle(
+                      dest,
+                      style: const TextStyle(
                         color: _white,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -538,7 +692,7 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
     );
   }
 
-  Widget _buildPayoutPanel() {
+  Widget _buildPayoutPanel(num price) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -547,11 +701,11 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
       ),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'GUARANTEED PAYOUT',
                   style: TextStyle(
                     color: _muted,
@@ -560,21 +714,21 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
                     Text(
-                      '32,000',
-                      style: TextStyle(
+                      _fmt(price),
+                      style: const TextStyle(
                         color: _gold,
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(width: 5),
-                    Text(
+                    const SizedBox(width: 5),
+                    const Text(
                       'ETB',
                       style: TextStyle(
                         color: _white,
@@ -584,8 +738,8 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                     ),
                   ],
                 ),
-                Text(
-                  'All-inclusive net fare',
+                const Text(
+                  'Shipper offered fare',
                   style: TextStyle(color: _green, fontSize: 10),
                 ),
               ],
@@ -628,7 +782,16 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
     );
   }
 
-  Widget _buildSecondaryOfferCard() {
+  Widget _buildSecondaryOfferCard(Map<String, dynamic> load) {
+    final loadId = load['id']?.toString() ?? '';
+    final origin = load['origin_city']?.toString() ?? '—';
+    final dest = load['destination_city']?.toString() ?? '—';
+    final cargo = load['cargo_description']?.toString() ?? 'Freight';
+    final shipper = load['shipper_name']?.toString() ?? 'Shipper';
+    final weight = load['weight_tons'];
+    final price = _priceOf(load);
+    final cargoLine = weight != null ? '${weight}T $cargo' : cargo;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -657,52 +820,29 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                 child: const Icon(Icons.agriculture_outlined, color: _gold),
               ),
               const SizedBox(width: 9),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Ethio Agricultural Export...',
+                      shipper,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: _white,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 3),
-                    Text(
-                      'Verified Shipper • 18 Loads Completed',
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Verified Shipper',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: _muted,
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _surfaceHigh,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.hourglass_bottom, color: _gold, size: 13),
-                    SizedBox(width: 4),
-                    Text(
-                      '48 mins',
-                      style: TextStyle(
-                        color: _gold,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -717,30 +857,21 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
               color: _surfaceHigh,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 Expanded(
                   child: Text(
-                    'Modjo Dry Port',
-                    style: TextStyle(color: _white, fontSize: 12),
+                    origin,
+                    style: const TextStyle(color: _white, fontSize: 12),
                   ),
                 ),
-                Icon(Icons.arrow_forward_rounded, color: _gold, size: 18),
-                SizedBox(width: 8),
+                const Icon(Icons.arrow_forward_rounded, color: _gold, size: 18),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Awash Terminal',
+                    dest,
                     textAlign: TextAlign.end,
-                    style: TextStyle(color: _white, fontSize: 12),
-                  ),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  '140 km',
-                  style: TextStyle(
-                    color: _muted,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+                    style: const TextStyle(color: _white, fontSize: 12),
                   ),
                 ),
               ],
@@ -751,18 +882,18 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
             children: [
               const Icon(Icons.inventory_2_outlined, color: _gold, size: 18),
               const SizedBox(width: 7),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  '26T Export Sesame Bags',
-                  style: TextStyle(color: _muted, fontSize: 12),
+                  cargoLine,
+                  style: const TextStyle(color: _muted, fontSize: 12),
                 ),
               ),
               Text.rich(
                 TextSpan(
                   children: [
                     TextSpan(
-                      text: '48,000',
-                      style: TextStyle(
+                      text: _fmt(price),
+                      style: const TextStyle(
                         color: _gold,
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
@@ -782,8 +913,7 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () =>
-                      _showMessage('Secondary offer selected for review.'),
+                  onPressed: _submitting ? null : () => _placeBidFor(load),
                   icon: const Icon(Icons.check_circle_outline, size: 17),
                   label: const Text('Review & Accept'),
                   style: ElevatedButton.styleFrom(
@@ -799,7 +929,9 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _showMessage('Secondary offer declined.'),
+                  onPressed: () {
+                    setState(() => _declinedIds.add(loadId));
+                  },
                   icon: const Icon(Icons.close, size: 17),
                   label: const Text('Decline'),
                   style: OutlinedButton.styleFrom(
@@ -879,67 +1011,12 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
               color: _surfaceHigh,
               borderRadius: BorderRadius.circular(9),
             ),
-            child: const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.local_shipping, color: _gold, size: 21),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text.rich(
-                    TextSpan(
-                      style: TextStyle(
-                        color: _muted,
-                        fontSize: 12,
-                        height: 1.5,
-                      ),
-                      children: [
-                        TextSpan(text: 'Your truck '),
-                        TextSpan(
-                          text: 'Plate 3-84091 ET',
-                          style: TextStyle(
-                            color: _white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        TextSpan(text: ' is visible to '),
-                        TextSpan(
-                          text: '14 preferred shippers',
-                          style: TextStyle(
-                            color: _gold,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        TextSpan(
-                          text:
-                              ' in the Addis Ababa – Djibouti trade corridor.',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+            child: Text(
+              _standbyEnabled
+                  ? 'Your truck is visible to shippers posting open loads on the corridor.'
+                  : 'Standby paused — you will not receive new direct offer pings.',
+              style: const TextStyle(color: _muted, fontSize: 12, height: 1.5),
             ),
-          ),
-          const SizedBox(height: 12),
-          const Row(
-            children: [
-              Icon(Icons.circle, color: _green, size: 7),
-              SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  'GPS Ping: Akaki Kality Subcity',
-                  style: TextStyle(color: _muted, fontSize: 10),
-                ),
-              ),
-              Text(
-                'Manage Corridor Preferences',
-                style: TextStyle(
-                  color: _gold,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -947,6 +1024,17 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
   }
 
   Widget _buildCounterForm() {
+    Map<String, dynamic>? load;
+    for (final o in _offers) {
+      if (o['id']?.toString() == _counterLoadId) {
+        load = o;
+        break;
+      }
+    }
+    final shipper = load?['shipper_name']?.toString() ?? 'Shipper';
+    final cargo = load?['cargo_description']?.toString() ?? 'Freight';
+    final original = load != null ? _priceOf(load) : 0;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -970,16 +1058,14 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
                 ),
               ),
               IconButton(
-                onPressed: () {
-                  setState(() => _showCounterForm = false);
-                },
+                onPressed: () => setState(() => _counterLoadId = null),
                 icon: const Icon(Icons.close, color: _muted),
               ),
             ],
           ),
-          const Text(
-            'Abyssinia Logistics PLC • 20T Cement',
-            style: TextStyle(color: _muted, fontSize: 11),
+          Text(
+            '$shipper • $cargo',
+            style: const TextStyle(color: _muted, fontSize: 11),
           ),
           const SizedBox(height: 12),
           Container(
@@ -988,16 +1074,19 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
               color: _surfaceHigh,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Original Dispatch Rate',
                   style: TextStyle(color: _muted, fontSize: 12),
                 ),
                 Text(
-                  '32,000 ETB',
-                  style: TextStyle(color: _white, fontWeight: FontWeight.w600),
+                  '${_fmt(original)} ETB',
+                  style: const TextStyle(
+                    color: _white,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -1032,15 +1121,16 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
           ),
           const SizedBox(height: 12),
           ElevatedButton.icon(
-            onPressed: () {
-              final rate = _counterController.text.trim();
-              if (rate.isEmpty || int.tryParse(rate) == null) {
-                _showMessage('Enter a valid proposed fare.');
-                return;
-              }
-              setState(() => _showCounterForm = false);
-              _showMessage('Counter fare prepared: $rate ETB.');
-            },
+            onPressed: _submitting || load == null
+                ? null
+                : () {
+                    final rate = num.tryParse(_counterController.text.trim());
+                    if (rate == null || rate <= 0) {
+                      _showMessage('Enter a valid proposed fare.');
+                      return;
+                    }
+                    _placeBidFor(load, amount: rate);
+                  },
             icon: const Icon(Icons.send, size: 17),
             label: const Text('Dispatch Counter to Shipper'),
             style: ElevatedButton.styleFrom(
@@ -1050,9 +1140,7 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
             ),
           ),
           TextButton(
-            onPressed: () {
-              setState(() => _showCounterForm = false);
-            },
+            onPressed: () => setState(() => _counterLoadId = null),
             child: const Text('Cancel', style: TextStyle(color: _muted)),
           ),
         ],

@@ -9,6 +9,7 @@ import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
 import 'package:mobile/presentation/widgets/nocturne/kpi_tile.dart';
 import 'package:mobile/presentation/widgets/nocturne/page_ribbon.dart';
+import 'package:mobile/core/services/storage_service.dart';
 import 'package:mobile/presentation/widgets/navigation/corridor_navigation_sheet.dart';
 
 /// PAGE 27 — Fleet Operations Command Hub (tab shell).
@@ -84,13 +85,13 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
   Widget build(BuildContext context) {
     final stats = _stats;
     final activeRigs = stats == null
-        ? '24 / 28'
+        ? '—'
         : '${stats.vehiclesActive} / ${stats.vehiclesTotal == 0 ? stats.vehiclesActive : stats.vehiclesTotal}';
     final escrowValue = stats == null
-        ? 'ETB 1.84M'
+        ? '—'
         : (_lockedEscrow > 0 ? _etb(_lockedEscrow) : _etb(stats.totalEarnings));
-    final companyName = _profile?.name ?? 'Nile Trans-Ethiopia Logistics Corp';
-    final tin = _profile?.tin ?? '00928374-B';
+    final companyName = _profile?.name ?? (_live ? 'Fleet company' : '—');
+    final tin = _profile?.tin ?? '—';
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -121,14 +122,78 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                     color: AppColors.onSurfaceVariant,
                     tooltip: 'Refresh from API',
                   ),
-                  const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppColors.primary,
-                    child: Icon(
-                      Icons.person,
-                      size: 18,
-                      color: AppColors.onPrimary,
+                  PopupMenuButton<String>(
+                    tooltip: 'Fleet Account Options',
+                    icon: const CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.primary,
+                      child: Icon(
+                        Icons.person,
+                        size: 18,
+                        color: AppColors.onPrimary,
+                      ),
                     ),
+                    color: AppColors.card,
+                    onSelected: (val) async {
+                      if (val == 'signout') {
+                        await StorageService.clearAuthData();
+                        if (!mounted) return;
+                        Navigator.of(context).pushNamedAndRemoveUntil(
+                          AppRoutes.login,
+                          (r) => false,
+                        );
+                      } else if (val == 'shipper') {
+                        Navigator.pushNamed(context, AppRoutes.home);
+                      } else if (val == 'driver') {
+                        Navigator.pushNamed(context, AppRoutes.page16DriverHome);
+                      }
+                    },
+                    itemBuilder: (ctx) => [
+                      const PopupMenuItem(
+                        value: 'info',
+                        enabled: false,
+                        child: Text(
+                          'Fleet Owner • Ethio Logistics PLC',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.gold,
+                          ),
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      const PopupMenuItem(
+                        value: 'shipper',
+                        child: Row(
+                          children: [
+                            Icon(Icons.storefront_rounded, size: 16, color: AppColors.gold),
+                            SizedBox(width: 8),
+                            Text('Shipper Dashboard', style: TextStyle(fontSize: 13, color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'driver',
+                        child: Row(
+                          children: [
+                            Icon(Icons.local_shipping_rounded, size: 16, color: Color(0xFF38BDF8)),
+                            SizedBox(width: 8),
+                            Text('Driver Portal', style: TextStyle(fontSize: 13, color: Colors.white)),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      const PopupMenuItem(
+                        value: 'signout',
+                        child: Row(
+                          children: [
+                            Icon(Icons.logout_rounded, size: 16, color: AppColors.error),
+                            SizedBox(width: 8),
+                            Text('Sign Out', style: TextStyle(fontSize: 13, color: AppColors.error)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -145,7 +210,9 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                     PageRibbon(
                       page: '27',
                       title: 'FLEET OPERATIONS COMMAND HUB',
-                      status: _live ? 'API Synced' : 'Design Preview',
+                      status: _live
+                          ? 'API Synced'
+                          : (_error != null ? 'API Error' : 'Empty'),
                     ),
                     const SizedBox(height: 12),
                     _ApiStatusBanner(
@@ -159,11 +226,11 @@ class _FleetCommandHubScreenState extends State<FleetCommandHubScreen> {
                     _KpiGrid(
                       activeRigs: activeRigs,
                       dispatched: stats == null
-                          ? '768 MT'
+                          ? '—'
                           : '${stats.shipmentsInTransit + stats.shipmentsDelivered} trips',
                       escrowRevenue: escrowValue,
                       telemetry: stats == null
-                          ? '1 Alert'
+                          ? '—'
                           : '${stats.driversActive} drivers',
                     ),
                     const SizedBox(height: 12),
@@ -242,7 +309,7 @@ class _ApiStatusBanner extends StatelessWidget {
               live
                   ? 'Connected to HabeshaFreight API (/company/* + /escrow)'
                   : (error ??
-                        'Using stitch demo data — sign in as fleet owner to sync'),
+                        'No fleet data — sign in as fleet owner and pull to refresh'),
               style: TextStyle(
                 fontSize: 12,
                 color: live ? AppColors.secondary : AppColors.onSurfaceVariant,
@@ -423,7 +490,7 @@ class _EnterpriseHeader extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'TIN: $tin  ·  Fleet Tier: 1 Platinum',
+                      tin == '—' ? 'TIN unavailable' : 'TIN: $tin',
                       style: const TextStyle(
                         fontSize: 12,
                         color: AppColors.onSurfaceVariant,

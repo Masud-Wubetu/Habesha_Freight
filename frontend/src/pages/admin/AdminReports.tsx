@@ -9,107 +9,30 @@ interface ReportCardData {
   title: string;
   subtitle: string;
   bars: { label: string; value: number; heightPct: number }[];
-  csvFilename: string;
-  csvData: string;
+  exportType: string;
+  emptyHint: string;
+}
+
+function barsFromSeries(
+  items: { label: string; value: number }[],
+): { label: string; value: number; heightPct: number }[] {
+  if (!items.length) return [];
+  const max = Math.max(...items.map((i) => i.value), 1);
+  return items.map((i) => ({
+    label: i.label,
+    value: i.value,
+    heightPct: Math.max(8, Math.round((i.value / max) * 100)),
+  }));
 }
 
 export default function AdminReports() {
   const [loading, setLoading] = useState(false);
-
-  const defaultReports: ReportCardData[] = [
-    {
-      id: 'shipments-by-route',
-      title: 'Shipments by Route',
-      subtitle: 'Top performing routes this month',
-      bars: [
-        { label: 'Addis-DireDawa', value: 42, heightPct: 55 },
-        { label: 'Addis-Adama', value: 78, heightPct: 85 },
-        { label: 'Hawassa-Addis', value: 30, heightPct: 40 },
-        { label: 'Addis-Mekelle', value: 95, heightPct: 100 },
-        { label: 'BahirDar-Addis', value: 48, heightPct: 60 },
-        { label: 'Adama-Hawassa', value: 65, heightPct: 75 },
-        { label: 'Gonder-Addis', value: 82, heightPct: 90 },
-      ],
-      csvFilename: 'shipments_by_route_report.csv',
-      csvData: 'Route,Shipment Count,Revenue (ETB)\nAddis Ababa - Dire Dawa,42,340000\nAddis Ababa - Adama,78,480000\nHawassa - Addis Ababa,30,210000\nAddis Ababa - Mekelle,95,950000\nBahir Dar - Addis Ababa,48,390000',
-    },
-    {
-      id: 'revenue-by-week',
-      title: 'Revenue by Week',
-      subtitle: 'Platform fee collection trend',
-      bars: [
-        { label: 'Week 1', value: 12000, heightPct: 45 },
-        { label: 'Week 2', value: 18500, heightPct: 70 },
-        { label: 'Week 3', value: 14000, heightPct: 50 },
-        { label: 'Week 4', value: 24500, heightPct: 95 },
-        { label: 'Week 5', value: 16000, heightPct: 60 },
-        { label: 'Week 6', value: 21000, heightPct: 80 },
-        { label: 'Week 7', value: 26000, heightPct: 100 },
-      ],
-      csvFilename: 'weekly_revenue_report.csv',
-      csvData: 'Week,Total Revenue (ETB),Platform Commission (ETB)\nWeek 1,120000,12000\nWeek 2,185000,18500\nWeek 3,140000,14000\nWeek 4,245000,24500\nWeek 5,160000,16000',
-    },
-    {
-      id: 'driver-performance',
-      title: 'Driver Performance',
-      subtitle: 'Ratings, delivery rates, disputes',
-      bars: [
-        { label: 'Jan', value: 88, heightPct: 50 },
-        { label: 'Feb', value: 92, heightPct: 75 },
-        { label: 'Mar', value: 85, heightPct: 40 },
-        { label: 'Apr', value: 96, heightPct: 95 },
-        { label: 'May', value: 89, heightPct: 55 },
-        { label: 'Jun', value: 94, heightPct: 80 },
-        { label: 'Jul', value: 98, heightPct: 100 },
-      ],
-      csvFilename: 'driver_performance_report.csv',
-      csvData: 'Month,On-Time Rate (%),Avg Rating,Resolved Disputes\nJanuary,94.2%,4.8,1\nFebruary,96.5%,4.9,0\nMarch,92.1%,4.7,2\nApril,98.0%,5.0,0\nMay,95.4%,4.8,1',
-    },
-    {
-      id: 'escrow-turnover',
-      title: 'Escrow Turnover',
-      subtitle: 'Funds in / funds out',
-      bars: [
-        { label: 'Q1-A', value: 140000, heightPct: 50 },
-        { label: 'Q1-B', value: 190000, heightPct: 75 },
-        { label: 'Q2-A', value: 110000, heightPct: 35 },
-        { label: 'Q2-B', value: 230000, heightPct: 95 },
-        { label: 'Q3-A', value: 150000, heightPct: 55 },
-        { label: 'Q3-B', value: 210000, heightPct: 80 },
-        { label: 'Q4-A', value: 250000, heightPct: 100 },
-      ],
-      csvFilename: 'escrow_turnover_report.csv',
-      csvData: 'Period,Deposited (ETB),Released (ETB),Refunded (ETB)\nQ1 2026,450000,410000,15000\nQ2 2026,580000,530000,20000\nQ3 2026,620000,590000,10000',
-    },
-  ];
-
-  const [reports, setReports] = useState<ReportCardData[]>(defaultReports);
-
-  useEffect(() => {
-    fetchReports();
-  }, []);
-
-  const fetchReports = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get<{
-        success: boolean;
-        data?: { reports?: ReportCardData[] };
-      }>('/admin/reports', true);
-
-      if (res && res.success && res.data?.reports && res.data.reports.length > 0) {
-        setReports(res.data.reports);
-      }
-    } catch (err) {
-      console.warn('Backend API note: utilizing analytical report series', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const [error, setError] = useState<string | null>(null);
+  const [reports, setReports] = useState<ReportCardData[]>([]);
   const [openDisputesCount, setOpenDisputesCount] = useState(0);
 
   useEffect(() => {
+    fetchReports();
     fetchLiveMetrics();
   }, []);
 
@@ -124,75 +47,122 @@ export default function AdminReports() {
     }
   };
 
+  const fetchReports = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [revenue, users, drivers, companies, deliveries] = await Promise.all([
+        api.get<any>('/admin/reports/revenue?group_by=week', true).catch(() => null),
+        api.get<any>('/admin/reports/users', true).catch(() => null),
+        api.get<any>('/admin/reports/drivers', true).catch(() => null),
+        api.get<any>('/admin/reports/companies', true).catch(() => null),
+        api.get<any>('/admin/reports/deliveries', true).catch(() => null),
+      ]);
+
+      const revenueData = revenue?.data ?? revenue;
+      const userData = users?.data ?? users;
+      const driverData = drivers?.data ?? drivers;
+      const companyData = companies?.data ?? companies;
+      const deliveryData = deliveries?.data ?? deliveries;
+
+      const next: ReportCardData[] = [
+        {
+          id: 'revenue-by-week',
+          title: 'Revenue by Period',
+          subtitle: `Total ETB ${Number(revenueData?.totalRevenue ?? 0).toLocaleString()}`,
+          exportType: 'revenue',
+          emptyHint: 'No completed payments in range.',
+          bars: barsFromSeries(
+            (revenueData?.breakdown || []).map((b: any) => ({
+              label: String(b.date || ''),
+              value: Number(b.amount || 0),
+            })),
+          ),
+        },
+        {
+          id: 'users-by-role',
+          title: 'Users by Role',
+          subtitle: `Total users ${Number(userData?.totalUsers ?? 0).toLocaleString()}`,
+          exportType: 'users',
+          emptyHint: 'No user breakdown returned.',
+          bars: barsFromSeries(
+            (userData?.usersByRole || []).map((u: any) => ({
+              label: String(u.role || 'UNKNOWN'),
+              value: Number(u.count || 0),
+            })),
+          ),
+        },
+        {
+          id: 'driver-performance',
+          title: 'Drivers',
+          subtitle: `Avg rating ${Number(driverData?.averageRating ?? 0).toFixed(1)} · ${Number(driverData?.totalDrivers ?? 0)} drivers`,
+          exportType: 'drivers',
+          emptyHint: 'No driver status data.',
+          bars: barsFromSeries(
+            (driverData?.driversByStatus || []).map((d: any) => ({
+              label: String(d.status || 'ACTIVE'),
+              value: Number(d.count || 0),
+            })),
+          ),
+        },
+        {
+          id: 'companies-deliveries',
+          title: 'Companies & Deliveries',
+          subtitle: `${Number(companyData?.totalCompanies ?? 0)} companies · ${Number(deliveryData?.totalDeliveries ?? 0)} deliveries`,
+          exportType: 'deliveries',
+          emptyHint: 'No company/delivery breakdown.',
+          bars: barsFromSeries([
+            ...(companyData?.companiesByStatus || []).map((c: any) => ({
+              label: `Co:${c.status || 'ACTIVE'}`,
+              value: Number(c.count || 0),
+            })),
+            ...(deliveryData?.deliveriesByStatus || []).map((d: any) => ({
+              label: String(d.status || 'UNKNOWN'),
+              value: Number(d.count || 0),
+            })),
+          ]),
+        },
+      ];
+
+      setReports(next);
+      if (!revenue && !users && !drivers && !companies && !deliveries) {
+        setError('Unable to load admin reports. Check admin auth and API.');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load reports');
+      setReports([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDownloadCSV = async (report: ReportCardData) => {
     try {
-      let liveCsvText = '';
-      let filename = report.csvFilename;
+      const res: any = await api.get(`/admin/reports/${report.exportType}/export`, true);
+      const payload = res?.data ?? res;
+      const csvText =
+        typeof payload === 'string'
+          ? payload
+          : payload?.csv ||
+            payload?.content ||
+            (payload ? JSON.stringify(payload, null, 2) : '');
 
-      if (report.id === 'shipments-by-route') {
-        const res: any = await api.get('/admin/loads', true).catch(() => null);
-        const items: any[] = res?.data?.items || res?.items || res?.deliveries || res?.loads || [];
-        
-        const headers = ['Load ID', 'Shipper Name', 'Driver Name', 'Origin', 'Destination', 'Status', 'Offered Price (ETB)', 'Cargo Type'];
-        const rows = items.map((item, idx) => [
-          `"LOAD-${item.id ? item.id.slice(0, 6) : idx + 1}"`,
-          `"${item.shipper_name || 'Shipper'}"`,
-          `"${item.driver_name || '—'}"`,
-          `"${item.origin || 'Addis Ababa'}"`,
-          `"${item.destination || 'Regional'}"`,
-          `"${item.status || 'POSTED'}"`,
-          `"${item.offered_price || item.budget || 5000}"`,
-          `"${item.cargo_type || 'General Freight'}"`,
-        ].join(','));
-
-        liveCsvText = [headers.join(','), ...rows].join('\n');
-        if (items.length === 0) liveCsvText = report.csvData;
-      } else if (report.id === 'escrow-turnover' || report.id === 'revenue-by-week') {
-        const res: any = await api.get('/escrow/ledger/all', true).catch(() => null);
-        const items: any[] = res?.data || res?.ledger || [];
-
-        const headers = ['Ledger ID', 'Shipment ID', 'Status', 'Gross Amount (ETB)', 'Commission (5%)', 'Net Driver Payout', 'Timestamp'];
-        const rows = items.map((item) => [
-          `"${item.id || ''}"`,
-          `"${item.shipment_id || ''}"`,
-          `"${item.status || 'LOCKED'}"`,
-          `"${item.gross_amount_etb || 0}"`,
-          `"${item.commission_amount_etb || 0}"`,
-          `"${item.net_payout_amount_etb || 0}"`,
-          `"${item.created_at || new Date().toISOString()}"`,
-        ].join(','));
-
-        liveCsvText = [headers.join(','), ...rows].join('\n');
-        if (items.length === 0) liveCsvText = report.csvData;
-      } else {
-        const res: any = await api.get('/admin/users', true).catch(() => null);
-        const items: any[] = res?.data?.users || res?.users || [];
-
-        const headers = ['User ID', 'Full Name', 'Phone Number', 'Email', 'Role', 'Status', 'KYC Status'];
-        const rows = items.map((item) => [
-          `"${item.id || ''}"`,
-          `"${item.full_name || ''}"`,
-          `"${item.phone_number || ''}"`,
-          `"${item.email || ''}"`,
-          `"${item.role || 'DRIVER'}"`,
-          `"${item.status || (item.is_verified ? 'ACTIVE' : 'INACTIVE')}"`,
-          `"${item.kyc_status || 'APPROVED'}"`,
-        ].join(','));
-
-        liveCsvText = [headers.join(','), ...rows].join('\n');
-        if (items.length === 0) liveCsvText = report.csvData;
+      if (!csvText) {
+        alert('Export returned no data.');
+        return;
       }
 
-      const blob = new Blob([liveCsvText], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', filename);
+      link.setAttribute('download', `${report.exportType}_report.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (err) {
-      console.error('CSV export error:', err);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      alert(err?.message || 'CSV export failed.');
     }
   };
 
@@ -206,7 +176,6 @@ export default function AdminReports() {
   return (
     <AdminLayout>
       <div style={{ padding: '1rem 1.25rem' }}>
-        {/* Top Header Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>Reports</h1>
@@ -214,7 +183,6 @@ export default function AdminReports() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {/* Open Disputes Alert Pill */}
             <Link
               to="/admin/disputes"
               style={{
@@ -233,10 +201,6 @@ export default function AdminReports() {
               <span>⚠️</span>
               <span>{openDisputesCount} open disputes</span>
             </Link>
-
-
-
-            {/* Profile Avatar */}
             <div
               style={{
                 width: '38px',
@@ -256,7 +220,10 @@ export default function AdminReports() {
           </div>
         </div>
 
-        {/* 2x2 Reports Grid Container */}
+        {error && (
+          <div style={{ marginBottom: '1rem', color: '#b91c1c', fontSize: '0.9rem' }}>{error}</div>
+        )}
+
         {loading ? (
           <div
             style={{
@@ -292,7 +259,6 @@ export default function AdminReports() {
                   minHeight: '260px',
                 }}
               >
-                {/* Header Information */}
                 <div>
                   <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0F172A', margin: 0 }}>
                     {report.title}
@@ -301,34 +267,38 @@ export default function AdminReports() {
                     {report.subtitle}
                   </div>
 
-                  {/* Gray Bar Visual Graphic */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-end',
-                      gap: '0.75rem',
-                      height: '110px',
-                      marginTop: '2rem',
-                      marginBottom: '1.5rem',
-                    }}
-                  >
-                    {report.bars.map((bar, idx) => (
-                      <div
-                        key={idx}
-                        style={{
-                          flex: 1,
-                          height: `${bar.heightPct}%`,
-                          backgroundColor: '#E5E7EB',
-                          borderRadius: '0.25rem',
-                          transition: 'height 0.3s ease, background-color 0.2s',
-                        }}
-                        title={`${bar.label}: ${bar.value}`}
-                      />
-                    ))}
-                  </div>
+                  {report.bars.length === 0 ? (
+                    <p style={{ marginTop: '2rem', color: '#94A3B8', fontSize: '0.875rem' }}>
+                      {report.emptyHint}
+                    </p>
+                  ) : (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                        gap: '0.75rem',
+                        height: '110px',
+                        marginTop: '2rem',
+                        marginBottom: '1.5rem',
+                      }}
+                    >
+                      {report.bars.map((bar, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            flex: 1,
+                            height: `${bar.heightPct}%`,
+                            backgroundColor: '#E5E7EB',
+                            borderRadius: '0.25rem',
+                            transition: 'height 0.3s ease, background-color 0.2s',
+                          }}
+                          title={`${bar.label}: ${bar.value}`}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                {/* CSV Download Action Link */}
                 <div>
                   <button
                     onClick={() => handleDownloadCSV(report)}

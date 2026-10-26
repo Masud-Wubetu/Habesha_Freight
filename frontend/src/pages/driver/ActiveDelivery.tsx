@@ -1,64 +1,16 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStoredUser } from '../../services/authService';
 import { useDriverShipments } from '../../hooks/useDriverShipments';
 import { post } from '../../services/api';
+import ChatModal from '../../components/ChatModal';
 
-/* ── Types ───────────────────────────────────────────────── */
-interface Message {
-  id: number;
-  text: string;
-  from: 'me' | 'them';
-}
-
-interface Conversation {
-  id: string;
-  name: string;
-  initials: string;
-  avatarGold?: boolean;
-  preview: string;
-  time: string;
-  unread?: number;
-  messages: Message[];
-}
-
-/* ── Mock data ───────────────────────────────────────────── */
-const CONVERSATIONS: Conversation[] = [
-  {
-    id: 'sara',
-    name: 'Sara Bekele',
-    initials: 'SB',
-    preview: 'Please be at Kaliti gate at 7 AM.',
-    time: '5m ago',
-    unread: 1,
-    messages: [
-      { id: 1, text: 'Please be at Kaliti gate at 7 AM.', from: 'them' },
-      { id: 2, text: 'Understood. Will I need to bring any documents?', from: 'me' },
-      { id: 3, text: 'Just your license and truck registration. We\'ll handle the rest.', from: 'them' },
-    ],
-  },
-  {
-    id: 'hf',
-    name: 'HabeshaFreight',
-    initials: 'HF',
-    avatarGold: true,
-    preview: 'Your verification badge has been renew…',
-    time: '1d ago',
-    messages: [
-      { id: 1, text: 'Your verification badge has been renewed. You are now fully cleared for transit.', from: 'them' },
-      { id: 2, text: 'Thank you! Appreciate the update.', from: 'me' },
-    ],
-  },
-];
-
-/* ── Helper: today's date string ─────────────────────────── */
 function formatDate() {
   return new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'short', day: 'numeric', year: 'numeric',
   });
 }
 
-/* ── Main component ──────────────────────────────────────── */
 export default function ActiveDelivery() {
   const navigate = useNavigate();
   const storedUser = getStoredUser();
@@ -70,57 +22,21 @@ export default function ActiveDelivery() {
     .toUpperCase()
     .slice(0, 2);
 
-  /* Delivery status state */
   type Step = 'pending' | 'loaded' | 'checkpoint' | 'delivered';
   const [step, setStep] = useState<Step>('pending');
 
-  /* OTP Delivery Verification Modal State */
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [showPickupModal, setShowPickupModal] = useState(false);
   const [otpInput, setOtpInput] = useState('');
+  const [pickupOtp, setPickupOtp] = useState('');
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [otpMessage, setOtpMessage] = useState<string | null>(null);
+  const [pickupMessage, setPickupMessage] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const stepDone = (s: Step) => {
     const order: Step[] = ['pending', 'loaded', 'checkpoint', 'delivered'];
     return order.indexOf(step) > order.indexOf(s);
-  };
-
-  /* Chat state */
-  const [chatOpen, setChatOpen] = useState(false);
-  const [activeConvId, setActiveConvId] = useState(CONVERSATIONS[0].id);
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [convList, setConvList] = useState<Conversation[]>(CONVERSATIONS);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const activeConv = convList.find((c) => c.id === activeConvId)!;
-  const draft = drafts[activeConvId] ?? '';
-
-  const openChat = () => {
-    setConvList((prev) =>
-      prev.map((c) => (c.id === activeConvId ? { ...c, unread: 0 } : c))
-    );
-    setChatOpen(true);
-  };
-
-  const selectConv = (id: string) => {
-    setActiveConvId(id);
-    setConvList((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, unread: 0 } : c))
-    );
-  };
-
-  const sendMessage = () => {
-    if (!draft.trim()) return;
-    const newMsg: Message = { id: Date.now(), text: draft.trim(), from: 'me' };
-    setConvList((prev) =>
-      prev.map((c) =>
-        c.id === activeConvId
-          ? { ...c, messages: [...c.messages, newMsg], preview: draft.trim() }
-          : c
-      )
-    );
-    setDrafts((d) => ({ ...d, [activeConvId]: '' }));
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
   };
 
   const { shipments } = useDriverShipments();
@@ -129,39 +45,75 @@ export default function ActiveDelivery() {
     (s) => !['DELIVERED', 'CANCELLED'].includes(s.status)
   );
 
-  /* Real delivery object (falls back to placeholder if no active shipment yet) */
   const delivery = activeShipment
     ? {
         id: activeShipment.id,
         shipmentId: activeShipment.id.slice(0, 12),
-        origin: activeShipment.origin_city ?? 'Addis Ababa',
-        destination: activeShipment.destination_city ?? 'Dire Dawa',
-        cargoType: activeShipment.cargo_description ?? 'Cargo Goods',
-        weightTons: activeShipment.weight_tons ?? 15,
-        budgetETB: 45000,
+        origin: activeShipment.origin_city ?? '—',
+        destination: activeShipment.destination_city ?? '—',
+        cargoType: activeShipment.cargo_description ?? 'Cargo',
+        weightTons: activeShipment.weight_tons ?? 0,
+        budgetETB: Number(
+          (activeShipment as any).offered_price_etb ??
+            (activeShipment as any).agreed_price_etb ??
+            (activeShipment as any).budget_etb ??
+            0,
+        ),
         status: activeShipment.status,
+        shipperId: String(
+          (activeShipment as any).shipper_id ??
+            (activeShipment as any).shipper?.id ??
+            '',
+        ),
+        shipperName: String(
+          (activeShipment as any).shipper_name ??
+            (activeShipment as any).shipper?.full_name ??
+            'Shipper',
+        ),
       }
-    : {
-        id: 'SHP-DEMO-001',
-        shipmentId: 'SHP-89102',
-        origin: 'Addis Ababa',
-        destination: 'Dire Dawa',
-        cargoType: 'Industrial Steel Coils',
-        weightTons: 18,
-        budgetETB: 45000,
-        status: 'IN_TRANSIT',
-      };
+    : null;
+
+  const handleVerifyPickup = async () => {
+    if (!delivery) {
+      setPickupMessage('No active shipment.');
+      return;
+    }
+    if (!pickupOtp.trim()) {
+      setPickupMessage('Enter the pickup OTP.');
+      return;
+    }
+    setVerifyingOtp(true);
+    setPickupMessage(null);
+    try {
+      await post(`/shipments/${delivery.id}/pickup-verify`, {
+        pickup_otp: pickupOtp.trim(),
+      });
+      setPickupMessage('Pickup verified. Shipment is in transit.');
+      setStep('loaded');
+      setTimeout(() => {
+        setShowPickupModal(false);
+        setPickupMessage(null);
+        setPickupOtp('');
+      }, 1200);
+    } catch (err: any) {
+      setPickupMessage(err?.message || 'Pickup OTP verification failed.');
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
 
   const handleVerifyDelivery = async () => {
+    if (!delivery) {
+      setOtpMessage('No active shipment to verify.');
+      return;
+    }
     setVerifyingOtp(true);
     setOtpMessage(null);
     try {
-      if (delivery.id && !delivery.id.startsWith('SHP-DEMO')) {
-        await post(`/shipments/${delivery.id}/delivery-verify`, {
-          delivery_otp: otpInput || '123456',
-        });
-      }
-      setOtpMessage('🎉 Delivery verified! Escrow funds released to your wallet.');
+      await post(`/shipments/${delivery.id}/delivery-verify`, {
+        delivery_otp: otpInput,
+      });
+      setOtpMessage('Delivery verified. Escrow can be released by the shipper.');
       setStep('delivered');
       setTimeout(() => {
         setShowOtpModal(false);
@@ -169,13 +121,7 @@ export default function ActiveDelivery() {
       }, 1500);
     } catch (err: any) {
       console.error('Verify Delivery OTP Error:', err);
-      // Optimistic completion for smooth demo presentation
-      setOtpMessage('🎉 Delivery verified! Escrow payout released to wallet.');
-      setStep('delivered');
-      setTimeout(() => {
-        setShowOtpModal(false);
-        setOtpMessage(null);
-      }, 1500);
+      setOtpMessage(err?.message || 'OTP verification failed. Try again.');
     } finally {
       setVerifyingOtp(false);
     }
@@ -184,7 +130,6 @@ export default function ActiveDelivery() {
   return (
     <>
       <div className="ad-page">
-        {/* ── Page Header ──────────────────────────────────── */}
         <div className="ad-header">
           <div className="ad-header-left">
             <h1>Active Delivery</h1>
@@ -196,15 +141,18 @@ export default function ActiveDelivery() {
               Online &amp; Available
             </div>
             <button className="ad-theme-toggle" aria-label="Toggle dark mode">🌙</button>
-            <div className="ad-avatar" title={storedUser?.full_name ?? 'Abebe Girma'}>
+            <div className="ad-avatar" title={storedUser?.full_name ?? 'Driver'}>
               {initials}
             </div>
           </div>
         </div>
 
-        {/* ── Delivery Card ─────────────────────────────────── */}
+        {!delivery ? (
+          <div className="ad-card">
+            <p className="ad-shipment-meta">No active shipment from the API. Accept a load to begin delivery.</p>
+          </div>
+        ) : (
         <div className="ad-card">
-          {/* Top: shipment info + price */}
           <div className="ad-card-top">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -235,12 +183,12 @@ export default function ActiveDelivery() {
             </div>
           </div>
 
-          {/* Status action rows */}
           <div className="ad-actions-list">
-            {/* Mark as Loaded */}
             <div
               className={`ad-action-row ${stepDone('pending') || step === 'loaded' || step === 'checkpoint' || step === 'delivered' ? 'ad-action-row--done' : ''}`}
-              onClick={() => setStep('loaded')}
+              onClick={() => {
+                if (step === 'pending') setShowPickupModal(true);
+              }}
               role="button"
               tabIndex={0}
             >
@@ -248,15 +196,16 @@ export default function ActiveDelivery() {
                 <span className="ad-action-icon">
                   {step === 'loaded' || step === 'checkpoint' || step === 'delivered' ? '✅' : '📦'}
                 </span>
-                Mark as Loaded
+                Mark as Loaded (Pickup OTP)
               </span>
               <span className="ad-action-arrow">→</span>
             </div>
 
-            {/* Arrived at Checkpoint */}
             <div
               className={`ad-action-row ${step === 'checkpoint' || step === 'delivered' ? 'ad-action-row--done' : ''}`}
-              onClick={() => setStep('checkpoint')}
+              onClick={() => {
+                if (step === 'loaded' || step === 'checkpoint') setStep('checkpoint');
+              }}
               role="button"
               tabIndex={0}
             >
@@ -269,7 +218,6 @@ export default function ActiveDelivery() {
               <span className="ad-action-arrow">→</span>
             </div>
 
-            {/* Mark as Delivered */}
             <div
               className={`ad-action-row ${step === 'delivered' ? 'ad-action-row--done' : ''}`}
               onClick={() => setShowOtpModal(true)}
@@ -289,7 +237,6 @@ export default function ActiveDelivery() {
             </div>
           </div>
 
-          {/* Navigation + Chat buttons */}
           <div className="ad-bottom-actions">
             <button
               className="ad-bottom-btn"
@@ -298,15 +245,76 @@ export default function ActiveDelivery() {
               <span className="ad-btn-emoji">📍</span>
               Navigation & GPS
             </button>
-            <button className="ad-bottom-btn" onClick={openChat}>
+            <button
+              className="ad-bottom-btn"
+              onClick={() => {
+                if (!delivery.shipperId) {
+                  alert('No shipper id on this shipment — cannot open chat.');
+                  return;
+                }
+                setChatOpen(true);
+              }}
+            >
               <span className="ad-btn-emoji">💬</span>
               Chat with Shipper
             </button>
           </div>
         </div>
+        )}
       </div>
 
-      {/* ── Delivery OTP Verification Modal ────────────────────── */}
+      {showPickupModal && (
+        <div className="fixed inset-0 z-[1100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-6 max-w-md w-full text-white shadow-2xl animate-fade-in">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">📦</span>
+                <h3 className="text-lg font-bold text-white">Pickup OTP Verification</h3>
+              </div>
+              <button
+                onClick={() => setShowPickupModal(false)}
+                className="text-white/60 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-sm text-slate-300 mb-4">
+              Enter the pickup OTP from the shipper to mark cargo loaded and start transit.
+            </p>
+            {pickupMessage && (
+              <div className="p-3 mb-4 rounded-lg bg-emerald-500/20 border border-emerald-500 text-emerald-300 text-sm font-semibold">
+                {pickupMessage}
+              </div>
+            )}
+            <div className="mb-5">
+              <label className="block text-xs font-semibold text-amber-400 mb-1">Pickup OTP</label>
+              <input
+                type="text"
+                placeholder="Enter pickup OTP"
+                value={pickupOtp}
+                onChange={(e) => setPickupOtp(e.target.value)}
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center text-xl tracking-widest font-mono text-white focus:outline-none focus:border-amber-500"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowPickupModal(false)}
+                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-semibold transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleVerifyPickup}
+                disabled={verifyingOtp}
+                className="flex-1 py-3 bg-[#C8933A] hover:bg-[#b07e2e] rounded-xl text-sm font-bold transition-colors cursor-pointer"
+              >
+                {verifyingOtp ? 'Verifying…' : 'Verify Pickup'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showOtpModal && (
         <div className="fixed inset-0 z-[1100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-amber-500/40 rounded-2xl p-6 max-w-md w-full text-white shadow-2xl animate-fade-in">
@@ -324,7 +332,7 @@ export default function ActiveDelivery() {
             </div>
 
             <p className="text-sm text-slate-300 mb-4">
-              Please enter the 6-digit Delivery OTP provided by the cargo receiver to confirm arrival and release your escrow payout.
+              Enter the 6-digit Delivery OTP from the receiver to confirm arrival.
             </p>
 
             {otpMessage && (
@@ -339,7 +347,7 @@ export default function ActiveDelivery() {
               </label>
               <input
                 type="text"
-                placeholder="e.g. 982041"
+                placeholder="Enter OTP"
                 value={otpInput}
                 onChange={(e) => setOtpInput(e.target.value)}
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-center text-xl tracking-widest font-mono text-white focus:outline-none focus:border-amber-500"
@@ -365,70 +373,14 @@ export default function ActiveDelivery() {
         </div>
       )}
 
-      {/* ── Chat Panel ───────────────────────────────────────── */}
-      {chatOpen && (
-        <div className="chat-overlay" onClick={() => setChatOpen(false)}>
-          <div className="chat-panel" onClick={(e) => e.stopPropagation()}>
-            <div className="chat-sidebar">
-              <div className="chat-sidebar-header">
-                <p className="chat-sidebar-title">Messages</p>
-              </div>
-              <div className="chat-conv-list">
-                {convList.map((conv) => (
-                  <div
-                    key={conv.id}
-                    className={`chat-conv-item ${conv.id === activeConvId ? 'chat-conv-item--active' : ''}`}
-                    onClick={() => selectConv(conv.id)}
-                  >
-                    <div className={`chat-conv-avatar ${conv.avatarGold ? 'chat-conv-avatar--gold' : ''}`}>
-                      {conv.initials}
-                    </div>
-                    <div className="chat-conv-body">
-                      <p className="chat-conv-name">{conv.name}</p>
-                      <p className="chat-conv-preview">{conv.preview}</p>
-                    </div>
-                    <div>
-                      <p className="chat-conv-time">{conv.time}</p>
-                    </div>
-                    {conv.unread ? (
-                      <div className="chat-unread">{conv.unread}</div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="chat-main">
-              <div className="chat-main-header">
-                <p className="chat-main-title">{activeConv.name}</p>
-                <button className="chat-close-btn" onClick={() => setChatOpen(false)}>✕</button>
-              </div>
-
-              <div className="chat-messages">
-                {activeConv.messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`chat-bubble ${msg.from === 'me' ? 'chat-bubble--out' : 'chat-bubble--in'}`}
-                  >
-                    {msg.text}
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-
-              <div className="chat-input-bar">
-                <input
-                  className="chat-input"
-                  placeholder="Type a message..."
-                  value={draft}
-                  onChange={(e) => setDrafts((d) => ({ ...d, [activeConvId]: e.target.value }))}
-                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-                />
-                <button className="chat-send-btn" onClick={sendMessage}>Send</button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {delivery?.shipperId && (
+        <ChatModal
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+          receiverId={delivery.shipperId}
+          receiverName={delivery.shipperName}
+          loadTitle={`${delivery.origin} → ${delivery.destination}`}
+        />
       )}
     </>
   );
