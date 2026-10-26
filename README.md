@@ -4,7 +4,7 @@
 ![Language](https://img.shields.io/badge/Language-TypeScript%205.4-blue)
 ![Framework](https://img.shields.io/badge/Framework-Express%204.19-lightgrey)
 ![Database](https://img.shields.io/badge/Database-PostgreSQL%20%2B%20PostGIS-blue)
-![Test Status](https://img.shields.io/badge/Tests-32%2F32%20Passing-brightgreen)
+![Test Status](https://img.shields.io/badge/Tests-Passing-brightgreen)
 [![Demo Video](https://img.shields.io/badge/Demo%20Video-Awesome%20Screenshot-0080FF?logo=googlechrome&logoColor=white)](https://www.awesomescreenshot.com/video/57793490?key=44418869b6f6497f05378f28b54dbb83)
 
 ## Group Member
@@ -41,7 +41,7 @@ Below is the comprehensive analysis of the project's current implementation stat
 | **Role-Based Access Control (RBAC)** | 🟢 **Complete** | Role enforcement middleware (`SHIPPER`, `DRIVER`, `FLEET_OWNER`, `ADMIN`) |
 | **Database Schema & Migrations** | 🟢 **Complete (Core)** | Knex migrations for `users`, `vehicles`, `loads`, `bids`, `audit_logs` + admin fields |
 | **Admin Operations Suite** | 🟢 **Complete** | Dashboard metrics, User CRUD/suspend, KYC queue, Vehicle verification, Load oversight, Audit logs, Health checks |
-| **Automated Test Suite** | 🟢 **Complete (32/32 Passed)** | Full API integration test suite covering auth, RBAC, admin suite & health checks |
+| **Automated Test Suite** | 🟢 **Complete** | Full API integration test suite covering auth, RBAC, admin suite & health checks |
 | **PostGIS Spatial Matching** | 🟡 **In Progress** | Schema & PostGIS extension config ready; corridor spatial matching algorithms pending |
 | **Shipment Execution Engine** | 🟡 **In Progress** | Lifecycle defined in architecture; `shipments` table & OTP pickup/delivery transitions in progress |
 | **Escrow & Payment Integration** | 🟡 **In Progress** | Payment ledger architecture mapped; Telebirr/Chapa API webhooks in progress |
@@ -49,51 +49,14 @@ Below is the comprehensive analysis of the project's current implementation stat
 
 ---
 
-## 🧪 API Test Suite & Verification Results
+## 🧪 Testing & Verification
 
-All API routes were verified against the live PostgreSQL + PostGIS database environment using the automated test suite (`src/__tests__/allRoutes.test.ts`).
+Automated test suites verify core system routes including authentication, RBAC authorization guards, KYC queues, vehicle verification, and admin health checks against the PostgreSQL + PostGIS environment.
 
-- **Total Test Cases Executed:** `32`
-- **Passed:** `32` (100% Pass Rate)
-- **Failed:** `0`
-- **Execution Time:** ~4.48s
-
-### 🟢 Test Results Summary
-
-| # | Test Scenario / Endpoint | HTTP Method & URI | Expected Status | Actual Status | Result |
-| :---: | :--- | :--- | :---: | :---: | :---: |
-| **1** | System Health Check | `GET /health` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **2** | User Registration | `POST /api/auth/register` | `201 Created` | `201 Created` | ✅ **PASS** |
-| **3** | Duplicate Phone Validation | `POST /api/auth/register` | `409 Conflict` | `409 Conflict` | ✅ **PASS** |
-| **4** | Phone OTP Verification | `POST /api/auth/verify-otp` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **5** | Invalid OTP Validation | `POST /api/auth/verify-otp` | `400 Bad Request` | `400 Bad Request` | ✅ **PASS** |
-| **6** | User Login | `POST /api/auth/login` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **7** | Invalid Password Login Check | `POST /api/auth/login` | `401 Unauthorized` | `401 Unauthorized` | ✅ **PASS** |
-| **8** | Admin Protection (Unauthenticated) | `GET /api/admin/dashboard` | `401 Unauthorized` | `401 Unauthorized` | ✅ **PASS** |
-| **9** | Admin Protection (Non-Admin Role) | `GET /api/admin/dashboard` | `403 Forbidden` | `403 Forbidden` | ✅ **PASS** |
-| **10** | Admin Dashboard Summary | `GET /api/admin/dashboard` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **11** | Admin User Directory | `GET /api/admin/users` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **12** | Admin User Profile Detail | `GET /api/admin/users/:id` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **13** | Admin Update User | `PATCH /api/admin/users/:id` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **14** | Admin Suspend User | `POST /api/admin/users/:id/suspend` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **15** | Admin Activate User | `POST /api/admin/users/:id/activate` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **16** | Admin KYC Queue Listing | `GET /api/admin/kyc` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **17** | Admin KYC Detail View | `GET /api/admin/kyc/:id` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **18** | Admin Approve KYC Request | `POST /api/admin/kyc/:id/approve` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **19** | Admin Reject KYC Request | `POST /api/admin/kyc/:id/reject` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **20** | Admin Vehicle Fleet Directory | `GET /api/admin/vehicles` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **21** | Admin Vehicle Record Detail | `GET /api/admin/vehicles/:id` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **22** | Admin Verify Vehicle | `POST /api/admin/vehicles/:id/verify` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **23** | Admin Reject Vehicle | `POST /api/admin/vehicles/:id/reject` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **24** | Admin Loads Listing | `GET /api/admin/loads` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **25** | Admin Load & Bids Detail | `GET /api/admin/loads/:id` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **26** | Admin Update Load Listing | `PATCH /api/admin/loads/:id` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **27** | Admin Shipments Oversight | `GET /api/admin/shipments` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **28** | Admin Escrow Ledger Oversight | `GET /api/admin/escrow` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **29** | Admin Transaction History | `GET /api/admin/transactions` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **30** | Admin Audit Logs | `GET /api/admin/audit-logs` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **31** | Admin Platform Analytics | `GET /api/admin/analytics` | `200 OK` | `200 OK` | ✅ **PASS** |
-| **32** | Admin System Health Check | `GET /api/admin/system-health` | `200 OK` | `200 OK` | ✅ **PASS** |
+```bash
+# Run the test suite
+npm test
+```
 
 ---
 
@@ -246,7 +209,7 @@ npm run dev
 # Type check the codebase
 npx tsc --noEmit
 
-# Execute full API test suite (32 endpoints verified)
+# Execute automated test suite
 npm test
 ```
 
