@@ -16,6 +16,9 @@ class KpiTile extends StatelessWidget {
     this.iconColor = AppColors.primary,
     this.valueColor = AppColors.onSurface,
     this.onTap,
+    this.unit,
+    this.child,
+    this.valueFontSize = 18,
   });
 
   final String label;
@@ -27,6 +30,9 @@ class KpiTile extends StatelessWidget {
   final Color iconColor;
   final Color valueColor;
   final VoidCallback? onTap;
+  final String? unit;
+  final Widget? child;
+  final double valueFontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -55,15 +61,29 @@ class KpiTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: GoogleFonts.outfit(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: valueColor,
-              letterSpacing: -0.2,
+          RichText(
+            text: TextSpan(
+              style: GoogleFonts.outfit(
+                fontSize: valueFontSize,
+                fontWeight: FontWeight.w600,
+                color: valueColor,
+                letterSpacing: -0.2,
+              ),
+              children: [
+                TextSpan(text: value),
+                if (unit != null)
+                  TextSpan(
+                    text: ' $unit',
+                    style: GoogleFonts.outfit(
+                      fontSize: valueFontSize * 0.65,
+                      fontWeight: FontWeight.w500,
+                      color: valueColor,
+                    ),
+                  ),
+              ],
             ),
           ),
+          if (child != null) ...[const SizedBox(height: 4), child!],
           if (trend != null) ...[
             const SizedBox(height: 4),
             Row(

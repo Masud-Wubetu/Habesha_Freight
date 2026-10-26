@@ -13,19 +13,23 @@ class StackScaffold extends StatelessWidget {
     required this.body,
     this.actions,
     this.floatingActionButton,
+    this.bottomNavigationBar,
+    this.backgroundColor = AppColors.surface,
   });
 
   final String title;
   final Widget body;
   final List<Widget>? actions;
   final Widget? floatingActionButton;
+  final Widget? bottomNavigationBar;
+  final Color backgroundColor;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.surface,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.surface.withValues(alpha: 0.92),
+        backgroundColor: backgroundColor.withValues(alpha: 0.92),
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -62,17 +66,14 @@ class StackScaffold extends StatelessWidget {
             child: CircleAvatar(
               radius: 16,
               backgroundColor: AppColors.primary,
-              child: Icon(
-                Icons.person,
-                size: 18,
-                color: AppColors.onPrimary,
-              ),
+              child: Icon(Icons.person, size: 18, color: AppColors.onPrimary),
             ),
           ),
         ],
       ),
       body: body,
       floatingActionButton: floatingActionButton,
+      bottomNavigationBar: bottomNavigationBar,
     );
   }
 }

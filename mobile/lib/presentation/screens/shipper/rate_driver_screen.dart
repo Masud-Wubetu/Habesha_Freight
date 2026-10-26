@@ -293,6 +293,17 @@ class _RateDriverScreenState extends State<RateDriverScreen> {
 
     return Scaffold(
       backgroundColor: _bgDark,
+      appBar: AppBar(
+        backgroundColor: _bgDark,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: HomeHeader(
+          language: 'EN',
+          onLanguageChanged: (_) {},
+          onProfileTap: () {},
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
@@ -300,7 +311,6 @@ class _RateDriverScreenState extends State<RateDriverScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
               const SizedBox(height: 16),
               _buildTitleSection(waybill),
               const SizedBox(height: 20),

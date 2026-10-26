@@ -10,10 +10,20 @@ class PageRibbon extends StatefulWidget {
     this.status,
     this.dotColor = AppColors.secondary,
     this.textColor = AppColors.secondary,
-  });
+  }) : label = null;
 
-  final String page;
-  final String title;
+  const PageRibbon.plain(
+    this.label, {
+    super.key,
+    this.status,
+    this.dotColor = AppColors.secondary,
+    this.textColor = AppColors.secondary,
+  }) : page = null,
+       title = null;
+
+  final String? page;
+  final String? title;
+  final String? label;
   final String? status;
   final Color dotColor;
   final Color textColor;
@@ -94,7 +104,9 @@ class _PageRibbonState extends State<PageRibbon>
                 TextSpan(
                   children: [
                     TextSpan(
-                      text: 'PAGE ${widget.page}: ${widget.title}',
+                      text:
+                          widget.label ??
+                          'PAGE ${widget.page}: ${widget.title}',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,

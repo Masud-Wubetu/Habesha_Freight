@@ -355,6 +355,17 @@ class _ShipperCompanyProfileScreenState
 
     return Scaffold(
       backgroundColor: _bgDark,
+      appBar: AppBar(
+        backgroundColor: _bgDark,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: HomeHeader(
+          language: 'EN',
+          onLanguageChanged: (_) {},
+          onProfileTap: () {},
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: _loading
