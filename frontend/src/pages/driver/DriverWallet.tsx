@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { get, post } from '../../services/api';
+import { get } from '../../services/api';
 import { getStoredUser } from '../../services/authService';
 
 interface Transaction {

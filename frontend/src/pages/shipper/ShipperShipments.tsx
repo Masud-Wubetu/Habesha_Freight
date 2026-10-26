@@ -59,7 +59,7 @@ export default function ShipperShipments() {
   // Counter offer state
   const [showCounterModal, setShowCounterModal] = useState(false);
   const [counterPrice, setCounterPrice] = useState('');
-  const [, setActiveBidId] = useState<string | null>(null);
+  const [activeBidId, setActiveBidId] = useState<string | null>(null);
 
   // Chat & View Profile Modal State
   const [chatTarget, setChatTarget] = useState<Bid | null>(null);
