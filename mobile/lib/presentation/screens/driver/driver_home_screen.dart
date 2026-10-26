@@ -78,6 +78,17 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: navy,
+      appBar: AppBar(
+        backgroundColor: navy,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: HomeHeader(
+          language: 'EN',
+          onLanguageChanged: (_) {},
+          onProfileTap: () {},
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -87,12 +98,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    HomeHeader(
-                      language: 'EN',
-                      onLanguageChanged: (_) {},
-                      onProfileTap: () {},
-                    ),
-                    const SizedBox(height: 16),
                     _buildAvailabilityCard(),
                     const SizedBox(height: 16),
                     _buildUrgentMatchCard(),

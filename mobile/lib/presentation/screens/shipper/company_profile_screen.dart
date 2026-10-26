@@ -30,6 +30,17 @@ class _ShipperCompanyProfileScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bgDark,
+      appBar: AppBar(
+        backgroundColor: _bgDark,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: HomeHeader(
+          language: 'EN',
+          onLanguageChanged: (_) {},
+          onProfileTap: () {},
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
@@ -37,11 +48,6 @@ class _ShipperCompanyProfileScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              HomeHeader(
-                language: 'EN',
-                onLanguageChanged: (_) {},
-                onProfileTap: () {},
-              ),
               const SizedBox(height: 20),
               _buildHeroProfileCard(),
               const SizedBox(height: 20),
