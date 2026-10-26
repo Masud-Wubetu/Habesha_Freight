@@ -143,31 +143,7 @@ class HomeHeader extends StatelessWidget {
               child: Container(
                 height: 30,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: 0.4),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.grid_view_rounded,
-                      size: 14,
-                      color: AppColors.gold,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Modules',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.gold,
-                      ),
-                    ),
-                  ],
-                ),
+                              
               ),
             ),
           ],
