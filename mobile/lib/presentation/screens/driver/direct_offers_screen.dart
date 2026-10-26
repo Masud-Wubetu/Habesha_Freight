@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
+import 'package:mobile/presentation/widgets/home/home_header.dart';
 
 class DirectCargoOffersScreen extends StatefulWidget {
   const DirectCargoOffersScreen({super.key, this.onNavigate});
@@ -82,108 +83,46 @@ class _DirectCargoOffersScreenState extends State<DirectCargoOffersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
-      appBar: AppBar(
-        backgroundColor: _background,
-        elevation: 0,
-        titleSpacing: 16,
-        title: Row(
+      body: SafeArea(
+        child: Column(
           children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: _surface,
-                borderRadius: BorderRadius.circular(10),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+              child: HomeHeader(
+                language: 'EN',
+                onLanguageChanged: (_) {},
+                onProfileTap: () {},
               ),
-              child: const Icon(Icons.local_shipping_outlined, color: _gold),
             ),
-            const SizedBox(width: 10),
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Habesha',
-                        style: TextStyle(color: _white),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildNotificationBanner(),
+                    const SizedBox(height: 16),
+                    if (!_offerDeclined) _buildPriorityOfferCard(),
+                    if (_offerDeclined)
+                      _buildStatusMessage(
+                        icon: Icons.cancel_outlined,
+                        title: 'Offer declined',
+                        subtitle: 'This direct cargo offer has been dismissed.',
+                        color: Colors.redAccent,
                       ),
-                      TextSpan(
-                        text: 'Freight',
-                        style: TextStyle(color: _gold),
-                      ),
+                    const SizedBox(height: 16),
+                    _buildSecondaryOfferCard(),
+                    const SizedBox(height: 16),
+                    _buildStandbyCard(),
+                    if (_showCounterForm) ...[
+                      const SizedBox(height: 16),
+                      _buildCounterForm(),
                     ],
-                  ),
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                  ],
                 ),
-                Text(
-                  'LOGISTICS EXCHANGE',
-                  style: TextStyle(
-                    color: _muted,
-                    fontSize: 9,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ],
+              ),
             ),
           ],
-        ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: _surface,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Row(
-              children: [
-                Text(
-                  'EN',
-                  style: TextStyle(color: _gold, fontWeight: FontWeight.w700),
-                ),
-                SizedBox(width: 4),
-                Icon(Icons.translate, size: 16, color: _muted),
-              ],
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 8, right: 16),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: _gold,
-              child: Icon(Icons.person, size: 19, color: Color(0xFF472A00)),
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildNotificationBanner(),
-              const SizedBox(height: 16),
-              if (!_offerDeclined) _buildPriorityOfferCard(),
-              if (_offerDeclined)
-                _buildStatusMessage(
-                  icon: Icons.cancel_outlined,
-                  title: 'Offer declined',
-                  subtitle: 'This direct cargo offer has been dismissed.',
-                  color: Colors.redAccent,
-                ),
-              const SizedBox(height: 16),
-              _buildSecondaryOfferCard(),
-              const SizedBox(height: 16),
-              _buildStandbyCard(),
-              if (_showCounterForm) ...[
-                const SizedBox(height: 16),
-                _buildCounterForm(),
-              ],
-            ],
-          ),
         ),
       ),
       bottomNavigationBar: DriverBottomNavBar(

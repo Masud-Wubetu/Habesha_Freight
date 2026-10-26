@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
+import 'package:mobile/presentation/widgets/home/home_header.dart';
 
 class PreferredFleetScreen extends StatefulWidget {
   const PreferredFleetScreen({super.key});
@@ -83,55 +84,13 @@ class _PreferredFleetScreenState extends State<PreferredFleetScreen> {
       appBar: AppBar(
         backgroundColor: bg,
         elevation: 0,
-        title: const Row(
-          children: [
-            Icon(Icons.local_shipping, color: yellow, size: 27),
-            SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'HabeshaFreight',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'LOGISTICS EXCHANGE',
-                    style: TextStyle(
-                      color: muted,
-                      fontSize: 9,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: HomeHeader(
+          language: 'EN',
+          onLanguageChanged: (_) {},
+          onProfileTap: () {},
         ),
-        actions: [
-          Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: inner,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Text(
-              'EN 文A',
-              style: TextStyle(color: yellow, fontSize: 12),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const CircleAvatar(
-            backgroundColor: Color(0xFFFFC16B),
-            child: Icon(Icons.person_outline, color: Colors.black),
-          ),
-          const SizedBox(width: 14),
-        ],
       ),
       body: SafeArea(
         child: ListView(

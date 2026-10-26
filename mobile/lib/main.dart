@@ -26,7 +26,6 @@ import 'presentation/screens/ops/weighbridge_screen.dart';
 import 'presentation/screens/driver/available_loads_screen.dart';
 import 'presentation/screens/driver/direct_offers_screen.dart';
 import 'presentation/screens/driver/driver_home_screen.dart';
-import 'presentation/screens/driver/driver_shell_screen.dart';
 import 'presentation/screens/driver/request_details_screen.dart';
 import 'presentation/screens/shipper/company_profile_screen.dart';
 import 'presentation/screens/shipper/escrow_invoices_screen.dart';

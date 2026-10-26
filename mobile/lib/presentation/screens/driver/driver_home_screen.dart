@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/presentation/screens/driver/available_loads_screen.dart';
 import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
+import 'package:mobile/presentation/widgets/home/home_header.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -86,7 +87,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeader(),
+                    HomeHeader(
+                      language: 'EN',
+                      onLanguageChanged: (_) {},
+                      onProfileTap: () {},
+                    ),
                     const SizedBox(height: 16),
                     _buildAvailabilityCard(),
                     const SizedBox(height: 16),
@@ -113,85 +118,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         currentIndex: 2,
         onTap: _handleDriverNavigation,
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        Container(
-          height: 40,
-          width: 40,
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(
-            Icons.local_shipping_rounded,
-            color: gold,
-            size: 24,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              RichText(
-                text: const TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'Habesha',
-                      style: TextStyle(
-                        color: textWhite,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextSpan(
-                      text: 'Freight',
-                      style: TextStyle(
-                        color: gold,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Text(
-                'LOGISTICS EXCHANGE',
-                style: TextStyle(
-                  color: muted,
-                  fontSize: 9,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Row(
-            children: [
-              Text('EN', style: TextStyle(color: textWhite, fontSize: 12)),
-              SizedBox(width: 4),
-              Icon(Icons.translate, size: 14, color: muted),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: const BoxDecoration(color: gold, shape: BoxShape.circle),
-          child: const Icon(Icons.person, color: Colors.black, size: 20),
-        ),
-      ],
     );
   }
 

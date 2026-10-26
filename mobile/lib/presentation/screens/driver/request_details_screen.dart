@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/presentation/widgets/nocturne/hf_card.dart';
+import 'package:mobile/presentation/widgets/home/home_header.dart';
 
 class RequestDetailsScreen extends StatefulWidget {
   const RequestDetailsScreen({
@@ -135,7 +136,14 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(context),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+              child: HomeHeader(
+                language: 'EN',
+                onLanguageChanged: (_) {},
+                onProfileTap: () {},
+              ),
+            ),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
@@ -166,84 +174,6 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-      child: Row(
-        children: [
-          _headerButton(
-            icon: Icons.arrow_back_rounded,
-            onPressed: () => Navigator.maybePop(context),
-          ),
-          const Spacer(),
-          Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0B302F),
-                  border: Border.all(color: const Color(0xFF15534B)),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.circle, color: _green, size: 7),
-                    SizedBox(width: 5),
-                    Text(
-                      'ACTIVE CORRIDOR',
-                      style: TextStyle(
-                        color: _green,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                widget.reference,
-                style: const TextStyle(
-                  color: _gold,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          _headerButton(
-            icon: Icons.share_outlined,
-            onPressed: () =>
-                _showMessage('Request sharing is not available yet.'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _headerButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return IconButton(
-      onPressed: onPressed,
-      style: IconButton.styleFrom(
-        backgroundColor: _surface,
-        foregroundColor: _white,
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(color: _border),
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      icon: Icon(icon),
     );
   }
 

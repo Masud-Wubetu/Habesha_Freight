@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/routing/app_routes.dart';
 import 'package:mobile/presentation/screens/driver/request_details_screen.dart';
 import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
+import 'package:mobile/presentation/widgets/home/home_header.dart';
 
 class AvailableFreightLoadsScreen extends StatefulWidget {
   const AvailableFreightLoadsScreen({super.key, this.onNavigate});
@@ -90,7 +91,14 @@ class _AvailableFreightLoadsScreenState
         bottom: false,
         child: Column(
           children: [
-            _buildTopBar(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+              child: HomeHeader(
+                language: 'EN',
+                onLanguageChanged: (_) {},
+                onProfileTap: () {},
+              ),
+            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
@@ -252,117 +260,6 @@ class _AvailableFreightLoadsScreenState
       bottomNavigationBar: DriverBottomNavBar(
         currentIndex: 0,
         onTap: _handleDriverNavigation,
-      ),
-    );
-  }
-
-  Widget _buildTopBar() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-      decoration: const BoxDecoration(
-        color: _background,
-        border: Border(bottom: BorderSide(color: Color(0xFF10243B))),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: _surfaceHigh,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _border),
-            ),
-            child: const Icon(
-              Icons.local_shipping_rounded,
-              color: _gold,
-              size: 19,
-            ),
-          ),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Habesha',
-                        style: TextStyle(
-                          color: _white,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      TextSpan(
-                        text: 'Freight',
-                        style: TextStyle(
-                          color: _gold,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                  style: TextStyle(fontSize: 18, height: 1.05),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'LOGISTICS EXCHANGE',
-                  style: TextStyle(
-                    color: _muted,
-                    fontSize: 9,
-                    letterSpacing: 1.15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          _smallHeaderButton('EN', Icons.language_rounded),
-          const SizedBox(width: 6),
-          InkWell(
-            onTap: () => _showMessage('Profile selected'),
-            borderRadius: BorderRadius.circular(30),
-            child: Container(
-              width: 30,
-              height: 30,
-              decoration: const BoxDecoration(
-                color: _gold,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.person_rounded,
-                color: _background,
-                size: 19,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _smallHeaderButton(String label, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
-      decoration: BoxDecoration(
-        color: _surface,
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(color: const Color(0xFF172E49)),
-      ),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: _white,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(width: 3),
-          Icon(icon, color: _muted, size: 12),
-        ],
       ),
     );
   }

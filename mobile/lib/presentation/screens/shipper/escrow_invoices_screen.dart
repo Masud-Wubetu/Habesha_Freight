@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/core/theme/app_colors.dart';
 import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
+import 'package:mobile/presentation/widgets/home/home_header.dart';
 
 class EscrowInvoicesScreen extends StatefulWidget {
   const EscrowInvoicesScreen({super.key});
@@ -65,61 +66,16 @@ class _EscrowInvoicesScreenState extends State<EscrowInvoicesScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface,
 
-      
       appBar: AppBar(
         backgroundColor: const Color(0xFF0A111F),
         elevation: 0,
-        titleSpacing: 20,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            RichText(
-              text: const TextSpan(
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                children: [
-                  TextSpan(
-                    text: 'Habesha',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  TextSpan(
-                    text: 'Freight',
-                    style: TextStyle(color: Color(0xFFFFB300)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 2),
-            const Text(
-              'LOGISTICS EXCHANGE',
-              style: TextStyle(
-                color: Color(0xFF8B95A5),
-                fontSize: 8,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ],
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: HomeHeader(
+          language: 'EN',
+          onLanguageChanged: (_) {},
+          onProfileTap: () {},
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceHigh,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Text(
-              'EN 文A',
-              style: TextStyle(color: Colors.white, fontSize: 12),
-            ),
-          ),
-          const SizedBox(width: 10),
-          const CircleAvatar(
-            radius: 16,
-            backgroundColor: Color(0xFFFFB300),
-            child: Icon(Icons.person, color: Colors.black, size: 20),
-          ),
-          const SizedBox(width: 20),
-        ],
       ),
 
       // Escrow page content.

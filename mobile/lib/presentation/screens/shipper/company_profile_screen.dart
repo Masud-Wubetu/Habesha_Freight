@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/presentation/widgets/home/home_header.dart';
 
 class ShipperCompanyProfileScreen extends StatefulWidget {
   const ShipperCompanyProfileScreen({Key? key}) : super(key: key);
@@ -36,7 +37,11 @@ class _ShipperCompanyProfileScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              HomeHeader(
+                language: 'EN',
+                onLanguageChanged: (_) {},
+                onProfileTap: () {},
+              ),
               const SizedBox(height: 20),
               _buildHeroProfileCard(),
               const SizedBox(height: 20),
@@ -59,89 +64,6 @@ class _ShipperCompanyProfileScreenState
   }
 
   // --- Widget Builders ---
-
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _accentGold,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.local_shipping,
-                color: Color(0xFF0F172A),
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'HabeshaFreight',
-                  style: TextStyle(
-                    color: _textMain,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                Text(
-                  'LOGISTICS EXCHANGE',
-                  style: TextStyle(
-                    color: _textMuted,
-                    fontSize: 9,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: _bgCard,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: _borderColor),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    'EN 文A',
-                    style: TextStyle(color: _textMain, fontSize: 12),
-                  ),
-                  const SizedBox(width: 4),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFBBF24),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.person,
-                color: Color(0xFF0F172A),
-                size: 20,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
   Widget _buildHeroProfileCard() {
     return Container(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
+import 'package:mobile/presentation/widgets/home/home_header.dart';
 
 class FreightHistoryScreen extends StatefulWidget {
   const FreightHistoryScreen({super.key});
@@ -81,76 +82,13 @@ class _FreightHistoryScreenState extends State<FreightHistoryScreen> {
       appBar: AppBar(
         backgroundColor: bgColor,
         elevation: 0,
-        titleSpacing: 20,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: primaryYellow,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.local_shipping,
-                color: Colors.black,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    children: [
-                      const TextSpan(
-                        text: 'Habesha',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      TextSpan(
-                        text: 'Freight',
-                        style: TextStyle(color: primaryYellow),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'LOGISTICS EXCHANGE',
-                  style: TextStyle(
-                    color: textMuted,
-                    fontSize: 8,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ],
-            ),
-          ],
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: HomeHeader(
+          language: 'EN',
+          onLanguageChanged: (_) {},
+          onProfileTap: () {},
         ),
-        actions: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: innerCardColor,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Text(
-              'EN 文A',
-              style: TextStyle(color: Colors.white, fontSize: 12),
-            ),
-          ),
-          const SizedBox(width: 10),
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: primaryYellow,
-            child: const Icon(Icons.person, color: Colors.black, size: 20),
-          ),
-          const SizedBox(width: 20),
-        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
