@@ -52,11 +52,11 @@ class CorridorShipmentItem {
     required this.cargoType,
     required this.status,
     required this.origin,
-    required this.originDetail,
+    this.originDetail = 'Corridor Depot',
     required this.destination,
-    required this.destinationDetail,
-    required this.viaRoute,
-    required this.distanceKm,
+    this.destinationDetail = 'Corridor Port',
+    this.viaRoute = 'Direct Corridor',
+    this.distanceKm = 0,
     this.fleetRig,
     this.plateNumber,
     this.telemetrySpeed,
@@ -142,78 +142,5 @@ class CorridorShipmentItem {
       deliveredDate: delivered,
     );
   }
-
-  static const List<CorridorShipmentItem> demoShipments = [
-    // 1. In Transit (#HF-9012)
-    CorridorShipmentItem(
-      id: '#HF-9012',
-      cargoType: 'Dry Bulk • Grain',
-      status: ShipmentStatus.inTransit,
-      origin: 'Addis Ababa',
-      originDetail: 'Kality Terminal',
-      destination: 'Dire Dawa',
-      destinationDetail: 'Dry Port Yard',
-      viaRoute: 'Via Awash',
-      distanceKm: 452,
-      fleetRig: 'Sino 30T Heavy',
-      plateNumber: 'ET-3-89412',
-      telemetrySpeed: '68 km/h',
-      gpsLock: 'GPS Lock 100%',
-      eta: '3h 15m',
-      etaStatus: 'On Schedule',
-      driverName: 'Tewodros Kassaye',
-      driverInitials: 'TK',
-      driverRating: 4.9,
-    ),
-
-    // 2. Bidding (#HF-8841)
-    CorridorShipmentItem(
-      id: '#HF-8841',
-      cargoType: 'General Cargo • FMCG',
-      status: ShipmentStatus.bidding,
-      origin: 'Addis Ababa',
-      originDetail: 'Akaki Depot',
-      destination: 'Adama',
-      destinationDetail: 'Industrial Park',
-      viaRoute: 'Expressway A1',
-      distanceKm: 85,
-      lowestOfferEtb: 18500,
-      avgMarketEtb: 21000,
-      bidsCount: 5,
-      auctionEndsIn: '01h 42m',
-      bidderInitials: ['DA', 'DG', 'YM'],
-    ),
-
-    // 3. Awaiting Dispatch (#HF-7720)
-    CorridorShipmentItem(
-      id: '#HF-7720',
-      cargoType: 'Agricultural • Coffee Bags',
-      status: ShipmentStatus.awaitingDispatch,
-      origin: 'Hawassa',
-      originDetail: 'Sidama Warehouse',
-      destination: 'Modjo',
-      destinationDetail: 'Dry Port Export',
-      viaRoute: 'A7 Corridor',
-      distanceKm: 215,
-      carrierAssigned: 'Selam Logistics PLC',
-      gatePassStatus: 'Gate Pass Generated',
-      targetDeparture: 'Today @ 16:30',
-      loadingProgress: 0.80,
-    ),
-
-    // 4. Delivered (#HF-6504)
-    CorridorShipmentItem(
-      id: '#HF-6504',
-      cargoType: 'Construction • Rebar 40T',
-      status: ShipmentStatus.delivered,
-      origin: 'Addis Ababa',
-      originDetail: 'CMC Yard',
-      destination: 'Bahir Dar',
-      destinationDetail: 'Lake Depot',
-      viaRoute: 'Route 3 Corridor',
-      distanceKm: 560,
-      signedBy: 'Girma Worku (Yard B)',
-      deliveredDate: 'Yesterday',
-    ),
-  ];
 }
+

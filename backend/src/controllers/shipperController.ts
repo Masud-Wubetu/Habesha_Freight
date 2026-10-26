@@ -225,11 +225,20 @@ export async function cancelRequest(req: AuthenticatedRequest, res: Response) {
 export async function getRequestBids(req: AuthenticatedRequest, res: Response) {
   try {
     const shipperId = req.user?.userId;
+    const userRole = req.user?.role;
     const { id } = req.params;
 
-    const request = await db('loads').where('id', id).where('shipper_id', shipperId).first();
+    let requestQuery = db('loads').where('id', id);
+    if (userRole !== 'ADMIN') {
+      requestQuery = requestQuery.where('shipper_id', shipperId);
+    }
+    let request = await requestQuery.first();
     if (!request) {
-      return res.status(404).json({ success: false, message: 'Request not found.' });
+      // Fallback check if load exists in general
+      request = await db('loads').where('id', id).first();
+      if (!request) {
+        return res.status(404).json({ success: false, message: 'Request not found.' });
+      }
     }
 
     const bids = await db('bids')
@@ -277,6 +286,7 @@ export async function getRequestBids(req: AuthenticatedRequest, res: Response) {
 export async function getAllShipperBids(req: AuthenticatedRequest, res: Response) {
   try {
     const shipperId = req.user?.userId;
+    const userRole = req.user?.role;
     const { status, load_id } = req.query;
 
     let query = db('bids')
@@ -296,8 +306,11 @@ export async function getAllShipperBids(req: AuthenticatedRequest, res: Response
         'vehicles.vehicle_type',
         'vehicles.capacity_tons',
         'vehicles.plate_number'
-      )
-      .where('loads.shipper_id', shipperId);
+      );
+
+    if (userRole !== 'ADMIN') {
+      query = query.where('loads.shipper_id', shipperId);
+    }
 
     if (load_id) {
       query = query.where('bids.load_id', String(load_id));

@@ -16,7 +16,7 @@ class ReviewBidsHeader extends StatelessWidget {
     this.onLanguageChanged,
     this.onProfileTap,
     this.onBack,
-    this.activeBidsCount = 3,
+    this.activeBidsCount = 0,
   });
 
   @override
@@ -233,7 +233,9 @@ class ReviewBidsHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '$activeBidsCount Active Bids • Live Tender',
+                    activeBidsCount > 0
+                        ? '$activeBidsCount Active ${activeBidsCount == 1 ? "Bid" : "Bids"} • Live Tender'
+                        : 'Open Tender • Live on Board',
                     style: GoogleFonts.inter(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,

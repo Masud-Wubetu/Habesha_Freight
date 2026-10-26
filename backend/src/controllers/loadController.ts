@@ -75,14 +75,14 @@ export async function createLoad(req: AuthenticatedRequest, res: Response) {
 
 export async function getShipperLoads(req: AuthenticatedRequest, res: Response) {
   const shipperId = req.user?.userId;
+  const userRole = req.user?.role;
   try {
-    const loads = await db('loads')
+    let query = db('loads')
       .leftJoin('shipments', 'loads.id', 'shipments.load_id')
       .leftJoin('users as carrier', 'shipments.carrier_id', 'carrier.id')
       .leftJoin('bids as accepted_bid', function () {
-        this.on('loads.id', '=', 'accepted_bid.load_id').andOn(function () {
-          this.onVal('accepted_bid.status', '=', 'ACCEPTED').orOnVal('accepted_bid.status', '=', 'PENDING');
-        });
+        this.on('loads.id', '=', 'accepted_bid.load_id')
+          .andOnVal('accepted_bid.status', '=', 'ACCEPTED');
       })
       .leftJoin('users as bid_driver', 'accepted_bid.driver_id', 'bid_driver.id')
       .leftJoin('vehicles', function () {
@@ -101,9 +101,13 @@ export async function getShipperLoads(req: AuthenticatedRequest, res: Response) 
         'vehicles.vehicle_type',
         db.raw('(SELECT COUNT(*) FROM bids WHERE bids.load_id = loads.id)::int as bids_count'),
         db.raw('(SELECT MIN(bid_amount_etb) FROM bids WHERE bids.load_id = loads.id) as lowest_bid_etb')
-      )
-      .where({ 'loads.shipper_id': shipperId })
-      .orderBy('loads.created_at', 'desc');
+      );
+
+    if (userRole !== 'ADMIN') {
+      query = query.where({ 'loads.shipper_id': shipperId });
+    }
+
+    const loads = await query.orderBy('loads.created_at', 'desc');
     return res.status(200).json({ success: true, data: loads });
   } catch (error) {
     console.error('Shipper Loads Error:', error);
@@ -118,10 +122,31 @@ export async function listLoads(req: AuthenticatedRequest, res: Response) {
 
     let query = db('loads')
       .join('users', 'loads.shipper_id', 'users.id')
+      .leftJoin('shipments', 'loads.id', 'shipments.load_id')
+      .leftJoin('users as carrier', 'shipments.carrier_id', 'carrier.id')
+      .leftJoin('bids as accepted_bid', function () {
+        this.on('loads.id', '=', 'accepted_bid.load_id')
+          .andOnVal('accepted_bid.status', '=', 'ACCEPTED');
+      })
+      .leftJoin('users as bid_driver', 'accepted_bid.driver_id', 'bid_driver.id')
+      .leftJoin('vehicles', function () {
+        this.on('shipments.vehicle_id', '=', 'vehicles.id')
+          .orOn('shipments.carrier_id', '=', 'vehicles.driver_id')
+          .orOn('accepted_bid.driver_id', '=', 'vehicles.driver_id');
+      })
       .select(
         'loads.*',
         'users.full_name as shipper_name',
-        'users.phone_number as shipper_phone'
+        'users.phone_number as shipper_phone',
+        'shipments.id as shipment_id',
+        'shipments.status as shipment_status',
+        'shipments.delivery_verified_at as delivered_at',
+        db.raw('COALESCE(carrier.full_name, bid_driver.full_name) as driver_name'),
+        db.raw('COALESCE(carrier.phone_number, bid_driver.phone_number) as driver_phone'),
+        'vehicles.plate_number',
+        'vehicles.vehicle_type',
+        db.raw('(SELECT COUNT(*) FROM bids WHERE bids.load_id = loads.id)::int as bids_count'),
+        db.raw('(SELECT MIN(bid_amount_etb) FROM bids WHERE bids.load_id = loads.id) as lowest_bid_etb')
       );
 
     if (status) {

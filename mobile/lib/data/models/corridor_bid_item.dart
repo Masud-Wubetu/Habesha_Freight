@@ -93,7 +93,11 @@ class CorridorBidItem {
   }
 
   factory CorridorBidItem.fromMap(Map<String, dynamic> map) {
-    final driverName = map['driver_name']?.toString() ?? 'Carrier Driver';
+    final rawName = map['driver_name']?.toString() ?? map['carrier_name']?.toString();
+    final phone = map['driver_phone']?.toString();
+    final driverName = (rawName != null && rawName.trim().isNotEmpty)
+        ? rawName.trim()
+        : (phone != null && phone.isNotEmpty ? 'Driver ($phone)' : 'Transporter');
     final parts = driverName.trim().split(' ');
     final initials = parts.map((p) => p.isNotEmpty ? p[0].toUpperCase() : '').take(2).join();
 
@@ -106,16 +110,17 @@ class CorridorBidItem {
         : double.tryParse(map['offered_price_etb']?.toString() ?? '0') ?? 0.0;
 
     final isAccepted = map['status'] == 'ACCEPTED';
-    final phone = map['driver_phone']?.toString();
     final vehicle = map['vehicle_type']?.toString();
+    final plate = map['plate_number']?.toString();
     final trips = (map['completed_trips'] is num)
         ? (map['completed_trips'] as num).toInt()
         : int.tryParse(map['completed_trips']?.toString() ?? '0') ?? 0;
     final rating = double.tryParse(map['driver_rating']?.toString() ?? '5.0') ?? 5.0;
 
-    String truckText = 'Commercial Freight Carrier';
+    String truckText = plate != null && plate.isNotEmpty ? 'Plate $plate' : 'Commercial Freight Carrier';
     if (vehicle != null && vehicle.isNotEmpty) {
-      truckText = vehicle.replaceAll('_', ' ');
+      final formattedVehicle = vehicle.replaceAll('_', ' ');
+      truckText = plate != null && plate.isNotEmpty ? '$formattedVehicle • $plate' : formattedVehicle;
     } else if (map['capacity_tons'] != null) {
       truckText = '${map['capacity_tons']}T Heavy Carrier';
     }
@@ -134,7 +139,7 @@ class CorridorBidItem {
       driverPhone: phone,
       status: map['status']?.toString() ?? (isAccepted ? 'ACCEPTED' : 'PENDING'),
       driverName: driverName,
-      driverInitials: initials.isNotEmpty ? initials : 'CD',
+      driverInitials: initials.isNotEmpty ? initials : 'DR',
       rating: rating,
       reviewsCount: trips,
       truckSpec: truckText,
@@ -151,57 +156,5 @@ class CorridorBidItem {
       isAccepted: isAccepted,
     );
   }
-
-  static List<CorridorBidItem> mockBids() {
-    return [
-      const CorridorBidItem(
-        id: 'bid-girma',
-        driverName: 'Girma Tadesse',
-        driverInitials: 'GT',
-        rating: 4.9,
-        reviewsCount: 142,
-        truckSpec: 'Sinotruk HOWO 371 • Dry Bulk Grain Spec',
-        locationText: 'Kality Depot (11 km away)',
-        availabilityText: 'Ready 2:00 PM today',
-        bidAmountEtb: 38000,
-        badgeLabel: 'TOP MATCH • VERIFIED PRO',
-        badgeColor: Color(0xFFF59E0B),
-        isTopMatch: true,
-        isEscrowGuaranteed: true,
-        estTransit: '9h 45m',
-        gpsStatus: 'Live Active',
-        fuelIncluded: 'Yes (Full)',
-      ),
-      const CorridorBidItem(
-        id: 'bid-solomon',
-        driverName: 'Solomon Tekle',
-        driverInitials: 'ST',
-        rating: 4.8,
-        reviewsCount: 85,
-        truckSpec: 'FAW J6P 32T Heavy Semi-Trailer',
-        locationText: 'Akaki Dry Port (15 km away)',
-        availabilityText: 'Ready 4:30 PM',
-        bidAmountEtb: 36500,
-        badgeLabel: 'Lowest Fare Offered',
-        badgeColor: Color(0xFF10B981),
-        isTopMatch: false,
-        submittedAgo: 'Submitted 18m ago',
-      ),
-      const CorridorBidItem(
-        id: 'bid-bekele',
-        driverName: 'Bekele Wolde',
-        driverInitials: 'BW',
-        rating: 4.7,
-        reviewsCount: 64,
-        truckSpec: 'Mercedes Actros 3340 • Tarpaulin Covered',
-        locationText: 'Dukem Corridor (22 km away)',
-        availabilityText: 'Ready 8:00 AM tomorrow',
-        bidAmountEtb: 39200,
-        badgeLabel: 'High-Capacity Heavy Rig',
-        badgeColor: Color(0xFF38BDF8),
-        isTopMatch: false,
-        submittedAgo: 'Submitted 41m ago',
-      ),
-    ];
-  }
 }
+

@@ -360,9 +360,9 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
                     const SizedBox(height: 8),
                     _modalRow('Cargo Specification', item.cargoType),
                     const SizedBox(height: 8),
-                    _modalRow('Target Budget', item.lowestOfferEtb != null ? '${item.lowestOfferEtb} ETB' : 'Market Tender'),
+                    _modalRow('Target Budget', item.lowestOfferEtb != null && item.lowestOfferEtb! > 0 ? '${item.lowestOfferEtb} ETB' : 'Market Tender'),
                     const SizedBox(height: 8),
-                    _modalRow('Carrier Bids', item.bidsCount != null && item.bidsCount! > 0 ? '${item.bidsCount} Bids Received' : 'Broadcasting to drivers'),
+                    _modalRow('Carrier Bids', item.bidsCount != null && item.bidsCount! > 0 ? '${item.bidsCount} ${item.bidsCount == 1 ? "Bid" : "Bids"} Received' : '0 Bids • Broadcasting to drivers'),
                   ],
                 ),
               ),
@@ -395,10 +395,10 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
   }
 
   void _handleManifestPass(CorridorShipmentItem item) {
-    final driverName = item.driverName ?? 'Selam Commercial Logistics';
-    final phone = item.driverPhone ?? '+251 915 570 697';
-    final plate = item.plateNumber ?? 'ET-3-89412';
-    final price = item.lowestOfferEtb != null ? '${item.lowestOfferEtb} ETB' : 'Escrow Secured';
+    final driverName = item.driverName ?? item.carrierAssigned ?? 'Awaiting Transporter';
+    final phone = item.driverPhone ?? 'Pending';
+    final plate = item.plateNumber ?? 'Pending Assignment';
+    final price = item.lowestOfferEtb != null && item.lowestOfferEtb! > 0 ? '${item.lowestOfferEtb} ETB' : 'Escrow Secured';
 
     showDialog(
       context: context,
@@ -490,9 +490,9 @@ class _MyShipmentsScreenState extends State<MyShipmentsScreen> {
   }
 
   void _handlePodReceipt(CorridorShipmentItem item) {
-    final driverName = item.driverName ?? 'Commercial Carrier';
-    final date = item.deliveredDate ?? 'August 23, 2026';
-    final payout = item.lowestOfferEtb != null ? '${item.lowestOfferEtb} ETB' : 'Released in Full';
+    final driverName = item.driverName ?? item.carrierAssigned ?? 'Verified Transporter';
+    final date = item.deliveredDate ?? 'Delivered';
+    final payout = item.lowestOfferEtb != null && item.lowestOfferEtb! > 0 ? '${item.lowestOfferEtb} ETB' : 'Released in Full';
 
     showDialog(
       context: context,

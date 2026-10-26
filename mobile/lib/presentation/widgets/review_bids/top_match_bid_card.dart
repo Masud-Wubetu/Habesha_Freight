@@ -229,7 +229,7 @@ class TopMatchBidCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     _confirmRow('Target Loading', item.availabilityText),
                     const SizedBox(height: 8),
-                    _confirmRow('Escrow Settlement', 'Telebirr & CBE Pre-Locked'),
+                    _confirmRow('Escrow Protection', 'Habesha Secure Vault'),
                   ],
                 ),
               ),

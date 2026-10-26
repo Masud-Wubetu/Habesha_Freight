@@ -4,11 +4,62 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/data/models/corridor_bid_item.dart';
 import 'package:mobile/presentation/screens/shipper_features/page09.dart';
 
+final _sampleBids = [
+  const CorridorBidItem(
+    id: 'bid-girma',
+    driverName: 'Girma Tadesse',
+    driverInitials: 'GT',
+    rating: 4.9,
+    reviewsCount: 142,
+    truckSpec: 'Sinotruk HOWO 371 • Dry Bulk Grain Spec',
+    locationText: 'Kality Depot (11 km away)',
+    availabilityText: 'Ready 2:00 PM today',
+    bidAmountEtb: 38000,
+    badgeLabel: 'TOP MATCH • VERIFIED PRO',
+    badgeColor: Color(0xFFF59E0B),
+    isTopMatch: true,
+    isEscrowGuaranteed: true,
+    estTransit: '9h 45m',
+    gpsStatus: 'Live Active',
+    fuelIncluded: 'Yes (Full)',
+  ),
+  const CorridorBidItem(
+    id: 'bid-solomon',
+    driverName: 'Solomon Tekle',
+    driverInitials: 'ST',
+    rating: 4.8,
+    reviewsCount: 85,
+    truckSpec: 'FAW J6P 32T Heavy Semi-Trailer',
+    locationText: 'Akaki Dry Port (15 km away)',
+    availabilityText: 'Ready 4:30 PM',
+    bidAmountEtb: 36500,
+    badgeLabel: 'Lowest Fare Offered',
+    badgeColor: Color(0xFF10B981),
+    isTopMatch: false,
+    submittedAgo: 'Submitted 18m ago',
+  ),
+  const CorridorBidItem(
+    id: 'bid-bekele',
+    driverName: 'Bekele Wolde',
+    driverInitials: 'BW',
+    rating: 4.7,
+    reviewsCount: 64,
+    truckSpec: 'Mercedes Actros 3340 • Tarpaulin Covered',
+    locationText: 'Dukem Corridor (22 km away)',
+    availabilityText: 'Ready 8:00 AM tomorrow',
+    bidAmountEtb: 39200,
+    badgeLabel: 'High-Capacity Heavy Rig',
+    badgeColor: Color(0xFF38BDF8),
+    isTopMatch: false,
+    submittedAgo: 'Submitted 41m ago',
+  ),
+];
+
 void main() {
   Widget createTestWidget({List<CorridorBidItem>? bids}) {
     return MaterialApp(
       theme: AppTheme.darkTheme,
-      home: ReviewBidsScreen(initialBids: bids ?? CorridorBidItem.mockBids()),
+      home: ReviewBidsScreen(initialBids: bids ?? _sampleBids),
     );
   }
 

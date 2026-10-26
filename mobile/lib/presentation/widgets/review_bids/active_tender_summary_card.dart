@@ -8,16 +8,15 @@ class ActiveTenderSummaryCard extends StatelessWidget {
   final String cargoSpec;
   final int distanceKm;
   final int bidsCount;
-  final Duration initialRemainingTime;
 
   const ActiveTenderSummaryCard({
     super.key,
-    this.origin = 'Addis Ababa',
-    this.destination = 'Dire Dawa',
-    this.cargoSpec = '28 MT Dry Bulk (Teff & Grain)',
-    this.distanceKm = 452,
-    this.bidsCount = 3,
-    this.initialRemainingTime = const Duration(hours: 4, minutes: 41, seconds: 56),
+    this.origin = 'Origin',
+    this.destination = 'Destination',
+    this.cargoSpec = 'Corridor Cargo',
+    this.distanceKm = 0,
+    this.bidsCount = 0,
+    Duration? initialRemainingTime,
   });
 
   @override

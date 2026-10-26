@@ -4,11 +4,56 @@ import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/data/models/corridor_shipment_item.dart';
 import 'package:mobile/presentation/screens/shipper_features/page08.dart';
 
+final List<CorridorShipmentItem> _sampleShipments = [
+  const CorridorShipmentItem(
+    id: '#HF-9012',
+    cargoType: 'Dry Bulk • Grain',
+    status: ShipmentStatus.inTransit,
+    origin: 'Addis Ababa',
+    destination: 'Dire Dawa',
+    viaRoute: 'Via Awash',
+    distanceKm: 452,
+    lowestOfferEtb: 45000,
+    driverName: 'Tewodros Kassaye',
+  ),
+  const CorridorShipmentItem(
+    id: '#HF-8841',
+    cargoType: 'General Cargo • FMCG',
+    status: ShipmentStatus.bidding,
+    origin: 'Addis Ababa',
+    destination: 'Adama',
+    viaRoute: 'Expressway A1',
+    distanceKm: 85,
+    lowestOfferEtb: 18500,
+    bidsCount: 3,
+  ),
+  const CorridorShipmentItem(
+    id: '#HF-7720',
+    cargoType: 'Agricultural • Coffee Bags',
+    status: ShipmentStatus.awaitingDispatch,
+    origin: 'Hawassa',
+    destination: 'Modjo',
+    viaRoute: 'A7 Corridor',
+    distanceKm: 215,
+    carrierAssigned: 'Selam Logistics PLC',
+  ),
+  const CorridorShipmentItem(
+    id: '#HF-6504',
+    cargoType: 'Construction • Rebar 40T',
+    status: ShipmentStatus.delivered,
+    origin: 'Addis Ababa',
+    destination: 'Bahir Dar',
+    viaRoute: 'Route 3 Corridor',
+    distanceKm: 560,
+    deliveredDate: 'Yesterday',
+  ),
+];
+
 void main() {
   Widget createTestWidget({List<CorridorShipmentItem>? shipments}) {
     return MaterialApp(
       theme: AppTheme.darkTheme,
-      home: Page08Screen(initialShipments: shipments),
+      home: Page08Screen(initialShipments: shipments ?? _sampleShipments),
     );
   }
 
@@ -23,7 +68,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(createTestWidget(shipments: CorridorShipmentItem.demoShipments));
+    await tester.pumpWidget(createTestWidget(shipments: _sampleShipments));
     await tester.pumpAndSettle();
 
     // Brand Header
@@ -48,7 +93,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(createTestWidget(shipments: CorridorShipmentItem.demoShipments));
+    await tester.pumpWidget(createTestWidget(shipments: _sampleShipments));
     await tester.pumpAndSettle();
 
     // Filter Chips
@@ -71,7 +116,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(createTestWidget(shipments: CorridorShipmentItem.demoShipments));
+    await tester.pumpWidget(createTestWidget(shipments: _sampleShipments));
     await tester.pumpAndSettle();
 
     // 1. Test POD Receipt dialog for Delivered shipment
