@@ -5,6 +5,7 @@ import 'package:mobile/core/services/driver_service.dart';
 import 'package:mobile/core/services/message_service.dart';
 import 'package:mobile/presentation/screens/driver/available_loads_screen.dart';
 import 'package:mobile/presentation/widgets/driver_bottom_navbar.dart';
+import 'package:mobile/presentation/widgets/home/home_header.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -209,6 +210,17 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: navy,
+      appBar: AppBar(
+        backgroundColor: navy,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 16,
+        title: HomeHeader(
+          language: 'EN',
+          onLanguageChanged: (_) {},
+          onProfileTap: () {},
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [

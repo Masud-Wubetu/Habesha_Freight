@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile/core/services/api_client.dart';
 import 'package:mobile/core/services/shipper_service.dart';
 import 'package:mobile/presentation/widgets/shipper_bottom_navbar.dart';
+import 'package:mobile/presentation/widgets/home/home_header.dart';
 
 class FreightHistoryScreen extends StatefulWidget {
   final List<ShipmentHistoryEntry>? initialShipments;

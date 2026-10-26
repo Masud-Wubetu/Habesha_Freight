@@ -162,7 +162,14 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(context),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+              child: HomeHeader(
+                language: 'EN',
+                onLanguageChanged: (_) {},
+                onProfileTap: () {},
+              ),
+            ),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
@@ -193,84 +200,6 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-      child: Row(
-        children: [
-          _headerButton(
-            icon: Icons.arrow_back_rounded,
-            onPressed: () => Navigator.maybePop(context),
-          ),
-          const Spacer(),
-          Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0B302F),
-                  border: Border.all(color: const Color(0xFF15534B)),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.circle, color: _green, size: 7),
-                    SizedBox(width: 5),
-                    Text(
-                      'ACTIVE CORRIDOR',
-                      style: TextStyle(
-                        color: _green,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                widget.reference,
-                style: const TextStyle(
-                  color: _gold,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          _headerButton(
-            icon: Icons.share_outlined,
-            onPressed: () =>
-                _showMessage('Request sharing is not available yet.'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _headerButton({
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return IconButton(
-      onPressed: onPressed,
-      style: IconButton.styleFrom(
-        backgroundColor: _surface,
-        foregroundColor: _white,
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(color: _border),
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      icon: Icon(icon),
     );
   }
 
@@ -316,13 +245,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildCorridorCard() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      borderColor: _border,
+      radius: 16,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -366,13 +293,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildRouteCard() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      borderColor: _border,
+      radius: 16,
       child: Column(
         children: [
           _routeStop(
@@ -574,64 +499,62 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
     required String detail,
     Color iconColor = _gold,
   }) {
-    return Container(
+    return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 112),
-      padding: const EdgeInsets.all(11),
-      decoration: BoxDecoration(
+      child: HfCard(
         color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: iconColor, size: 17),
-              const Spacer(),
-              _smallTag(tag),
-            ],
-          ),
-          const SizedBox(height: 9),
-          Text(
-            title,
-            style: const TextStyle(
-              color: _muted,
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
+        padding: const EdgeInsets.all(11),
+        borderColor: _border,
+        radius: 12,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: iconColor, size: 17),
+                const Spacer(),
+                _smallTag(tag),
+              ],
             ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: _white,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
+            const SizedBox(height: 9),
+            Text(
+              title,
+              style: const TextStyle(
+                color: _muted,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            detail,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: _muted, fontSize: 10),
-          ),
-        ],
+            const SizedBox(height: 3),
+            Text(
+              value,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _white,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              detail,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: _muted, fontSize: 10),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildTransitProtocol() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(13),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: const Color(0xFF8A5A14)),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      borderColor: const Color(0xFF8A5A14),
+      radius: 14,
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -663,13 +586,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildShipperCard() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      borderColor: _border,
+      radius: 14,
       child: Column(
         children: [
           Row(
@@ -788,13 +709,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildLanePulse() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(14),
-      ),
+      borderColor: _border,
+      radius: 14,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -816,13 +735,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
             ],
           ),
           const SizedBox(height: 10),
-          Container(
+          HfCard(
+            color: _surfaceHigh,
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _surfaceHigh,
-              border: Border.all(color: _border.withValues(alpha: 0.7)),
-              borderRadius: BorderRadius.circular(11),
-            ),
+            borderColor: _border.withValues(alpha: 0.7),
+            radius: 11,
             child: Column(
               children: [
                 Row(
@@ -884,13 +801,11 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   }
 
   Widget _buildBidPanel() {
-    return Container(
+    return HfCard(
+      color: _surface,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _surface,
-        border: Border.all(color: _border),
-        borderRadius: BorderRadius.circular(15),
-      ),
+      borderColor: _border,
+      radius: 15,
       child: Column(
         children: [
           Row(

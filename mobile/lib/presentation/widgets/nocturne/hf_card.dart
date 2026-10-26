@@ -10,6 +10,11 @@ class HfCard extends StatelessWidget {
     this.margin,
     this.color = AppColors.surfaceContainer,
     this.onTap,
+    this.borderColor,
+    this.borderWidth = 1,
+    this.radius = 12,
+    this.gradient,
+    this.width,
   });
 
   final Widget child;
@@ -17,15 +22,25 @@ class HfCard extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final Color color;
   final VoidCallback? onTap;
+  final Color? borderColor;
+  final double borderWidth;
+  final double radius;
+  final Gradient? gradient;
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
     final content = Container(
+      width: width,
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
+        color: gradient == null ? color : null,
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(radius),
+        border: borderColor == null
+            ? null
+            : Border.all(color: borderColor!, width: borderWidth),
       ),
       child: child,
     );
@@ -35,7 +50,7 @@ class HfCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(radius),
         child: content,
       ),
     );
